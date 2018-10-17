@@ -1,4 +1,5 @@
 from PyQt5 import QtGui  # (the example applies equally well to PySide)
+from PyQt5.QtCore import Qt
 import pyqtgraph as pg
 from Bittrex import Bittrex
 
@@ -11,6 +12,10 @@ w = QtGui.QWidget()
 bittrex = Bittrex(APIKey='', Secret='')
 
 def test():
+    color_green = QtGui.QColor(40,167,69)
+    color_red = QtGui.QColor(220,53,69)
+    align_right = Qt.AlignRight
+
     results = bittrex.load_order_book("BTC-XRP")
     for cell_index in range(2 * table_rows_one_direction):
         tableWidget.setItem(cell_index,0, QtGui.QTableWidgetItem(""))
@@ -24,10 +29,10 @@ def test():
         sum_bid_base += results['Bid'][bid]['Quantity'] * results['Bid'][bid]['Price']
         tableWidget.setItem(table_rows_one_direction + bid, 2, QtGui.QTableWidgetItem("{0:.8f}".format(sum_bid)))
         tableWidget.setItem(table_rows_one_direction + bid, 3, QtGui.QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
-        tableWidget.item(table_rows_one_direction + bid, 0).setBackground(QtGui.QColor(40,167,69))
-        tableWidget.item(table_rows_one_direction + bid, 1).setBackground(QtGui.QColor(40,167,69))
-        tableWidget.item(table_rows_one_direction + bid, 2).setBackground(QtGui.QColor(40,167,69))
-        tableWidget.item(table_rows_one_direction + bid, 3).setBackground(QtGui.QColor(40,167,69))
+        for i in range(4):
+            tableWidget.item(table_rows_one_direction + bid, i).setBackground(color_green)
+            tableWidget.item(table_rows_one_direction + bid, i).setTextAlignment(align_right)
+
     sum_ask = 0
     sum_ask_base = 0
     for ask in results['Ask']:
@@ -37,10 +42,9 @@ def test():
         sum_ask_base += results['Ask'][ask]['Quantity'] * results['Ask'][ask]['Price']
         tableWidget.setItem(table_rows_one_direction - 1 - ask, 2, QtGui.QTableWidgetItem("{0:.8f}".format(sum_ask)))
         tableWidget.setItem(table_rows_one_direction - 1 - ask, 3, QtGui.QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
-        tableWidget.item(table_rows_one_direction - 1 - ask, 0).setBackground(QtGui.QColor(220,53,69))
-        tableWidget.item(table_rows_one_direction - 1 - ask, 1).setBackground(QtGui.QColor(220,53,69))
-        tableWidget.item(table_rows_one_direction - 1 - ask, 2).setBackground(QtGui.QColor(220,53,69))
-        tableWidget.item(table_rows_one_direction - 1 - ask, 3).setBackground(QtGui.QColor(220,53,69))
+        for i in range(4):
+            tableWidget.item(table_rows_one_direction - 1 - ask, i).setBackground(color_red)
+            tableWidget.item(table_rows_one_direction - 1 - ask, i).setTextAlignment(align_right)
 
 ## Create some widgets to be placed inside
 btn = QtGui.QPushButton('press me')
@@ -50,6 +54,7 @@ table_rows_one_direction = 5
 tableWidget = QtGui.QTableWidget()
 tableWidget.setRowCount(2 * table_rows_one_direction)
 tableWidget.setColumnCount(4)
+tableWidget.setHorizontalHeaderLabels(['Price','Quantity','XRP sum','BTC sum'])
 test()
 
 plot = pg.PlotWidget()
