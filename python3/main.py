@@ -1,75 +1,85 @@
-from PyQt5 import QtGui  # (the example applies equally well to PySide)
+import sys
+
+from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
+
 import pyqtgraph as pg
+
 from Bittrex import Bittrex
-
-## Always start by initializing Qt (only once per application)
-app = QtGui.QApplication([])
-
-## Define a top-level widget to hold everything
-w = QtGui.QWidget()
 
 bittrex = Bittrex(APIKey='', Secret='')
 
-def test():
-    color_green = QtGui.QColor(40,167,69)
-    color_red = QtGui.QColor(220,53,69)
-    align_right = Qt.AlignRight
+class App(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.title = 'Crypto Trader'
+        self.left = 10
+        self.top = 10
+        self.width = 640
+        self.height = 480
+        self.table_rows_one_direction = 5
+        self.initUI()
 
-    results = bittrex.load_order_book("BTC-XRP")
-    for cell_index in range(2 * table_rows_one_direction):
-        tableWidget.setItem(cell_index,0, QtGui.QTableWidgetItem(""))
-        tableWidget.setItem(cell_index,1, QtGui.QTableWidgetItem(""))
-    sum_bid = 0
-    sum_bid_base = 0
-    for bid in results['Bid']:
-        tableWidget.setItem(table_rows_one_direction + bid, 0, QtGui.QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Price'])))
-        tableWidget.setItem(table_rows_one_direction + bid, 1, QtGui.QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Quantity'])))
-        sum_bid += results['Bid'][bid]['Quantity']
-        sum_bid_base += results['Bid'][bid]['Quantity'] * results['Bid'][bid]['Price']
-        tableWidget.setItem(table_rows_one_direction + bid, 2, QtGui.QTableWidgetItem("{0:.8f}".format(sum_bid)))
-        tableWidget.setItem(table_rows_one_direction + bid, 3, QtGui.QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
-        for i in range(4):
-            tableWidget.item(table_rows_one_direction + bid, i).setBackground(color_green)
-            tableWidget.item(table_rows_one_direction + bid, i).setTextAlignment(align_right)
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
 
-    sum_ask = 0
-    sum_ask_base = 0
-    for ask in results['Ask']:
-        tableWidget.setItem(table_rows_one_direction - 1 - ask, 0, QtGui.QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Price'])))
-        tableWidget.setItem(table_rows_one_direction - 1 - ask, 1, QtGui.QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Quantity'])))
-        sum_ask += results['Ask'][ask]['Quantity']
-        sum_ask_base += results['Ask'][ask]['Quantity'] * results['Ask'][ask]['Price']
-        tableWidget.setItem(table_rows_one_direction - 1 - ask, 2, QtGui.QTableWidgetItem("{0:.8f}".format(sum_ask)))
-        tableWidget.setItem(table_rows_one_direction - 1 - ask, 3, QtGui.QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
-        for i in range(4):
-            tableWidget.item(table_rows_one_direction - 1 - ask, i).setBackground(color_red)
-            tableWidget.item(table_rows_one_direction - 1 - ask, i).setTextAlignment(align_right)
+        btn = QtGui.QPushButton('press me')
+        btn.clicked.connect(self.test)
 
-## Create some widgets to be placed inside
-btn = QtGui.QPushButton('press me')
-btn.clicked.connect(test)
+        self.tableWidget = QtGui.QTableWidget()
+        self.tableWidget.setRowCount(2 * self.table_rows_one_direction)
+        self.tableWidget.setColumnCount(4)
+        self.tableWidget.setHorizontalHeaderLabels(['Price','Quantity','XRP sum','BTC sum'])
+        self.test()
 
-table_rows_one_direction = 5
-tableWidget = QtGui.QTableWidget()
-tableWidget.setRowCount(2 * table_rows_one_direction)
-tableWidget.setColumnCount(4)
-tableWidget.setHorizontalHeaderLabels(['Price','Quantity','XRP sum','BTC sum'])
-test()
+        plot = pg.PlotWidget()
+        layout = QtGui.QGridLayout()
+        self.setLayout(layout)
 
-plot = pg.PlotWidget()
+        layout.addWidget(btn, 0, 0)
+        layout.addWidget(self.tableWidget, 1, 0)
+        layout.addWidget(plot, 0, 1, 2, 1)
 
-## Create a grid layout to manage the widgets size and position
-layout = QtGui.QGridLayout()
-w.setLayout(layout)
+        self.show()
 
-## Add widgets to the layout in their proper positions
-layout.addWidget(btn, 0, 0)   # button goes in upper-left
-layout.addWidget(tableWidget, 1, 0)   # text edit goes in middle-left
-layout.addWidget(plot, 0, 1, 2, 1)  # plot goes on right side, spanning 3 rows
+    def test(self):
+        color_green = QtGui.QColor(40,167,69)
+        color_red = QtGui.QColor(220,53,69)
+        align_right = Qt.AlignRight
 
-## Display the widget as a new window
-w.show()
+        results = bittrex.load_order_book("BTC-ETH")
+        for cell_index in range(2 * self.table_rows_one_direction):
+            self.tableWidget.setItem(cell_index,0, QtGui.QTableWidgetItem(""))
+            self.tableWidget.setItem(cell_index,1, QtGui.QTableWidgetItem(""))
+        sum_bid = 0
+        sum_bid_base = 0
+        for bid in results['Bid']:
+            self.tableWidget.setItem(self.table_rows_one_direction + bid, 0, QtGui.QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Price'])))
+            self.tableWidget.setItem(self.table_rows_one_direction + bid, 1, QtGui.QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Quantity'])))
+            sum_bid += results['Bid'][bid]['Quantity']
+            sum_bid_base += results['Bid'][bid]['Quantity'] * results['Bid'][bid]['Price']
+            self.tableWidget.setItem(self.table_rows_one_direction + bid, 2, QtGui.QTableWidgetItem("{0:.8f}".format(sum_bid)))
+            self.tableWidget.setItem(self.table_rows_one_direction + bid, 3, QtGui.QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
+            for i in range(4):
+                self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(color_green)
+                self.tableWidget.item(self.table_rows_one_direction + bid, i).setTextAlignment(align_right)
 
-## Start the Qt event loop
-app.exec_()
+        sum_ask = 0
+        sum_ask_base = 0
+        for ask in results['Ask']:
+            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 0, QtGui.QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Price'])))
+            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 1, QtGui.QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Quantity'])))
+            sum_ask += results['Ask'][ask]['Quantity']
+            sum_ask_base += results['Ask'][ask]['Quantity'] * results['Ask'][ask]['Price']
+            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 2, QtGui.QTableWidgetItem("{0:.8f}".format(sum_ask)))
+            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 3, QtGui.QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
+            for i in range(4):
+                self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(color_red)
+                self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setTextAlignment(align_right)
+
+if __name__ == '__main__':
+    app = QApplication([])
+    ex = App()
+    sys.exit(app.exec_())
