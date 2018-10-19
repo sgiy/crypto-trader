@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QComboBox, QStyleFactory
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
 
@@ -40,9 +40,20 @@ class App(QWidget):
 
         layout.addWidget(btn, 0, 0)
         layout.addWidget(self.tableWidget, 1, 0)
-        layout.addWidget(plot, 0, 1, 2, 1)
+        layout.addWidget(plot, 1, 1, 2, 2)
+
+        styleComboBox = QComboBox()
+        styleComboBox.addItems(QStyleFactory.keys())
+        styleComboBox.activated[str].connect(self.changeStyle)
+        layout.addWidget(styleComboBox, 0, 1)
+
+        if 'Fusion' in QStyleFactory.keys():
+            self.changeStyle('Fusion')
 
         self.show()
+
+    def changeStyle(self, styleName):
+        QApplication.setStyle(QStyleFactory.create(styleName))
 
     def test(self):
         color_green = QtGui.QColor(40,167,69)
