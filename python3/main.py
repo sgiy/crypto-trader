@@ -2,7 +2,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QWidget, QComboBox, QStyleFactory
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 
 import pyqtgraph as pg
 
@@ -50,6 +50,10 @@ class App(QWidget):
         if 'Fusion' in QStyleFactory.keys():
             self.changeStyle('Fusion')
 
+        timer = QTimer(self)
+        timer.timeout.connect(self.test)
+        timer.start(1000)
+
         self.show()
 
     def changeStyle(self, styleName):
@@ -60,7 +64,7 @@ class App(QWidget):
         color_red = QtGui.QColor(220,53,69)
         align_right = Qt.AlignRight
 
-        results = bittrex.load_order_book("BTC-ETH")
+        results = bittrex.load_order_book("BTC-XRP")
         for cell_index in range(2 * self.table_rows_one_direction):
             self.tableWidget.setItem(cell_index,0, QtGui.QTableWidgetItem(""))
             self.tableWidget.setItem(cell_index,1, QtGui.QTableWidgetItem(""))
