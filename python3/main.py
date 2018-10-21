@@ -7,27 +7,25 @@ from PyQt5.QtCore import Qt, QTimer
 
 import pyqtgraph as pg
 
-from Bittrex import Bittrex
+from config import *
 
-bittrex = Bittrex(APIKey='', Secret='')
+from CryptoTrader import CryptoTrader
 
 class App(QWidget):
     def __init__(self):
         super().__init__()
         self.title = 'Crypto Trader'
-        self.left = 10
-        self.top = 10
-        self.width = 1280
-        self.height = 960
-        self.table_rows_one_direction = 5
+        self.left = WINDOW_SIZE['left']
+        self.top = WINDOW_SIZE['top']
+        self.width = WINDOW_SIZE['width']
+        self.height = WINDOW_SIZE['height']
+        self.table_rows_one_direction = DISPLAY_BOOK_DEPTH
+        self.crypto_trader = CryptoTrader(API_KEYS)
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-
-        # btn = QtGui.QPushButton('press me')
-        # btn.clicked.connect(self.test)
 
         dropdown_base_curr = QComboBox()
         dropdown_base_curr.addItems(['BTC'])
@@ -86,7 +84,7 @@ class App(QWidget):
         color_red = QtGui.QColor(220,53,69)
         align_right = Qt.AlignRight
 
-        results = bittrex.load_order_book("BTC-SALT")
+        results = self.crypto_trader.trader['Bittrex'].load_order_book("BTC-SALT")
         for cell_index in range(2 * self.table_rows_one_direction):
             self.tableWidget.setItem(cell_index,0, QtGui.QTableWidgetItem(""))
             self.tableWidget.setItem(cell_index,1, QtGui.QTableWidgetItem(""))
