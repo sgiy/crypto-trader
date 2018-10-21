@@ -11,3 +11,9 @@ class CryptoTrader:
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
             self.trader[exchange] = exchange_class(API_KEYS[exchange]['APIKey'], API_KEYS[exchange]['Secret'])
+
+        for exchange in self.trader:
+            self.trader[exchange].load_currencies()
+
+        for exchange in self.trader:
+            self.trader[exchange].load_markets()

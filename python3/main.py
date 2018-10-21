@@ -1,7 +1,7 @@
 import sys
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QComboBox, QStyleFactory,
-    QGridLayout, QHBoxLayout, QLabel)
+    QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QButtonGroup)
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QTimer
 
@@ -10,6 +10,8 @@ import pyqtgraph as pg
 from config import *
 
 from CryptoTrader import CryptoTrader
+
+import ipdb
 
 class App(QWidget):
     def __init__(self):
@@ -27,6 +29,50 @@ class App(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
+        if 'Fusion' in QStyleFactory.keys():
+            self.changeStyle('Fusion')
+
+        self.buttons_nav_home = QPushButton('Home', self)
+        self.buttons_nav_home.clicked.connect(self.draw_view_home)
+        self.buttons_nav_compare = QPushButton('Compare', self)
+        self.buttons_nav_compare.clicked.connect(self.draw_view_home)
+        self.buttons_nav_settings = QPushButton('Settings', self)
+        self.buttons_nav_settings.clicked.connect(self.draw_view_settings)
+
+        self.nav_bar = QVBoxLayout()
+        self.nav_bar.addWidget(self.buttons_nav_home)
+        self.nav_bar.addWidget(self.buttons_nav_compare)
+        self.nav_bar.addWidget(self.buttons_nav_settings)
+        self.nav_bar.addStretch(1)
+
+        top_level_layout = QGridLayout()
+        self.view_layout = QGridLayout()
+        top_level_layout.addLayout(self.nav_bar, 1, 0)
+        top_level_layout.addLayout(self.view_layout, 1, 1, 1, 4)
+
+        self.setLayout(top_level_layout)
+        self.draw_view_home()
+        self.show()
+
+    def clear_view(self):
+        # for i in reversed(range(self.view_layout.count())):
+            # ipdb.set_trace()
+            # widget = self.view_layout.takeAt(i).widget()
+            # if widget is not None:
+            #     widget.setParent(None)
+        def deleteItems(layout):
+            if layout is not None:
+                while layout.count():
+                    item = layout.takeAt(0)
+                    widget = item.widget()
+                    if widget is not None:
+                        widget.deleteLater()
+                    else:
+                        deleteItems(item.layout())
+
+        deleteItems(self.view_layout)
+
+    def draw_view_home(self):
         dropdown_base_curr = QComboBox()
         dropdown_base_curr.addItems(['BTC'])
 
@@ -42,9 +88,9 @@ class App(QWidget):
         topLayout = QHBoxLayout()
         topLayout.addWidget(label_base_curr)
         topLayout.addWidget(dropdown_base_curr)
-        # topLayout.addStretch(1)
         topLayout.addWidget(label_curr_curr)
         topLayout.addWidget(dropdown_curr_curr)
+        topLayout.addStretch(1)
 
         self.tableWidget = QtGui.QTableWidget()
         self.tableWidget.setRowCount(2 * self.table_rows_one_direction)
@@ -54,27 +100,22 @@ class App(QWidget):
 
         plot = pg.PlotWidget()
 
-        mainLayout = QGridLayout()
-        mainLayout.addLayout(topLayout, 0, 0, 1, 2)
-        # layout.addWidget(btn, 0, 0)
-        mainLayout.addWidget(self.tableWidget, 2, 0)
-        mainLayout.addWidget(plot, 2, 1)
-
-        styleComboBox = QComboBox()
-        styleComboBox.addItems(QStyleFactory.keys())
-        styleComboBox.activated[str].connect(self.changeStyle)
-        mainLayout.addWidget(styleComboBox, 1, 1)
-
-        self.setLayout(mainLayout)
-
-        if 'Fusion' in QStyleFactory.keys():
-            self.changeStyle('Fusion')
+        self.clear_view()
+        self.view_layout.addLayout(topLayout, 0, 0, 1, 2)
+        self.view_layout.addWidget(self.tableWidget, 2, 0)
+        self.view_layout.addWidget(plot, 2, 1)
 
         timer = QTimer(self)
         timer.timeout.connect(self.test)
         timer.start(1000)
 
-        self.show()
+    def draw_view_settings(self):
+        styleComboBox = QComboBox()
+        styleComboBox.addItems(QStyleFactory.keys())
+        styleComboBox.activated[str].connect(self.changeStyle)
+
+        self.clear_view()
+        self.view_layout.addWidget(styleComboBox, 1, 1)
 
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))

@@ -62,7 +62,7 @@ class Exchange:
 
     def load_markets(self):
         """
-            Needs to update self._markets and self._active_markets with a map  of maps from global base currency code to a global curr currency code that results in  map having Name and Enabled keys.
+            Needs to update self._markets and self._active_markets with a map of maps from global base currency code to a global curr currency code that results in  map having Name and Enabled keys.
             Example:
                 {
                     'BTC': {
