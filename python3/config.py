@@ -11,3 +11,11 @@ API_KEYS ={
         'Secret': ''
     }
 }
+EXCHANGE_CURRENCY_RENAME_MAP = {
+    'Bittrex':  {
+                    'BITS': 'BITS_BITSWIFT',
+                },
+}
+HOME_VIEW_EXCHANGE = 'Bittrex'
+HOME_VIEW_BASE_CODE = 'BTC'
+HOME_VIEW_CURRENCY_CODE = 'XRP'
