@@ -1,6 +1,7 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QWidget, QComboBox, QStyleFactory
+from PyQt5.QtWidgets import (QApplication, QWidget, QComboBox, QStyleFactory,
+    QGridLayout, QHBoxLayout, QLabel)
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QTimer
 
@@ -16,8 +17,8 @@ class App(QWidget):
         self.title = 'Crypto Trader'
         self.left = 10
         self.top = 10
-        self.width = 640
-        self.height = 480
+        self.width = 1280
+        self.height = 960
         self.table_rows_one_direction = 5
         self.initUI()
 
@@ -25,8 +26,27 @@ class App(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        btn = QtGui.QPushButton('press me')
-        btn.clicked.connect(self.test)
+        # btn = QtGui.QPushButton('press me')
+        # btn.clicked.connect(self.test)
+
+        dropdown_base_curr = QComboBox()
+        dropdown_base_curr.addItems(['BTC'])
+
+        label_base_curr = QLabel("&Base:")
+        label_base_curr.setBuddy(dropdown_base_curr)
+
+        dropdown_curr_curr = QComboBox()
+        dropdown_curr_curr.addItems(['XRP', 'SALT'])
+
+        label_curr_curr = QLabel("&Currency:")
+        label_curr_curr.setBuddy(dropdown_curr_curr)
+
+        topLayout = QHBoxLayout()
+        topLayout.addWidget(label_base_curr)
+        topLayout.addWidget(dropdown_base_curr)
+        # topLayout.addStretch(1)
+        topLayout.addWidget(label_curr_curr)
+        topLayout.addWidget(dropdown_curr_curr)
 
         self.tableWidget = QtGui.QTableWidget()
         self.tableWidget.setRowCount(2 * self.table_rows_one_direction)
@@ -35,17 +55,19 @@ class App(QWidget):
         self.test()
 
         plot = pg.PlotWidget()
-        layout = QtGui.QGridLayout()
-        self.setLayout(layout)
 
-        layout.addWidget(btn, 0, 0)
-        layout.addWidget(self.tableWidget, 1, 0)
-        layout.addWidget(plot, 1, 1, 2, 2)
+        mainLayout = QGridLayout()
+        mainLayout.addLayout(topLayout, 0, 0, 1, 2)
+        # layout.addWidget(btn, 0, 0)
+        mainLayout.addWidget(self.tableWidget, 2, 0)
+        mainLayout.addWidget(plot, 2, 1)
 
         styleComboBox = QComboBox()
         styleComboBox.addItems(QStyleFactory.keys())
         styleComboBox.activated[str].connect(self.changeStyle)
-        layout.addWidget(styleComboBox, 0, 1)
+        mainLayout.addWidget(styleComboBox, 1, 1)
+
+        self.setLayout(mainLayout)
 
         if 'Fusion' in QStyleFactory.keys():
             self.changeStyle('Fusion')
@@ -64,7 +86,7 @@ class App(QWidget):
         color_red = QtGui.QColor(220,53,69)
         align_right = Qt.AlignRight
 
-        results = bittrex.load_order_book("BTC-XRP")
+        results = bittrex.load_order_book("BTC-SALT")
         for cell_index in range(2 * self.table_rows_one_direction):
             self.tableWidget.setItem(cell_index,0, QtGui.QTableWidgetItem(""))
             self.tableWidget.setItem(cell_index,1, QtGui.QTableWidgetItem(""))
