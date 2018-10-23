@@ -1,6 +1,6 @@
 WINDOW_SIZE = {
-    'left':     10,
-    'top':      10,
+    'left':     50,
+    'top':      50,
     'width':    1280,
     'height':   960,
 }

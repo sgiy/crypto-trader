@@ -13,16 +13,18 @@ class Bittrex(Exchange):
         super().__init__(APIKey, Secret)
         self.BASE_URL = 'https://bittrex.com/api/v1.1/'
 
-    def get_request(self, url):
+    def get_request(self, url, base_url_override = None):
         # print('Requesting url ' + url)
+        if base_url_override is None:
+            base_url_override = self.BASE_URL
         try:
-            result = requests.get(self.BASE_URL + url).json()
+            result = requests.get(base_url_override + url).json()
             if result.get('success', None) == True:
                 return result['result']
             else:
                 return self.get_request(url)
         except Exception as e:
-            self.print_exception(self.BASE_URL + url + ". " + str(e))
+            self.print_exception(base_url_override + url + ". " + str(e))
             return self.get_request(url)
 
     def trading_api_request(self, command, extra=''):
@@ -82,6 +84,9 @@ class Bittrex(Exchange):
 
     def cancel_order(self,order_uuid):
         return self.trading_api_request('market/cancel','&uuid='+order_uuid)
+
+    def get_ticks(self, market, interval = 'fiveMin'):
+        return self.get_request('https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + market + '&tickInterval=' + interval, '')
 
     #######################
     ### Generic methods ###

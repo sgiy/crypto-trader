@@ -1,17 +1,51 @@
-import sys
+import sys, time
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QComboBox, QStyleFactory,
-    QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QButtonGroup)
+    QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QButtonGroup,
+    QMenu, QSizePolicy)
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QTimer
 
 import pyqtgraph as pg
+import matplotlib
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.finance import candlestick2_ochl
 
 from config import *
 
 from CryptoTrader import CryptoTrader
 
 import ipdb
+
+class MyMplCanvas(FigureCanvas):
+    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
+
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot(111)
+
+        FigureCanvas.__init__(self, fig)
+        self.setParent(parent)
+
+        FigureCanvas.setSizePolicy(self,
+                                   QSizePolicy.Expanding,
+                                   QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+
+    def compute_initial_figure(self):
+        pass
+
+class MyDynamicMplCanvas(MyMplCanvas):
+    """A canvas that updates itself every second with a new plot."""
+
+    def __init__(self, *args, **kwargs):
+        MyMplCanvas.__init__(self, *args, **kwargs)
+
+    def update_figure(self, opens, closes, highs, lows):
+        self.axes.cla()
+        candlestick2_ochl(self.axes, opens, closes, highs, lows, width=4, colorup='g', colordown='r', alpha=0.75)
+        self.draw()
 
 class App(QWidget):
     def __init__(self):
@@ -53,7 +87,7 @@ class App(QWidget):
         top_level_layout = QGridLayout()
         self.view_layout = QGridLayout()
         top_level_layout.addLayout(self.nav_bar, 1, 0)
-        top_level_layout.addLayout(self.view_layout, 1, 1, 1, 4)
+        top_level_layout.addLayout(self.view_layout, 1, 1, 1, 9)
 
         self.setLayout(top_level_layout)
         self.draw_view_home()
@@ -129,12 +163,28 @@ class App(QWidget):
         topLayout.addWidget(self._home_view_dropdown_curr_curr)
         topLayout.addStretch(1)
 
-        plot = pg.PlotWidget()
+        exchange = self._home_view_exchange
+        market_name = self.crypto_trader.get_market_name(exchange, self._home_view_base_curr, self._home_view_curr_curr)
+        load_chart = self.crypto_trader.trader[exchange].get_ticks(market_name)
+
+        self.dc = MyDynamicMplCanvas(self, width=5, height=4, dpi=100)
+
+        opens = []
+        closes = []
+        highs = []
+        lows = []
+        for i in load_chart:
+            opens.append(i['O'])
+            closes.append(i['C'])
+            highs.append(i['H'])
+            lows.append(i['L'])
+
+        self.dc.update_figure(opens, closes, highs, lows)
 
         self.clear_view()
         self.view_layout.addLayout(topLayout, 0, 0, 1, 2)
         self.view_layout.addWidget(self.tableWidget, 2, 0)
-        self.view_layout.addWidget(plot, 2, 1)
+        self.view_layout.addWidget(self.dc, 2, 1)
 
         self.timer.start(1000)
         self.timer.timeout.connect(self.view_home_refresh_order_book)
