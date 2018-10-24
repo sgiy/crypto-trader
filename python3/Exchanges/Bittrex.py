@@ -88,6 +88,9 @@ class Bittrex(Exchange):
     def get_ticks(self, market, interval = 'fiveMin'):
         return self.get_request('https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + market + '&tickInterval=' + interval, '')
 
+    def get_latest_tick(self, market, interval = 'fiveMin'):
+        return self.get_request('https://bittrex.com/Api/v2.0/pub/market/GetLatestTick?marketName=' + market + '&tickInterval=' + interval, '')
+
     #######################
     ### Generic methods ###
     #######################

@@ -1,4 +1,5 @@
 import sys, time
+from datetime import datetime
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QComboBox, QStyleFactory,
     QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QButtonGroup,
@@ -10,7 +11,8 @@ import pyqtgraph as pg
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from matplotlib.finance import candlestick2_ochl
+from matplotlib.finance import candlestick2_ochl, candlestick_ohlc
+import matplotlib.dates as dates
 
 from config import *
 
@@ -18,33 +20,34 @@ from CryptoTrader import CryptoTrader
 
 import ipdb
 
-class MyMplCanvas(FigureCanvas):
-    """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
+class Dropdown(QComboBox):
+    def __init__(self, items_list, selected_value):
+        super().__init__()
+        self.addItems(items_list)
+        self.setCurrentText(selected_value)
+
+class DynamicCanvas(FigureCanvas):
+    """A canvas that updates itself every second with a new plot."""
 
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
-
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
-
-        FigureCanvas.setSizePolicy(self,
-                                   QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def compute_initial_figure(self):
-        pass
-
-class MyDynamicMplCanvas(MyMplCanvas):
-    """A canvas that updates itself every second with a new plot."""
-
-    def __init__(self, *args, **kwargs):
-        MyMplCanvas.__init__(self, *args, **kwargs)
-
-    def update_figure(self, opens, closes, highs, lows):
+    def initialize_figure(self, opens, closes, highs, lows, number_of_ticks_to_show = 100):
         self.axes.cla()
-        candlestick2_ochl(self.axes, opens, closes, highs, lows, width=4, colorup='g', colordown='r', alpha=0.75)
+        candlestick2_ochl(self.axes,
+                        opens[-number_of_ticks_to_show:],
+                        closes[-number_of_ticks_to_show:],
+                        highs[-number_of_ticks_to_show:],
+                        lows[-number_of_ticks_to_show:],
+                        width=0.6,
+                        colorup='g',
+                        colordown='r',
+                        alpha=0.75)
         self.draw()
 
 class App(QWidget):
@@ -108,19 +111,29 @@ class App(QWidget):
 
         deleteItems(self.view_layout)
 
+    def view_home_refresh_dropdown_exchange_change(self, exchange, default_selection = None):
+        self._home_view_exchange = exchange
+        if default_selection is None:
+            default_selection = self._home_view_dropdown_base_curr.currentText
+        base_codes = self.crypto_trader.trader[exchange]._active_markets.keys()
+        self._home_view_dropdown_base_curr.clear()
+        self._home_view_dropdown_base_curr.addItems(base_codes)
+        self._home_view_dropdown_base_curr.setCurrentText(default_selection)
+        self._home_view_base_curr = default_selection
+
     def view_home_refresh_dropdown_base_change(self, base_curr, default_selection = None):
+        self._home_view_base_curr = base_curr
         if default_selection is None:
             default_selection = self._home_view_dropdown_curr_curr.currentText
-        self._home_view_dropdown_curr_curr.clear()
         curr_codes = self.crypto_trader.trader[self._home_view_exchange]._active_markets[base_curr].keys()
+        self._home_view_dropdown_curr_curr.clear()
         self._home_view_dropdown_curr_curr.addItems(curr_codes)
-        index = self._home_view_dropdown_curr_curr.findText(default_selection, Qt.MatchFixedString)
-        if index >= 0:
-            self._home_view_dropdown_curr_curr.setCurrentIndex(index)
-        self._home_view_base_curr = base_curr
+        self._home_view_dropdown_curr_curr.setCurrentText(default_selection)
+        self._home_view_curr_curr = default_selection
 
     def view_home_refresh_dropdown_curr_change(self, curr_curr):
         self._home_view_curr_curr = curr_curr
+        self._home_view_market_name = self.crypto_trader.get_market_name(self._home_view_exchange, self._home_view_base_curr, curr_curr)
         self.tableWidget.setHorizontalHeaderLabels([
             'Price',
             'Quantity',
@@ -128,63 +141,55 @@ class App(QWidget):
             self._home_view_base_curr + ' sum'
         ])
         self.view_home_refresh_order_book()
+        self.view_home_refresh_chart()
+
 
     def draw_view_home(self):
-        self._home_view_dropdown_base_curr = QComboBox()
-        self._home_view_dropdown_curr_curr = QComboBox()
-
         self._home_view_exchange = HOME_VIEW_EXCHANGE
-        base_codes = self.crypto_trader.trader[self._home_view_exchange]._active_markets.keys()
-        self.view_home_refresh_dropdown_base_change(HOME_VIEW_BASE_CODE, HOME_VIEW_CURRENCY_CODE)
+        self._home_view_base_curr = HOME_VIEW_BASE_CODE
+        self._home_view_curr_curr = HOME_VIEW_CURRENCY_CODE
 
         self.tableWidget = QtGui.QTableWidget()
         self.tableWidget.setRowCount(2 * self.table_rows_one_direction)
         self.tableWidget.setColumnCount(4)
-        self.view_home_refresh_dropdown_curr_change(HOME_VIEW_CURRENCY_CODE)
+        self.chart = DynamicCanvas(self, width=5, height=4, dpi=100)
 
-        self._home_view_dropdown_base_curr.addItems(base_codes)
-        index = self._home_view_dropdown_base_curr.findText(HOME_VIEW_BASE_CODE, Qt.MatchFixedString)
-        if index >= 0:
-            self._home_view_dropdown_base_curr.setCurrentIndex(index)
+        exchanges = self.crypto_trader.trader.keys()
+        self._home_view_dropdown_exchange = Dropdown(exchanges, HOME_VIEW_EXCHANGE)
+        self._home_view_dropdown_exchange.activated[str].connect(self.view_home_refresh_dropdown_exchange_change)
+
+        base_codes = self.crypto_trader.trader[HOME_VIEW_EXCHANGE]._active_markets.keys()
+        self._home_view_dropdown_base_curr = Dropdown(base_codes, HOME_VIEW_BASE_CODE)
         self._home_view_dropdown_base_curr.activated[str].connect(self.view_home_refresh_dropdown_base_change)
 
-        label_base_curr = QLabel("&Base:")
-        label_base_curr.setBuddy(self._home_view_dropdown_base_curr)
-
+        curr_codes = self.crypto_trader.trader[HOME_VIEW_EXCHANGE]._active_markets[HOME_VIEW_BASE_CODE].keys()
+        self._home_view_dropdown_curr_curr = Dropdown(curr_codes, HOME_VIEW_CURRENCY_CODE)
         self._home_view_dropdown_curr_curr.activated[str].connect(self.view_home_refresh_dropdown_curr_change)
 
+        self.view_home_refresh_dropdown_exchange_change(HOME_VIEW_EXCHANGE, HOME_VIEW_BASE_CODE)
+        self.view_home_refresh_dropdown_base_change(HOME_VIEW_BASE_CODE, HOME_VIEW_CURRENCY_CODE)
+        self.view_home_refresh_dropdown_curr_change(HOME_VIEW_CURRENCY_CODE)
+
+        label_base_exch = QLabel("&Echange:")
+        label_base_exch.setBuddy(self._home_view_dropdown_exchange)
+        label_base_curr = QLabel("&Base:")
+        label_base_curr.setBuddy(self._home_view_dropdown_base_curr)
         label_curr_curr = QLabel("&Currency:")
         label_curr_curr.setBuddy(self._home_view_dropdown_curr_curr)
 
         topLayout = QHBoxLayout()
+        topLayout.addWidget(label_base_exch)
+        topLayout.addWidget(self._home_view_dropdown_exchange)
         topLayout.addWidget(label_base_curr)
         topLayout.addWidget(self._home_view_dropdown_base_curr)
         topLayout.addWidget(label_curr_curr)
         topLayout.addWidget(self._home_view_dropdown_curr_curr)
         topLayout.addStretch(1)
 
-        exchange = self._home_view_exchange
-        market_name = self.crypto_trader.get_market_name(exchange, self._home_view_base_curr, self._home_view_curr_curr)
-        load_chart = self.crypto_trader.trader[exchange].get_ticks(market_name)
-
-        self.dc = MyDynamicMplCanvas(self, width=5, height=4, dpi=100)
-
-        opens = []
-        closes = []
-        highs = []
-        lows = []
-        for i in load_chart:
-            opens.append(i['O'])
-            closes.append(i['C'])
-            highs.append(i['H'])
-            lows.append(i['L'])
-
-        self.dc.update_figure(opens, closes, highs, lows)
-
         self.clear_view()
         self.view_layout.addLayout(topLayout, 0, 0, 1, 2)
         self.view_layout.addWidget(self.tableWidget, 2, 0)
-        self.view_layout.addWidget(self.dc, 2, 1)
+        self.view_layout.addWidget(self.chart, 2, 1)
 
         self.timer.start(1000)
         self.timer.timeout.connect(self.view_home_refresh_order_book)
@@ -205,7 +210,7 @@ class App(QWidget):
         exchange = self._home_view_exchange
         code_base = self._home_view_base_curr
         code_curr = self._home_view_curr_curr
-        market_name = self.crypto_trader.get_market_name(exchange, code_base, code_curr)
+        market_name = self._home_view_market_name
         print("Loading market " + market_name)
 
         color_green = QtGui.QColor(40,167,69)
@@ -241,6 +246,25 @@ class App(QWidget):
             for i in range(4):
                 self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(color_red)
                 self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setTextAlignment(align_right)
+
+    def view_home_refresh_chart(self):
+        exchange = self._home_view_exchange
+        code_base = self._home_view_base_curr
+        code_curr = self._home_view_curr_curr
+        market_name = self._home_view_market_name
+        load_chart = self.crypto_trader.trader[exchange].get_ticks(market_name)
+
+        opens = []
+        closes = []
+        highs = []
+        lows = []
+        for i in load_chart:
+            opens.append(i['O'])
+            closes.append(i['C'])
+            highs.append(i['H'])
+            lows.append(i['L'])
+
+        self.chart.initialize_figure(opens, closes, highs, lows)
 
 if __name__ == '__main__':
     app = QApplication([])
