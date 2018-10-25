@@ -3,11 +3,10 @@ from datetime import datetime
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QComboBox, QStyleFactory,
     QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QButtonGroup,
-    QMenu, QSizePolicy)
+    QMenu, QSizePolicy, QTableWidget,QTableWidgetItem)
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QTimer
 
-import pyqtgraph as pg
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -27,8 +26,6 @@ class Dropdown(QComboBox):
         self.setCurrentText(selected_value)
 
 class DynamicCanvas(FigureCanvas):
-    """A canvas that updates itself every second with a new plot."""
-
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
@@ -37,7 +34,7 @@ class DynamicCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def initialize_figure(self, opens, closes, highs, lows, number_of_ticks_to_show = 100):
+    def initialize_figure(self, opens, closes, highs, lows, number_of_ticks_to_show = 12*24):
         self.axes.cla()
         candlestick2_ochl(self.axes,
                         opens[-number_of_ticks_to_show:],
@@ -149,7 +146,7 @@ class App(QWidget):
         self._home_view_base_curr = HOME_VIEW_BASE_CODE
         self._home_view_curr_curr = HOME_VIEW_CURRENCY_CODE
 
-        self.tableWidget = QtGui.QTableWidget()
+        self.tableWidget = QTableWidget()
         self.tableWidget.setRowCount(2 * self.table_rows_one_direction)
         self.tableWidget.setColumnCount(4)
         self.chart = DynamicCanvas(self, width=5, height=4, dpi=100)
@@ -187,9 +184,9 @@ class App(QWidget):
         topLayout.addStretch(1)
 
         self.clear_view()
-        self.view_layout.addLayout(topLayout, 0, 0, 1, 2)
-        self.view_layout.addWidget(self.tableWidget, 2, 0)
-        self.view_layout.addWidget(self.chart, 2, 1)
+        self.view_layout.addLayout(topLayout, 0, 0, 1, 10)
+        self.view_layout.addWidget(self.tableWidget, 1, 0, 1, 3)
+        self.view_layout.addWidget(self.chart, 1, 3, 1, 7)
 
         self.timer.start(1000)
         self.timer.timeout.connect(self.view_home_refresh_order_book)
@@ -219,17 +216,17 @@ class App(QWidget):
 
         results = self.crypto_trader.trader[exchange].load_order_book(market_name)
         for cell_index in range(2 * self.table_rows_one_direction):
-            self.tableWidget.setItem(cell_index,0, QtGui.QTableWidgetItem(""))
-            self.tableWidget.setItem(cell_index,1, QtGui.QTableWidgetItem(""))
+            self.tableWidget.setItem(cell_index,0, QTableWidgetItem(""))
+            self.tableWidget.setItem(cell_index,1, QTableWidgetItem(""))
         sum_bid = 0
         sum_bid_base = 0
         for bid in results['Bid']:
-            self.tableWidget.setItem(self.table_rows_one_direction + bid, 0, QtGui.QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Price'])))
-            self.tableWidget.setItem(self.table_rows_one_direction + bid, 1, QtGui.QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Quantity'])))
+            self.tableWidget.setItem(self.table_rows_one_direction + bid, 0, QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Price'])))
+            self.tableWidget.setItem(self.table_rows_one_direction + bid, 1, QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Quantity'])))
             sum_bid += results['Bid'][bid]['Quantity']
             sum_bid_base += results['Bid'][bid]['Quantity'] * results['Bid'][bid]['Price']
-            self.tableWidget.setItem(self.table_rows_one_direction + bid, 2, QtGui.QTableWidgetItem("{0:.8f}".format(sum_bid)))
-            self.tableWidget.setItem(self.table_rows_one_direction + bid, 3, QtGui.QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
+            self.tableWidget.setItem(self.table_rows_one_direction + bid, 2, QTableWidgetItem("{0:.8f}".format(sum_bid)))
+            self.tableWidget.setItem(self.table_rows_one_direction + bid, 3, QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
             for i in range(4):
                 self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(color_green)
                 self.tableWidget.item(self.table_rows_one_direction + bid, i).setTextAlignment(align_right)
@@ -237,12 +234,12 @@ class App(QWidget):
         sum_ask = 0
         sum_ask_base = 0
         for ask in results['Ask']:
-            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 0, QtGui.QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Price'])))
-            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 1, QtGui.QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Quantity'])))
+            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 0, QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Price'])))
+            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 1, QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Quantity'])))
             sum_ask += results['Ask'][ask]['Quantity']
             sum_ask_base += results['Ask'][ask]['Quantity'] * results['Ask'][ask]['Price']
-            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 2, QtGui.QTableWidgetItem("{0:.8f}".format(sum_ask)))
-            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 3, QtGui.QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
+            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 2, QTableWidgetItem("{0:.8f}".format(sum_ask)))
+            self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 3, QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
             for i in range(4):
                 self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(color_red)
                 self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setTextAlignment(align_right)
