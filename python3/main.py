@@ -108,25 +108,31 @@ class App(QWidget):
 
         deleteItems(self.view_layout)
 
-    def view_home_refresh_dropdown_exchange_change(self, exchange, default_selection = None):
+    def view_home_refresh_dropdown_exchange_change(self, exchange, default_base = None, default_curr = None):
         self._home_view_exchange = exchange
-        if default_selection is None:
-            default_selection = self._home_view_dropdown_base_curr.currentText
-        base_codes = self.crypto_trader.trader[exchange]._active_markets.keys()
+        if default_base is None:
+            default_base = self._home_view_dropdown_base_curr.currentText
+        if default_curr is None:
+            default_curr = self._home_view_dropdown_curr_curr.currentText
+        base_codes = list(self.crypto_trader.trader[exchange]._active_markets)
         self._home_view_dropdown_base_curr.clear()
         self._home_view_dropdown_base_curr.addItems(base_codes)
-        self._home_view_dropdown_base_curr.setCurrentText(default_selection)
-        self._home_view_base_curr = default_selection
+        if not default_base in base_codes:
+            default_base = base_codes[0]
+        self._home_view_dropdown_base_curr.setCurrentText(default_base)
+        self.view_home_refresh_dropdown_base_change(default_base, default_curr)
 
-    def view_home_refresh_dropdown_base_change(self, base_curr, default_selection = None):
+    def view_home_refresh_dropdown_base_change(self, base_curr, default_curr = None):
         self._home_view_base_curr = base_curr
-        if default_selection is None:
-            default_selection = self._home_view_dropdown_curr_curr.currentText
-        curr_codes = self.crypto_trader.trader[self._home_view_exchange]._active_markets[base_curr].keys()
+        if default_curr is None:
+            default_curr = self._home_view_dropdown_curr_curr.currentText
+        curr_codes = list(self.crypto_trader.trader[self._home_view_exchange]._active_markets[base_curr])
         self._home_view_dropdown_curr_curr.clear()
         self._home_view_dropdown_curr_curr.addItems(curr_codes)
-        self._home_view_dropdown_curr_curr.setCurrentText(default_selection)
-        self._home_view_curr_curr = default_selection
+        if not default_curr in curr_codes:
+            default_curr = curr_codes[0]
+        self._home_view_dropdown_curr_curr.setCurrentText(default_curr)
+        self.view_home_refresh_dropdown_curr_change(default_curr)
 
     def view_home_refresh_dropdown_curr_change(self, curr_curr):
         self._home_view_curr_curr = curr_curr
@@ -163,9 +169,7 @@ class App(QWidget):
         self._home_view_dropdown_curr_curr = Dropdown(curr_codes, HOME_VIEW_CURRENCY_CODE)
         self._home_view_dropdown_curr_curr.activated[str].connect(self.view_home_refresh_dropdown_curr_change)
 
-        self.view_home_refresh_dropdown_exchange_change(HOME_VIEW_EXCHANGE, HOME_VIEW_BASE_CODE)
-        self.view_home_refresh_dropdown_base_change(HOME_VIEW_BASE_CODE, HOME_VIEW_CURRENCY_CODE)
-        self.view_home_refresh_dropdown_curr_change(HOME_VIEW_CURRENCY_CODE)
+        self.view_home_refresh_dropdown_exchange_change(HOME_VIEW_EXCHANGE, HOME_VIEW_BASE_CODE, HOME_VIEW_CURRENCY_CODE)
 
         label_base_exch = QLabel("&Echange:")
         label_base_exch.setBuddy(self._home_view_dropdown_exchange)
@@ -249,19 +253,8 @@ class App(QWidget):
         code_base = self._home_view_base_curr
         code_curr = self._home_view_curr_curr
         market_name = self._home_view_market_name
-        load_chart = self.crypto_trader.trader[exchange].get_ticks(market_name)
-
-        opens = []
-        closes = []
-        highs = []
-        lows = []
-        for i in load_chart:
-            opens.append(i['O'])
-            closes.append(i['C'])
-            highs.append(i['H'])
-            lows.append(i['L'])
-
-        self.chart.initialize_figure(opens, closes, highs, lows)
+        load_chart = self.crypto_trader.trader[exchange].load_ticks(market_name)
+        self.chart.initialize_figure(load_chart['opens'], load_chart['closes'], load_chart['highs'], load_chart['lows'])
 
 if __name__ == '__main__':
     app = QApplication([])

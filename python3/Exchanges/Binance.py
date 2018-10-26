@@ -7,6 +7,8 @@ import pprint
 
 from Exchange import Exchange
 
+import ipdb
+
 class Binance(Exchange):
     def __init__(self, APIKey='', Secret=''):
         super().__init__(APIKey, Secret)
@@ -73,6 +75,9 @@ class Binance(Exchange):
         url = "/api/v1/depth?symbol=" + market + "&limit=" + depth
         return self.get_request(url)
 
+    def get_ticks(self, market, interval = '5m'):
+        return self.get_request('/api/v1/klines?symbol=' + market + '&interval=' + interval)
+
     #######################
     ### Generic methods ###
     #######################
@@ -124,6 +129,53 @@ class Binance(Exchange):
             except Exception as e:
                 self.print_exception(str(market_symbol) + ". " + str(e))
         return self._active_markets
+
+    def load_ticks(self, market_name, interval = '5m'):
+        load_chart = self.get_ticks(market_name, interval)
+        """
+            https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
+            [
+              [
+                1499040000000,      // Open time
+                "0.01634790",       // Open
+                "0.80000000",       // High
+                "0.01575800",       // Low
+                "0.01577100",       // Close
+                "148976.11427815",  // Volume
+                1499644799999,      // Close time
+                "2434.19055334",    // Quote asset volume
+                308,                // Number of trades
+                "1756.87402397",    // Taker buy base asset volume
+                "28.46694368",      // Taker buy quote asset volume
+                "17928899.62484339" // Ignore.
+              ]
+            ]
+        """
+
+        times = []
+        opens = []
+        closes = []
+        highs = []
+        lows = []
+        volumes = []
+        baseVolumes = []
+        for i in load_chart:
+            times.append(i[0])
+            opens.append(i[1])
+            closes.append(i[4])
+            highs.append(i[2])
+            lows.append(i[3])
+            volumes.append(i[5])
+            baseVolumes.append(i[7])
+        return {
+            'times': times,
+            'opens': opens,
+            'closes': closes,
+            'highs': highs,
+            'lows': lows,
+            'volumes': volumes,
+            'baseVolumes': baseVolumes
+        }
 
     def load_available_balances(self):
         available_balances = self.get_balances()

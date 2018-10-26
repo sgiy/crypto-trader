@@ -106,6 +106,21 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
+    def load_ticks(self, market_name, interval):
+        """
+            Returns a candlestick data.
+            Example:
+            {
+                'opens': opens,
+                'closes': closes,
+                'highs': highs,
+                'lows': lows,
+                'volumes': volumes,
+                'baseVolumes': baseVolumes
+            }
+        """
+        self.raise_not_implemented_error()
+
     def submit_trade(self, direction="buy", market="", price=0, amount=0, trade_type=""):
         """
             Submits a trade with specified parameters. Returns json with amount traded.

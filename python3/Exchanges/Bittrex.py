@@ -129,6 +129,33 @@ class Bittrex(Exchange):
                 self.print_exception(str(entry) + ". " + str(e))
         return self._active_markets
 
+    def load_ticks(self, market_name, interval = 'fiveMin'):
+        load_chart = self.get_ticks(market_name, interval)
+        times = []
+        opens = []
+        closes = []
+        highs = []
+        lows = []
+        volumes = []
+        baseVolumes = []
+        for i in load_chart:
+            times.append(i['T'])
+            opens.append(i['O'])
+            closes.append(i['C'])
+            highs.append(i['H'])
+            lows.append(i['L'])
+            volumes.append(i['V'])
+            baseVolumes.append(i['BV'])
+        return {
+            'times': times,
+            'opens': opens,
+            'closes': closes,
+            'highs': highs,
+            'lows': lows,
+            'volumes': volumes,
+            'baseVolumes': baseVolumes
+        }
+
     def load_available_balances(self):
         available_balances = self.get_balances()
         self._available_balances = {}

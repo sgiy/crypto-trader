@@ -9,6 +9,10 @@ API_KEYS ={
     'Bittrex': {
         'APIKey': '',
         'Secret': ''
+    },
+    'Binance': {
+        'APIKey': '',
+        'Secret': ''
     }
 }
 EXCHANGE_CURRENCY_RENAME_MAP = {
