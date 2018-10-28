@@ -4,7 +4,7 @@ from datetime import datetime
 from PyQt5.QtWidgets import (QApplication, QWidget, QComboBox, QStyleFactory,
     QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QButtonGroup,
     QMenu, QSizePolicy, QTableWidget,QTableWidgetItem)
-from PyQt5 import QtGui
+from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 
 import matplotlib
@@ -18,6 +18,13 @@ from config import *
 from CryptoTrader import CryptoTrader
 
 import ipdb
+
+GLOBAL_COLOR = {
+    'green_light':  QColor( 40, 167,  69, 127),
+    'green_bold':   QColor( 40, 167,  69, 191),
+    'red_light':    QColor(220,  53,  69, 127),
+    'red_bold':     QColor(220,  53,  69, 191),
+}
 
 class Dropdown(QComboBox):
     def __init__(self, items_list, selected_value):
@@ -214,8 +221,6 @@ class App(QWidget):
         market_name = self._home_view_market_name
         print("Loading market " + market_name)
 
-        color_green = QtGui.QColor(40,167,69)
-        color_red = QtGui.QColor(220,53,69)
         align_right = Qt.AlignRight
 
         results = self.crypto_trader.trader[exchange].load_order_book(market_name)
@@ -232,7 +237,10 @@ class App(QWidget):
             self.tableWidget.setItem(self.table_rows_one_direction + bid, 2, QTableWidgetItem("{0:.8f}".format(sum_bid)))
             self.tableWidget.setItem(self.table_rows_one_direction + bid, 3, QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
             for i in range(4):
-                self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(color_green)
+                if bid > 0:
+                    self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(GLOBAL_COLOR['green_light'])
+                else:
+                    self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(GLOBAL_COLOR['green_bold'])
                 self.tableWidget.item(self.table_rows_one_direction + bid, i).setTextAlignment(align_right)
 
         sum_ask = 0
@@ -245,7 +253,10 @@ class App(QWidget):
             self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 2, QTableWidgetItem("{0:.8f}".format(sum_ask)))
             self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 3, QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
             for i in range(4):
-                self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(color_red)
+                if ask > 0:
+                    self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(GLOBAL_COLOR['red_light'])
+                else:
+                    self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(GLOBAL_COLOR['red_bold'])
                 self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setTextAlignment(align_right)
 
     def view_home_refresh_chart(self):

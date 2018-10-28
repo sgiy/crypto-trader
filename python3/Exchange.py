@@ -21,9 +21,14 @@ class Exchange:
     def print_exception(self, message=''):
         print(self.__class__.__name__ + " has an exception in method " + traceback.extract_stack(None, 2)[0][2] + "!!! " + message)
 
+    def get_global_code(self, local_code):
+        return self._map_exchange_code_to_currency_code.get(local_code, None)
+
     def load_currencies(self):
         """
-            Needs to update self._currencies with a map from exchange currency code to a map having Name and Enabled keys.
+            Individual exchange implementation needs to update self._currencies
+            with a map from exchange currency code to a map having Name and
+            Enabled keys.
             Example:
                 {
                     'BTC': {
@@ -35,10 +40,26 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
-    def get_global_code(self, local_code):
-        return self._map_exchange_code_to_currency_code.get(local_code, None)
-
-    def update_market(self, market_symbol, local_base, local_curr, best_bid, best_ask, is_active = True, qty_bid = None, qty_ask = None):
+    def update_market(self,
+            market_symbol,
+            local_base,
+            local_curr,
+            best_bid,
+            best_ask,
+            is_active = True,
+            qty_bid = None,
+            qty_ask = None):
+        """
+            Updates self._markets and self._active_markets using provided
+            market_symbol (exchange symbol for traded pair, e.g. 'BTC-ETH')
+            local_base (exchange code for base currency)
+            local_curr (exchange code for traded currency)
+            best_bid (best bid price)
+            best_ask (best ask price)
+            is_active (flag showing if market is active as opposed to frozen)
+            qty_bid (if available, this shows quantity of traded currency available at bid price)
+            qty_ask (if available, this shows quantity of traded currency available at ask price)
+        """
         code_base = self.get_global_code(local_base)
         code_curr = self.get_global_code(local_curr)
 
@@ -62,15 +83,20 @@ class Exchange:
 
     def load_markets(self):
         """
-            Needs to update self._markets and self._active_markets with a map of maps from global base currency code to a global curr currency code that results in  map having Name and Enabled keys.
-            Example:
-                {
-                    'BTC': {
-                                'Name': 'Bitcoin',
-                                'Enabled': 1
-                            },
-                    ...
+            Individual exchange implementation needs to update self._markets
+            and self._active_markets using update_market function resulting in
+            maps of maps with a structure:
+            {
+                'BTC': {
+                    'ETH': {
+                        'Market': market_symbol,
+                        'Bid': best_bid,
+                        'Ask': best_ask,
+                        'QtyBid': qty_bid, -optional
+                        'QtyAsk': qty_ask  -optional
+                    }
                 }
+            }.
         """
         self.raise_not_implemented_error()
 
@@ -90,8 +116,7 @@ class Exchange:
 
     def load_order_book(self):
         """
-            Returns a short order book around best quotes at the example format.
-            Example:
+            Returns a short order book around best quotes in the following format:
             {'Ask': {0: {'Price': 0.00876449, 'Quantity': 13.0407078},
                      1: {'Price': 0.00876901, 'Quantity': 1.78},
                      2: {'Price': 0.00878253, 'Quantity': 0.91},
@@ -108,9 +133,10 @@ class Exchange:
 
     def load_ticks(self, market_name, interval):
         """
-            Returns a candlestick data.
+            Returns a candlestick data. times, opens, closes, ... are all arrays
             Example:
             {
+                'times'L times,
                 'opens': opens,
                 'closes': closes,
                 'highs': highs,
