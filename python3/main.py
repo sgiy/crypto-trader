@@ -8,7 +8,8 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 
 import matplotlib
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas,
+    NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 from matplotlib.finance import candlestick2_ochl, candlestick_ohlc
 import matplotlib.dates as dates
@@ -19,12 +20,38 @@ from CryptoTrader import CryptoTrader
 
 import ipdb
 
-GLOBAL_COLOR = {
-    'green_light':  QColor( 40, 167,  69, 127),
-    'green_bold':   QColor( 40, 167,  69, 191),
-    'red_light':    QColor(220,  53,  69, 127),
-    'red_bold':     QColor(220,  53,  69, 191),
-}
+class CryptoTraderParams:
+    def __init__(self):
+        self.Color = {
+            'green_light':  QColor( 40, 167,  69, 127),
+            'green_bold':   QColor( 40, 167,  69, 191),
+            'red_light':    QColor(220,  53,  69, 127),
+            'red_bold':     QColor(220,  53,  69, 191),
+        }
+        self.ChartLookbackWindow = {
+            '1 Day':    24*60,         #translations into minutes
+            '5 Days':   5*24*60,
+            '1 Month':  30*24*60,
+            '3 Months': 3*30*24*60
+        }
+        self.ChartInterval = {
+            '1 Minute':     1,
+            '5 Minutes':    5,
+            '15 Minutes':   15,
+            '30 Minutes':   30,
+            '1 Hour':       60,
+            '8 Hours':      8*60,
+            '1 Day':        24*60
+        }
+
+    def get_chart_lookback_windows(self):
+        return list(self.ChartLookbackWindow)
+
+    def get_chart_intervals(self):
+        return list(self.ChartInterval)
+
+    def get_chart_number_of_intervals(self, lookback, interval):
+        return self.ChartLookbackWindow(lookback) / self.ChartLookbackWindow(lookback)
 
 class Dropdown(QComboBox):
     def __init__(self, items_list, selected_value):
@@ -67,6 +94,7 @@ class App(QWidget):
             'API_KEYS': API_KEYS,
             'EXCHANGE_CURRENCY_RENAME_MAP': EXCHANGE_CURRENCY_RENAME_MAP,
         })
+        self.params = CryptoTraderParams()
         self.initUI()
 
     def initUI(self):
@@ -195,9 +223,22 @@ class App(QWidget):
         topLayout.addStretch(1)
 
         self.clear_view()
-        self.view_layout.addLayout(topLayout, 0, 0, 1, 10)
+        self.view_layout.addLayout(topLayout, 0, 0, 1, 3)
         self.view_layout.addWidget(self.tableWidget, 1, 0, 1, 3)
         self.view_layout.addWidget(self.chart, 1, 3, 1, 7)
+        self.navi_toolbar = NavigationToolbar(self.chart, self)
+        self.navi_toolbar.addSeparator()
+        label_lookback = QLabel("Lookback:")
+        self._chart_dropdown_lookback = Dropdown(self.params.get_chart_lookback_windows(), HOME_VIEW_CHART_LOOKBACK)
+        label_interval = QLabel("Interval:")
+        self._chart_dropdown_interval = Dropdown(self.params.get_chart_intervals(), HOME_VIEW_CHART_INTERVAL)
+
+        self.navi_toolbar.addWidget(label_lookback)
+        self.navi_toolbar.addWidget(self._chart_dropdown_lookback)
+        self.navi_toolbar.addWidget(label_interval)
+        self.navi_toolbar.addWidget(self._chart_dropdown_interval)
+
+        self.view_layout.addWidget(self.navi_toolbar, 0, 3, 1, 7)
 
         self.timer.start(1000)
         self.timer.timeout.connect(self.view_home_refresh_order_book)
@@ -238,9 +279,9 @@ class App(QWidget):
             self.tableWidget.setItem(self.table_rows_one_direction + bid, 3, QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
             for i in range(4):
                 if bid > 0:
-                    self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(GLOBAL_COLOR['green_light'])
+                    self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(self.params.Color['green_light'])
                 else:
-                    self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(GLOBAL_COLOR['green_bold'])
+                    self.tableWidget.item(self.table_rows_one_direction + bid, i).setBackground(self.params.Color['green_bold'])
                 self.tableWidget.item(self.table_rows_one_direction + bid, i).setTextAlignment(align_right)
 
         sum_ask = 0
@@ -254,9 +295,9 @@ class App(QWidget):
             self.tableWidget.setItem(self.table_rows_one_direction - 1 - ask, 3, QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
             for i in range(4):
                 if ask > 0:
-                    self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(GLOBAL_COLOR['red_light'])
+                    self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(self.params.Color['red_light'])
                 else:
-                    self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(GLOBAL_COLOR['red_bold'])
+                    self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(self.params.Color['red_bold'])
                 self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setTextAlignment(align_right)
 
     def view_home_refresh_chart(self):
