@@ -12,6 +12,13 @@ class Bittrex(Exchange):
     def __init__(self, APIKey='', Secret=''):
         super().__init__(APIKey, Secret)
         self.BASE_URL = 'https://bittrex.com/api/v1.1/'
+        self._tick_intervals = {
+            'oneMin':       1,
+            'fiveMin':      5,
+            'thirtyMin':    30,
+            'hour':         60,
+            'day':          24*60
+        }
 
     def get_request(self, url, base_url_override = None):
         # print('Requesting url ' + url)
@@ -129,7 +136,7 @@ class Bittrex(Exchange):
                 self.print_exception(str(entry) + ". " + str(e))
         return self._active_markets
 
-    def load_ticks(self, market_name, interval = 'fiveMin'):
+    def load_ticks(self, market_name, interval = 'fiveMin', lookback = None):
         load_chart = self.get_ticks(market_name, interval)
         times = []
         opens = []

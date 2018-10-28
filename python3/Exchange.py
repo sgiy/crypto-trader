@@ -14,6 +14,9 @@ class Exchange:
         self._market_prices = {}
         self._available_balances = {}
         self._complete_balances_btc = {}
+        self._tick_intervals = {}
+        self._tick_lookbacks = {}
+        self._map_tick_intervals = {}
 
     def raise_not_implemented_error(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
@@ -131,12 +134,13 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
-    def load_ticks(self, market_name, interval):
+    def load_ticks(self, market_name, interval, lookback):
         """
+            interval is an exchange specific name, e.g. 'fiveMin'
             Returns a candlestick data. times, opens, closes, ... are all arrays
             Example:
             {
-                'times'L times,
+                'times': times,
                 'opens': opens,
                 'closes': closes,
                 'highs': highs,
@@ -146,6 +150,80 @@ class Exchange:
             }
         """
         self.raise_not_implemented_error()
+
+    def load_chart_data(self, market_name, interval, lookback):
+        """
+            interval and lookback come in terms of number of minutes
+        """
+        self._map_tick_intervals = {}
+        take_i_name = None
+        take_i_mins = None
+        for i_name in self._tick_intervals:
+            i_mins = self._tick_intervals[i_name]
+            self._map_tick_intervals[i_mins] = i_name
+            if take_i_mins is None or (i_mins < interval and i_mins > take_i_mins):
+                take_i_mins = i_mins
+                take_i_name = i_name
+
+        number_of_ticks_to_take = lookback / interval
+        preliminary_ticks = self.load_ticks(market_name, take_i_name, lookback)
+        if take_i_mins == interval:
+            return {
+                'times':        preliminary_ticks['times'][-number_of_ticks_to_take:],
+                'opens':        preliminary_ticks['opens'][-number_of_ticks_to_take:],
+                'closes':       preliminary_ticks['closes'][-number_of_ticks_to_take:],
+                'highs':        preliminary_ticks['highs'][-number_of_ticks_to_take:],
+                'lows':         preliminary_ticks['lows'][-number_of_ticks_to_take:],
+                'volumes':      preliminary_ticks['volumes'][-number_of_ticks_to_take:],
+                'baseVolumes':  preliminary_ticks['baseVolumes'][-number_of_ticks_to_take:]
+            }
+        else:
+            base = interval / take_i_mins
+            number_of_ticks_to_consider = int(number_of_ticks_to_take * base)
+            number_of_ticks_to_consider = min(number_of_ticks_to_consider, len(preliminary_ticks['times']))
+            start_index = len(preliminary_ticks['times']) - number_of_ticks_to_consider
+            times = []
+            opens = []
+            closes = []
+            highs = []
+            lows = []
+            volumes = []
+            baseVolumes = []
+            for i in range(number_of_ticks_to_consider):
+                if i % base == 0:
+                    open_v = preliminary_ticks['opens'][start_index + i]
+                    high_v = preliminary_ticks['highs'][start_index + i]
+                    low_v = preliminary_ticks['lows'][start_index + i]
+                    volume_v = preliminary_ticks['volumes'][start_index + i]
+                    baseVolume_v = preliminary_ticks['baseVolumes'][start_index + i]
+                else:
+                    if preliminary_ticks['highs'][start_index + i] > high_v:
+                        high_v = preliminary_ticks['highs'][start_index + i]
+                    if preliminary_ticks['lows'][start_index + i] < low_v:
+                        low_v = preliminary_ticks['highs'][start_index + i]
+                    volume_v += preliminary_ticks['volumes'][start_index + i]
+                    baseVolume_v += preliminary_ticks['baseVolumes'][start_index + i]
+                    if i % base == base - 1:
+                        close_v = preliminary_ticks['closes'][start_index + i]
+                        time_v = preliminary_ticks['times'][start_index + i]
+
+                        times.append(time_v)
+                        opens.append(open_v)
+                        closes.append(close_v)
+                        highs.append(high_v)
+                        lows.append(low_v)
+                        volumes.append(volume_v)
+                        baseVolumes.append(baseVolume_v)
+
+            return {
+                'times': times,
+                'opens': opens,
+                'closes': closes,
+                'highs': highs,
+                'lows': lows,
+                'volumes': volumes,
+                'baseVolumes': baseVolumes
+            }
 
     def submit_trade(self, direction="buy", market="", price=0, amount=0, trade_type=""):
         """

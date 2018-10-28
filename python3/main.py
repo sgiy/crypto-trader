@@ -50,9 +50,6 @@ class CryptoTraderParams:
     def get_chart_intervals(self):
         return list(self.ChartInterval)
 
-    def get_chart_number_of_intervals(self, lookback, interval):
-        return self.ChartLookbackWindow(lookback) / self.ChartLookbackWindow(lookback)
-
 class Dropdown(QComboBox):
     def __init__(self, items_list, selected_value):
         super().__init__()
@@ -68,13 +65,13 @@ class DynamicCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def initialize_figure(self, opens, closes, highs, lows, number_of_ticks_to_show = 12*24):
+    def initialize_figure(self, opens, closes, highs, lows):
         self.axes.cla()
         candlestick2_ochl(self.axes,
-                        opens[-number_of_ticks_to_show:],
-                        closes[-number_of_ticks_to_show:],
-                        highs[-number_of_ticks_to_show:],
-                        lows[-number_of_ticks_to_show:],
+                        opens,
+                        closes,
+                        highs,
+                        lows,
                         width=0.6,
                         colorup='g',
                         colordown='r',
@@ -204,6 +201,13 @@ class App(QWidget):
         self._home_view_dropdown_curr_curr = Dropdown(curr_codes, HOME_VIEW_CURRENCY_CODE)
         self._home_view_dropdown_curr_curr.activated[str].connect(self.view_home_refresh_dropdown_curr_change)
 
+        label_lookback = QLabel("Lookback:")
+        self._chart_dropdown_lookback = Dropdown(self.params.get_chart_lookback_windows(), HOME_VIEW_CHART_LOOKBACK)
+        self._chart_dropdown_lookback.currentTextChanged.connect(self.view_home_refresh_chart)
+        label_interval = QLabel("Interval:")
+        self._chart_dropdown_interval = Dropdown(self.params.get_chart_intervals(), HOME_VIEW_CHART_INTERVAL)
+        self._chart_dropdown_interval.currentTextChanged.connect(self.view_home_refresh_chart)
+
         self.view_home_refresh_dropdown_exchange_change(HOME_VIEW_EXCHANGE, HOME_VIEW_BASE_CODE, HOME_VIEW_CURRENCY_CODE)
 
         label_base_exch = QLabel("&Echange:")
@@ -228,10 +232,6 @@ class App(QWidget):
         self.view_layout.addWidget(self.chart, 1, 3, 1, 7)
         self.navi_toolbar = NavigationToolbar(self.chart, self)
         self.navi_toolbar.addSeparator()
-        label_lookback = QLabel("Lookback:")
-        self._chart_dropdown_lookback = Dropdown(self.params.get_chart_lookback_windows(), HOME_VIEW_CHART_LOOKBACK)
-        label_interval = QLabel("Interval:")
-        self._chart_dropdown_interval = Dropdown(self.params.get_chart_intervals(), HOME_VIEW_CHART_INTERVAL)
 
         self.navi_toolbar.addWidget(label_lookback)
         self.navi_toolbar.addWidget(self._chart_dropdown_lookback)
@@ -305,7 +305,12 @@ class App(QWidget):
         code_base = self._home_view_base_curr
         code_curr = self._home_view_curr_curr
         market_name = self._home_view_market_name
-        load_chart = self.crypto_trader.trader[exchange].load_ticks(market_name)
+        interval_name = self._chart_dropdown_interval.currentText()
+        lookback_name = self._chart_dropdown_lookback.currentText()
+        interval = self.params.ChartInterval[interval_name]
+        lookback = self.params.ChartLookbackWindow[lookback_name]
+
+        load_chart = self.crypto_trader.trader[exchange].load_chart_data(market_name, interval, lookback)
         self.chart.initialize_figure(load_chart['opens'], load_chart['closes'], load_chart['highs'], load_chart['lows'])
 
 if __name__ == '__main__':

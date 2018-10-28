@@ -14,6 +14,23 @@ class Binance(Exchange):
         super().__init__(APIKey, Secret)
         self.BASE_URL = 'https://api.binance.com'
         self._exchangeInfo = None
+        self._tick_intervals = {
+            '1m':   1,
+            '3m':   3,
+            '5m':   5,
+            '15m':  15,
+            '30m':  30,
+            '1h':   60,
+            '2h':   2*60,
+            '4h':   4*60,
+            '6h':   6*60,
+            '8h':   8*60,
+            '12h':  12*60,
+            '1d':   24*60,
+            '3d':   3*24*60,
+            '1w':   7*24*60,
+            '1M':   30*24*60
+        }
 
     def get_request(self, url):
         try:
@@ -130,7 +147,7 @@ class Binance(Exchange):
                 self.print_exception(str(market_symbol) + ". " + str(e))
         return self._active_markets
 
-    def load_ticks(self, market_name, interval = '5m'):
+    def load_ticks(self, market_name, interval = '5m', lookback = None):
         load_chart = self.get_ticks(market_name, interval)
         """
             https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
