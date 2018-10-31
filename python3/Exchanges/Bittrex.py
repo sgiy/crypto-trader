@@ -1,10 +1,12 @@
 import time
+import datetime
 import hmac
 import hashlib
 import urllib
 import requests
 import pprint
 import pandas as pd
+import matplotlib.dates as mpd
 
 from Exchange import Exchange
 
@@ -138,30 +140,11 @@ class Bittrex(Exchange):
 
     def load_ticks(self, market_name, interval = 'fiveMin', lookback = None):
         load_chart = self.get_ticks(market_name, interval)
-        times = []
-        opens = []
-        closes = []
-        highs = []
-        lows = []
-        volumes = []
-        baseVolumes = []
+        results = []
         for i in load_chart:
-            times.append(i['T'])
-            opens.append(i['O'])
-            closes.append(i['C'])
-            highs.append(i['H'])
-            lows.append(i['L'])
-            volumes.append(i['V'])
-            baseVolumes.append(i['BV'])
-        return {
-            'times': times,
-            'opens': opens,
-            'closes': closes,
-            'highs': highs,
-            'lows': lows,
-            'volumes': volumes,
-            'baseVolumes': baseVolumes
-        }
+            new_row = mpd.date2num(datetime.datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S")), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
+            results.append(new_row)
+        return results
 
     def load_available_balances(self):
         available_balances = self.get_balances()

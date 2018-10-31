@@ -65,14 +65,12 @@ class DynamicCanvas(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def initialize_figure(self, opens, closes, highs, lows):
+    def initialize_figure(self, quotes, interval):
         self.axes.cla()
-        candlestick2_ochl(self.axes,
-                        opens,
-                        closes,
-                        highs,
-                        lows,
-                        width=0.6,
+        self.axes.xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d %H:%M'))
+        candlestick_ohlc(self.axes,
+                        quotes,
+                        width=0.0006 * interval,
                         colorup='g',
                         colordown='r',
                         alpha=0.75)
@@ -311,7 +309,7 @@ class App(QWidget):
         lookback = self.params.ChartLookbackWindow[lookback_name]
 
         load_chart = self.crypto_trader.trader[exchange].load_chart_data(market_name, interval, lookback)
-        self.chart.initialize_figure(load_chart['opens'], load_chart['closes'], load_chart['highs'], load_chart['lows'])
+        self.chart.initialize_figure(load_chart, interval)
 
 if __name__ == '__main__':
     app = QApplication([])

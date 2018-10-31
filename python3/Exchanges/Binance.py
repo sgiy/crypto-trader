@@ -1,9 +1,11 @@
 import time
+import datetime
 import hmac
 import hashlib
 import urllib
 import requests
 import pprint
+import matplotlib.dates as mpd
 
 from Exchange import Exchange
 
@@ -148,7 +150,6 @@ class Binance(Exchange):
         return self._active_markets
 
     def load_ticks(self, market_name, interval = '5m', lookback = None):
-        load_chart = self.get_ticks(market_name, interval)
         """
             https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
             [
@@ -168,31 +169,12 @@ class Binance(Exchange):
               ]
             ]
         """
-
-        times = []
-        opens = []
-        closes = []
-        highs = []
-        lows = []
-        volumes = []
-        baseVolumes = []
+        load_chart = self.get_ticks(market_name, interval)
+        results = []
         for i in load_chart:
-            times.append(i[0])
-            opens.append(i[1])
-            closes.append(i[4])
-            highs.append(i[2])
-            lows.append(i[3])
-            volumes.append(i[5])
-            baseVolumes.append(i[7])
-        return {
-            'times': times,
-            'opens': opens,
-            'closes': closes,
-            'highs': highs,
-            'lows': lows,
-            'volumes': volumes,
-            'baseVolumes': baseVolumes
-        }
+            new_row = mpd.date2num(datetime.datetime.fromtimestamp(i[0]/1000)), float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), float(i[7])
+            results.append(new_row)
+        return results
 
     def load_available_balances(self):
         available_balances = self.get_balances()
