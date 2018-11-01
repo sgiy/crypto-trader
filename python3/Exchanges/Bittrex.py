@@ -108,7 +108,7 @@ class Bittrex(Exchange):
         self._currencies = {}
         for currency in currencies:
             try:
-                if currency['IsActive']:
+                if currency['IsActive'] and not currency['IsRestricted']:
                     enabled = 1
                 else:
                     enabled = 0

@@ -18,9 +18,7 @@ class CryptoTrader:
             self.trader[exchange] = exchange_class(self.API_KEYS[exchange]['APIKey'], self.API_KEYS[exchange]['Secret'])
 
         self.init_currencies()
-
-        for exchange in self.trader:
-            self.trader[exchange].load_markets()
+        self.load_active_markets()
 
     def init_currencies(self):
         self._map_currency_code_to_exchange_code = {}
@@ -59,5 +57,41 @@ class CryptoTrader:
                 except Exception as e:
                     print(str(e))
 
-    def get_market_name(self, exchange, code_base, code_curr):        
+    def load_active_markets(self):
+        self._active_markets = {}
+        for exchange in self.trader:
+            self.trader[exchange].load_markets()
+            for code_base in self.trader[exchange]._active_markets:
+                if not code_base in self._active_markets:
+                    self._active_markets[code_base] = {}
+                for code_curr in self.trader[exchange]._active_markets[code_base]:
+                    if not code_curr in self._active_markets[code_base]:
+                        self._active_markets[code_base][code_curr] = {}
+                    self._active_markets[code_base][code_curr][exchange] = self.trader[exchange]._active_markets[code_base][code_curr]
+
+    def get_market_name(self, exchange, code_base, code_curr):
         return self.trader[exchange]._active_markets[code_base][code_curr]['Market']
+
+    def get_arbitrage_possibilities(self, required_rate_of_return):
+        self.load_active_markets()
+        self._arbitrage_possibilities = {}
+        for code_base in self._active_markets:
+            for code_curr in self._active_markets[code_base]:
+                markets = self._active_markets[code_base][code_curr]
+                best_bid = None
+                best_ask = None
+                if len(markets) > 1:
+                    for exchange in markets:
+                        exchange_code = self._map_currency_code_to_exchange_code[code_curr][exchange]
+                        if self.trader[exchange]._currencies[exchange_code]['Enabled'] == 1:
+                            if not markets[exchange]['Bid'] is None:
+                                if best_bid is None or best_bid < markets[exchange]['Bid']:
+                                    best_bid = markets[exchange]['Bid']
+                            if not markets[exchange]['Ask'] is None:
+                                if best_ask is None or best_ask > markets[exchange]['Ask']:
+                                    best_ask = markets[exchange]['Ask']
+                    if not best_bid is None and not best_ask is None and best_bid > best_ask * required_rate_of_return:
+                        if not code_base in self._arbitrage_possibilities:
+                            self._arbitrage_possibilities[code_base] = {}
+                        self._arbitrage_possibilities[code_base][code_curr] = markets
+        return self._arbitrage_possibilities
