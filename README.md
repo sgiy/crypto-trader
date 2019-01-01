@@ -1,7 +1,7 @@
 # Crypto-Trader
 
-The goal of this project is to create an open, usable interface to monitor cryptocurrency moves, personal balances, and execute trades on multiple exchanges. This requires user to create API keys for each of the exchange and input them in program's configuration. The code has to be open to make sure that the key and the secret are used only in the manner specified by the relevant exchange and are not distributed.
+The goal of this project is to create an open, usable interface enabling simultaneous trading on multiple exchanges, aggregation of personal balances, and calculation of realized gains (this does not constitute legal or tax advise. Make sure that calculation makes sense to you before using it).
 
-It is recommended that the exchange API keys are created only with access to trading capabilities, but are not allowed to withdraw currency in order to limit user's exposure. Additionally, some exchanges allow specifying that the given API key can be used only from the specified IP address. This provides additional protection to the user.
+Using the GUI requires user to create API keys for each of the exchanges and to input them in program's configuration. The source code of the program has to be open to enable user to audit the code before using it to make sure that the api keys and the secrets are used only in the manner specified by the relevant exchange and are not accessible to third parties. It is recommended that the exchange API keys are created only with access to trading capabilities, but are not allowed to withdraw currency in order to limit user's exposure in case the keys compromised. Additionally, it is recommended limiting api access to user's ip address if possible in exchange account - this provides additional protection to the funds.
 
 The project is currently far from the release, but you are welcome to try what is already written and to submit your suggestions.
