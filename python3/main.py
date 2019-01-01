@@ -1,11 +1,19 @@
 import sys, time
 from datetime import datetime
 
-from PyQt5.QtWidgets import (QApplication, QWidget, QComboBox, QStyleFactory,
-    QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QButtonGroup,
-    QMenu, QSizePolicy, QTableWidget,QTableWidgetItem)
-from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton,
+    QMenu, QAction)
+from PyQt5.QtGui import QIcon
+
+
+from PyQt5.QtWidgets import (QComboBox, QStyleFactory,
+    QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QButtonGroup,
+    QSizePolicy, QTableWidget, QTableWidgetItem)
 from PyQt5.QtCore import Qt, QTimer
+
+
+from PyQt5.QtWidgets import (QTextEdit)
+
 
 import matplotlib
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas,
@@ -14,41 +22,11 @@ from matplotlib.figure import Figure
 from matplotlib.finance import candlestick2_ochl, candlestick_ohlc
 import matplotlib.dates as dates
 
+# Static import
 from config import *
 
 from CryptoTrader import CryptoTrader
-
-import ipdb
-
-class CryptoTraderParams:
-    def __init__(self):
-        self.Color = {
-            'green_light':  QColor( 40, 167,  69, 127),
-            'green_bold':   QColor( 40, 167,  69, 191),
-            'red_light':    QColor(220,  53,  69, 127),
-            'red_bold':     QColor(220,  53,  69, 191),
-        }
-        self.ChartLookbackWindow = {
-            '1 Day':    24*60,         #translations into minutes
-            '5 Days':   5*24*60,
-            '1 Month':  30*24*60,
-            '3 Months': 3*30*24*60
-        }
-        self.ChartInterval = {
-            '1 Minute':     1,
-            '5 Minutes':    5,
-            '15 Minutes':   15,
-            '30 Minutes':   30,
-            '1 Hour':       60,
-            '8 Hours':      8*60,
-            '1 Day':        24*60
-        }
-
-    def get_chart_lookback_windows(self):
-        return list(self.ChartLookbackWindow)
-
-    def get_chart_intervals(self):
-        return list(self.ChartInterval)
+from CryptoTraderParameters import CryptoTraderParameters
 
 class Dropdown(QComboBox):
     def __init__(self, items_list, selected_value):
@@ -76,26 +54,75 @@ class DynamicCanvas(FigureCanvas):
                         alpha=0.75)
         self.draw()
 
-class App(QWidget):
+class CTMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.title = 'Crypto Trader'
-        self.left = WINDOW_SIZE['left']
-        self.top = WINDOW_SIZE['top']
-        self.width = WINDOW_SIZE['width']
-        self.height = WINDOW_SIZE['height']
-        self.table_rows_one_direction = DISPLAY_BOOK_DEPTH
-        self.crypto_trader = CryptoTrader({
-            'API_KEYS': API_KEYS,
-            'EXCHANGE_CURRENCY_RENAME_MAP': EXCHANGE_CURRENCY_RENAME_MAP,
-        })
-        self.params = CryptoTraderParams()
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.setWindowTitle('Crypto Trader')
+        self.setGeometry(
+            WINDOW_SIZE['left'],
+            WINDOW_SIZE['top'],
+            WINDOW_SIZE['width'],
+            WINDOW_SIZE['height']
+        )
+        self.CryptoTrader = CryptoTrader({
+            'API_KEYS': API_KEYS,
+            'EXCHANGE_CURRENCY_RENAME_MAP': EXCHANGE_CURRENCY_RENAME_MAP,
+        })
+        self.Parameters = CryptoTraderParameters()
 
+        self.initActions()
+
+        # Do not add MenuBar for now because no useful functionality yet that
+        # is not already in ToolBar, but keep stub code
+        # self.initMenuBar()
+
+        self.initToolBar()
+        self.viewPair()
+        self.initStatusBar()
+        self.show()
+
+    def initActions(self):
+        self.Actions = {}
+        self.Actions['Exit'] = QAction('Exit', self)
+        self.Actions['Exit'].setShortcut('Ctrl+Q')
+        self.Actions['Exit'].setStatusTip('Exit application')
+        self.Actions['Exit'].triggered.connect(self.close)
+
+        self.Actions['ViewPair'] = QAction('ViewPair', self)
+        self.Actions['ViewPair'].setShortcut('Ctrl+P')
+        self.Actions['ViewPair'].setStatusTip('View Crypto Pair')
+        self.Actions['ViewPair'].triggered.connect(self.viewPair)
+
+    def initMenuBar(self):
+        self.MenuBar = self.menuBar()
+        fileMenu = self.MenuBar.addMenu('&File')
+        fileMenu.addAction(self.Actions['Exit'])
+
+    def initToolBar(self):
+        self.ToolBar = self.addToolBar('ToolBar')
+        self.ToolBar.addAction(self.Actions['Exit'])
+        self.ToolBar.addAction(self.Actions['ViewPair'])
+
+    def initStatusBar(self):
+        self.StatusBar = self.statusBar()
+        self.StatusBar.showMessage('Ready')
+
+    def viewPair(self):
+        view = CTViewPair(self.CryptoTrader, self.Parameters)
+        self.setCentralWidget(view)
+
+class CTViewPair(QWidget):
+    def __init__(self, crypto_trader, parameters):
+        super().__init__()
+        self.table_rows_one_direction = DISPLAY_BOOK_DEPTH
+        self.crypto_trader = crypto_trader
+        self.params = parameters
+        self.initUI()
+
+    def initUI(self):
         if 'Fusion' in QStyleFactory.keys():
             self.changeStyle('Fusion')
 
@@ -313,5 +340,5 @@ class App(QWidget):
 
 if __name__ == '__main__':
     app = QApplication([])
-    ex = App()
+    win = CTMainWindow()
     sys.exit(app.exec_())
