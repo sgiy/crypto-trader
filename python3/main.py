@@ -72,6 +72,8 @@ class CTMainWindow(QMainWindow):
             'EXCHANGE_CURRENCY_RENAME_MAP': EXCHANGE_CURRENCY_RENAME_MAP,
         })
         self.Parameters = CryptoTraderParameters()
+        self.Views = {}
+        self.Timer = QTimer(self)
 
         self.initActions()
 
@@ -80,7 +82,7 @@ class CTMainWindow(QMainWindow):
         # self.initMenuBar()
 
         self.initToolBar()
-        self.viewPair()
+        self.switch_view('ViewPair')
         self.initStatusBar()
         self.show()
 
@@ -88,13 +90,17 @@ class CTMainWindow(QMainWindow):
         self.Actions = {}
         self.Actions['Exit'] = QAction('Exit', self)
         self.Actions['Exit'].setShortcut('Ctrl+Q')
-        self.Actions['Exit'].setStatusTip('Exit application')
+        self.Actions['Exit'].setStatusTip('Exit application (Ctrl+Q)')
         self.Actions['Exit'].triggered.connect(self.close)
 
         self.Actions['ViewPair'] = QAction('ViewPair', self)
         self.Actions['ViewPair'].setShortcut('Ctrl+P')
-        self.Actions['ViewPair'].setStatusTip('View Crypto Pair')
-        self.Actions['ViewPair'].triggered.connect(self.viewPair)
+        self.Actions['ViewPair'].setStatusTip('View Crypto Pair (Ctrl+P)')
+        self.Actions['ViewPair'].triggered.connect(lambda: self.switch_view('ViewPair'))
+
+        self.Actions['ViewPair'] = QAction('Settings', self)
+        self.Actions['ViewPair'].setStatusTip('Settings')
+        self.Actions['ViewPair'].triggered.connect(lambda: self.switch_view('ViewSettings'))
 
     def initMenuBar(self):
         self.MenuBar = self.menuBar()
@@ -110,23 +116,26 @@ class CTMainWindow(QMainWindow):
         self.StatusBar = self.statusBar()
         self.StatusBar.showMessage('Ready')
 
-    def viewPair(self):
-        view = CTViewPair(self.CryptoTrader, self.Parameters)
-        self.setCentralWidget(view)
+    def switch_view(self, view_name):
+        if view_name == 'ViewPair':
+            self.Views['ViewPair'] = CTViewPair(self)
+        if view_name == 'Settings':
+            # TODO
+            pass
+        self.setCentralWidget(self.Views[view_name])
 
 class CTViewPair(QWidget):
-    def __init__(self, crypto_trader, parameters):
+    def __init__(self, parent = None):
         super().__init__()
+        self.parent = parent
         self.table_rows_one_direction = DISPLAY_BOOK_DEPTH
-        self.crypto_trader = crypto_trader
-        self.params = parameters
+        self.crypto_trader = parent.CryptoTrader
+        self.params = parent.Parameters
         self.initUI()
 
     def initUI(self):
         if 'Fusion' in QStyleFactory.keys():
             self.changeStyle('Fusion')
-
-        self.timer = QTimer(self)
 
         self.buttons_nav_home = QPushButton('Home', self)
         self.buttons_nav_home.clicked.connect(self.draw_view_home)
@@ -152,7 +161,7 @@ class CTViewPair(QWidget):
         self.show()
 
     def clear_view(self):
-        self.timer.stop()
+        self.parent.Timer.stop()
         def deleteItems(layout):
             if layout is not None:
                 while layout.count():
@@ -265,8 +274,8 @@ class CTViewPair(QWidget):
 
         self.view_layout.addWidget(self.navi_toolbar, 0, 3, 1, 7)
 
-        self.timer.start(1000)
-        self.timer.timeout.connect(self.view_home_refresh_order_book)
+        self.parent.Timer.start(1000)
+        self.parent.Timer.timeout.connect(self.view_home_refresh_order_book)
 
 
     def draw_view_settings(self):
