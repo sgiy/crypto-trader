@@ -5,17 +5,15 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton,
     QMenu, QAction)
 from PyQt5.QtGui import QIcon
 
+# from PyQt5.QtChart import QCandlestickSeries, QChart, QChartView, QCandlestickSet
 
 from PyQt5.QtWidgets import (QComboBox, QStyleFactory,
     QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QButtonGroup,
-    QSizePolicy, QTableWidget, QTableWidgetItem)
+    QSizePolicy, QTableWidget, QTableWidgetItem, QTextEdit)
 from PyQt5.QtCore import Qt, QTimer
 
 
-from PyQt5.QtWidgets import (QTextEdit)
-
-
-import matplotlib
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
@@ -45,6 +43,7 @@ class DynamicCanvas(FigureCanvas):
 
     def initialize_figure(self, quotes, interval):
         self.axes.cla()
+        self.axes.xaxis_date()
         self.axes.xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d %H:%M'))
         candlestick_ohlc(self.axes,
                         quotes,
@@ -82,7 +81,7 @@ class CTMainWindow(QMainWindow):
         # self.initMenuBar()
 
         self.initToolBar()
-        self.switch_view('ViewPair')
+        self.switch_view('ViewArbs')
         self.initStatusBar()
         self.show()
 
@@ -98,9 +97,14 @@ class CTMainWindow(QMainWindow):
         self.Actions['ViewPair'].setStatusTip('View Crypto Pair (Ctrl+P)')
         self.Actions['ViewPair'].triggered.connect(lambda: self.switch_view('ViewPair'))
 
-        self.Actions['ViewPair'] = QAction('Settings', self)
-        self.Actions['ViewPair'].setStatusTip('Settings')
-        self.Actions['ViewPair'].triggered.connect(lambda: self.switch_view('ViewSettings'))
+        self.Actions['ViewArbs'] = QAction('ViewArbs', self)
+        self.Actions['ViewArbs'].setShortcut('Ctrl+A')
+        self.Actions['ViewArbs'].setStatusTip('View Arbitrage Possibilities (Ctrl+A)')
+        self.Actions['ViewArbs'].triggered.connect(lambda: self.switch_view('ViewArbs'))
+
+        self.Actions['ViewSettings'] = QAction('Settings', self)
+        self.Actions['ViewSettings'].setStatusTip('Settings')
+        self.Actions['ViewSettings'].triggered.connect(lambda: self.switch_view('ViewSettings'))
 
     def initMenuBar(self):
         self.MenuBar = self.menuBar()
@@ -111,18 +115,68 @@ class CTMainWindow(QMainWindow):
         self.ToolBar = self.addToolBar('ToolBar')
         self.ToolBar.addAction(self.Actions['Exit'])
         self.ToolBar.addAction(self.Actions['ViewPair'])
+        self.ToolBar.addAction(self.Actions['ViewArbs'])
+        self.ToolBar.addAction(self.Actions['ViewSettings'])
 
     def initStatusBar(self):
         self.StatusBar = self.statusBar()
         self.StatusBar.showMessage('Ready')
 
     def switch_view(self, view_name):
-        if view_name == 'ViewPair':
-            self.Views['ViewPair'] = CTViewPair(self)
-        if view_name == 'Settings':
-            # TODO
-            pass
+        if view_name not in self.Views:
+            if view_name == 'ViewPair':
+                self.Views['ViewPair'] = CTViewPair(self)
+            if view_name == 'ViewArbs':
+                self.Views['ViewArbs'] = CTViewArbs(self)
+            if view_name == 'Settings':
+                # TODO
+                pass
         self.setCentralWidget(self.Views[view_name])
+
+class CTViewArbs(QWidget):
+    def __init__(self, parent = None):
+        super().__init__()
+        self.parent = parent
+        self.tableWidget = QTableWidget()
+        self.tableWidget.setColumnCount(9)
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.tableWidget)
+        self.setLayout(self.layout)
+        self.check_arbs()
+        self.show()
+
+    def check_arbs(self):
+        required_rate_of_return = 1.0
+        results = self.parent.CryptoTrader.get_arbitrage_possibilities(required_rate_of_return)
+        count_rows = 0
+        for code_base in results:
+            for code_curr in results[code_base]:
+                for exchangeBid in results[code_base][code_curr]:
+                    for exchangeAsk in results[code_base][code_curr]:
+                        if results[code_base][code_curr][exchangeBid]['Bid'] > results[code_base][code_curr][exchangeAsk]['Ask'] * required_rate_of_return:
+                            count_rows += 1
+
+        self.tableWidget.setHorizontalHeaderLabels(['Base', 'Currency','Exchange1','Exchange1 Bid','Exchange1 Ask','Exchange2','Exchange2 Bid','Exchange2 Ask','Spread'])
+        self.tableWidget.setRowCount(count_rows)
+
+        row_index = 0
+        for code_base in results:
+            for code_curr in results[code_base]:
+                for exchangeBid in results[code_base][code_curr]:
+                    for exchangeAsk in results[code_base][code_curr]:
+                        if results[code_base][code_curr][exchangeBid]['Bid'] > results[code_base][code_curr][exchangeAsk]['Ask'] * required_rate_of_return:
+                            self.tableWidget.setItem(row_index,0, QTableWidgetItem(code_base))
+                            self.tableWidget.setItem(row_index,1, QTableWidgetItem(code_curr))
+                            self.tableWidget.setItem(row_index,2, QTableWidgetItem(exchangeAsk))
+                            self.tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeAsk]['Bid'])))
+                            self.tableWidget.setItem(row_index,4, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeAsk]['Ask'])))
+                            self.tableWidget.item(row_index,4).setBackground(self.parent.Parameters.Color['green_light'])
+                            self.tableWidget.setItem(row_index,5, QTableWidgetItem(exchangeBid))
+                            self.tableWidget.setItem(row_index,6, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Bid'])))
+                            self.tableWidget.item(row_index,6).setBackground(self.parent.Parameters.Color['red_light'])
+                            self.tableWidget.setItem(row_index,7, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Ask'])))
+                            self.tableWidget.setItem(row_index,8, QTableWidgetItem('{:.2f}%'.format(100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1))))
+                            row_index += 1
 
 class CTViewPair(QWidget):
     def __init__(self, parent = None):
@@ -131,48 +185,21 @@ class CTViewPair(QWidget):
         self.table_rows_one_direction = DISPLAY_BOOK_DEPTH
         self.crypto_trader = parent.CryptoTrader
         self.params = parent.Parameters
-        self.initUI()
+        self.initView()
 
-    def initUI(self):
+    def initView(self):
         if 'Fusion' in QStyleFactory.keys():
             self.changeStyle('Fusion')
 
-        self.buttons_nav_home = QPushButton('Home', self)
-        self.buttons_nav_home.clicked.connect(self.draw_view_home)
-        self.buttons_nav_compare = QPushButton('Compare', self)
-        self.buttons_nav_compare.clicked.connect(self.draw_view_home)
-        self.buttons_nav_settings = QPushButton('Settings', self)
-        self.buttons_nav_settings.clicked.connect(self.draw_view_settings)
-
-        self.nav_bar = QVBoxLayout()
-        self.nav_bar.addWidget(self.buttons_nav_home)
-        self.nav_bar.addWidget(self.buttons_nav_compare)
-        self.nav_bar.addWidget(self.buttons_nav_settings)
-        self.nav_bar.addStretch(1)
-
-        top_level_layout = QGridLayout()
         self.view_layout = QGridLayout()
-        top_level_layout.addLayout(self.nav_bar, 1, 0)
-        top_level_layout.addLayout(self.view_layout, 1, 1, 1, 9)
 
-        self.setLayout(top_level_layout)
+        self.setLayout(self.view_layout)
         self.draw_view_home()
 
         self.show()
 
     def clear_view(self):
         self.parent.Timer.stop()
-        def deleteItems(layout):
-            if layout is not None:
-                while layout.count():
-                    item = layout.takeAt(0)
-                    widget = item.widget()
-                    if widget is not None:
-                        widget.deleteLater()
-                    else:
-                        deleteItems(item.layout())
-
-        deleteItems(self.view_layout)
 
     def view_home_refresh_dropdown_exchange_change(self, exchange, default_base = None, default_curr = None):
         self._home_view_exchange = exchange
