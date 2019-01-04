@@ -1,7 +1,7 @@
 WINDOW_SIZE = {
     'left':     50,
     'top':      50,
-    'width':    1280,
+    'width':    1800,
     'height':   960,
 }
 DISPLAY_BOOK_DEPTH = 5

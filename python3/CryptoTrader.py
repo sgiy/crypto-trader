@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 from pprint import pprint
 
@@ -58,8 +59,17 @@ class CryptoTrader:
                     print(str(e))
 
     def load_active_markets(self):
+        # t = {0: {
+        #     'time': time.time()
+        # }}
         self._active_markets = {}
+        # i = 0
         for exchange in self.trader:
+            # i += 1
+            # t[i] = {
+            #             'time': time.time(),
+            #             'exchange': exchange
+            #             }
             self.trader[exchange].load_markets()
             for code_base in self.trader[exchange]._active_markets:
                 if not code_base in self._active_markets:
@@ -68,6 +78,9 @@ class CryptoTrader:
                     if not code_curr in self._active_markets[code_base]:
                         self._active_markets[code_base][code_curr] = {}
                     self._active_markets[code_base][code_curr][exchange] = self.trader[exchange]._active_markets[code_base][code_curr]
+
+        # for j in range(i):
+        #     print(' Check for exchange {0} took {1:.4f} seconds '.format(t[j+1]['exchange'],t[j+1]['time'] - t[j]['time']))
 
     def get_market_name(self, exchange, code_base, code_curr):
         return self.trader[exchange]._active_markets[code_base][code_curr]['Market']

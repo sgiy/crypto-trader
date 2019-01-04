@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
-from matplotlib.finance import candlestick2_ochl, candlestick_ohlc
+# from matplotlib.finance import candlestick2_ochl, candlestick_ohlc
 import matplotlib.dates as dates
 
 # Static import
@@ -42,16 +42,17 @@ class DynamicCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
 
     def initialize_figure(self, quotes, interval):
-        self.axes.cla()
-        self.axes.xaxis_date()
-        self.axes.xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d %H:%M'))
-        candlestick_ohlc(self.axes,
-                        quotes,
-                        width=0.0006 * interval,
-                        colorup='g',
-                        colordown='r',
-                        alpha=0.75)
-        self.draw()
+        pass
+        # self.axes.cla()
+        # self.axes.xaxis_date()
+        # self.axes.xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d %H:%M'))
+        # candlestick_ohlc(self.axes,
+        #                 quotes,
+        #                 width=0.0006 * interval,
+        #                 colorup='g',
+        #                 colordown='r',
+        #                 alpha=0.75)
+        # self.draw()
 
 class CTMainWindow(QMainWindow):
     def __init__(self):
@@ -81,9 +82,12 @@ class CTMainWindow(QMainWindow):
         # self.initMenuBar()
 
         self.initToolBar()
-        self.switch_view('ViewArbs')
         self.initStatusBar()
+        self.switch_view('ViewArbs')
         self.show()
+
+    def log(self, message_type = 'INFO', message = ''):
+        self.StatusBar.showMessage(message_type + ': ' + message)
 
     def initActions(self):
         self.Actions = {}
@@ -97,9 +101,9 @@ class CTMainWindow(QMainWindow):
         self.Actions['ViewPair'].setStatusTip('View Crypto Pair (Ctrl+P)')
         self.Actions['ViewPair'].triggered.connect(lambda: self.switch_view('ViewPair'))
 
-        self.Actions['ViewArbs'] = QAction('ViewArbs', self)
+        self.Actions['ViewArbs'] = QAction('ViewLiveArbitrage', self)
         self.Actions['ViewArbs'].setShortcut('Ctrl+A')
-        self.Actions['ViewArbs'].setStatusTip('View Arbitrage Possibilities (Ctrl+A)')
+        self.Actions['ViewArbs'].setStatusTip('View Current Arbitrage Possibilities (Ctrl+A)')
         self.Actions['ViewArbs'].triggered.connect(lambda: self.switch_view('ViewArbs'))
 
         self.Actions['ViewSettings'] = QAction('Settings', self)
@@ -143,10 +147,13 @@ class CTViewArbs(QWidget):
         self.layout.addWidget(self.tableWidget)
         self.setLayout(self.layout)
         self.check_arbs()
+        self.parent.Timer.start(1000)
+        self.parent.Timer.timeout.connect(self.check_arbs)
         self.show()
 
     def check_arbs(self):
         required_rate_of_return = 1.0
+        start_time = time.time()
         results = self.parent.CryptoTrader.get_arbitrage_possibilities(required_rate_of_return)
         count_rows = 0
         for code_base in results:
@@ -177,6 +184,8 @@ class CTViewArbs(QWidget):
                             self.tableWidget.setItem(row_index,7, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Ask'])))
                             self.tableWidget.setItem(row_index,8, QTableWidgetItem('{:.2f}%'.format(100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1))))
                             row_index += 1
+        self.tableWidget.sortByColumn(8, Qt.DescendingOrder)
+        self.parent.log('INFO', ' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))
 
 class CTViewPair(QWidget):
     def __init__(self, parent = None):
