@@ -24,6 +24,8 @@ from config import *
 from CryptoTrader import CryptoTrader
 from CryptoTraderParameters import CryptoTraderParameters
 
+from Views.ExchangeArb import CTViewExchangeArb
+
 class Dropdown(QComboBox):
     def __init__(self, items_list, selected_value):
         super().__init__()
@@ -65,7 +67,7 @@ class CTMainWindow(QMainWindow):
             WINDOW_SIZE['width'],
             WINDOW_SIZE['height']
         )
-        self.CryptoTrader = CryptoTrader({
+        self._Crypto_Trader = CryptoTrader({
             'API_KEYS': API_KEYS,
             'EXCHANGE_CURRENCY_RENAME_MAP': EXCHANGE_CURRENCY_RENAME_MAP,
         })
@@ -81,11 +83,12 @@ class CTMainWindow(QMainWindow):
 
         self.initToolBar()
         self.initStatusBar()
-        self.switch_view('ViewArbs')
+        self.switch_view('ExchangeArbitrage')
         self.show()
 
-    def log(self, message_type = 'INFO', message = ''):
-        self.StatusBar.showMessage(message_type + ': ' + message)
+    def log(self, message = '', message_type = 'INFO'):
+        message = '{0} ({1}): {2}'.format(message_type, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message)
+        self.StatusBar.showMessage(message)
 
     def initActions(self):
         self.Actions = {}
@@ -99,10 +102,10 @@ class CTMainWindow(QMainWindow):
         self.Actions['ViewPair'].setStatusTip('View Crypto Pair (Ctrl+P)')
         self.Actions['ViewPair'].triggered.connect(lambda: self.switch_view('ViewPair'))
 
-        self.Actions['ViewArbs'] = QAction('ViewLiveArbitrage', self)
-        self.Actions['ViewArbs'].setShortcut('Ctrl+A')
-        self.Actions['ViewArbs'].setStatusTip('View Current Arbitrage Possibilities (Ctrl+A)')
-        self.Actions['ViewArbs'].triggered.connect(lambda: self.switch_view('ViewArbs'))
+        self.Actions['ExchangeArbitrage'] = QAction('ExchangeArbitrage', self)
+        self.Actions['ExchangeArbitrage'].setShortcut('Ctrl+A')
+        self.Actions['ExchangeArbitrage'].setStatusTip('View Current Exchange Arbitrage Possibilities (Ctrl+A)')
+        self.Actions['ExchangeArbitrage'].triggered.connect(lambda: self.switch_view('ExchangeArbitrage'))
 
         self.Actions['ViewSettings'] = QAction('Settings', self)
         self.Actions['ViewSettings'].setStatusTip('Settings')
@@ -117,7 +120,7 @@ class CTMainWindow(QMainWindow):
         self.ToolBar = self.addToolBar('ToolBar')
         self.ToolBar.addAction(self.Actions['Exit'])
         self.ToolBar.addAction(self.Actions['ViewPair'])
-        self.ToolBar.addAction(self.Actions['ViewArbs'])
+        self.ToolBar.addAction(self.Actions['ExchangeArbitrage'])
         self.ToolBar.addAction(self.Actions['ViewSettings'])
 
     def initStatusBar(self):
@@ -128,95 +131,26 @@ class CTMainWindow(QMainWindow):
         if view_name not in self.Views:
             if view_name == 'ViewPair':
                 self.Views['ViewPair'] = CTViewPair(self)
-            if view_name == 'ViewArbs':
-                self.Views['ViewArbs'] = CTViewArbs(self)
+            if view_name == 'ExchangeArbitrage':
+                self.Views['ExchangeArbitrage'] = CTViewExchangeArb(self)
             if view_name == 'Settings':
                 # TODO
                 pass
         self.setCentralWidget(self.Views[view_name])
 
-class CTViewArbs(QWidget):
+class CTOrderBook(QWidget):
     def __init__(self, parent = None):
         super().__init__()
         self.parent = parent
-        self.tableWidget = QTableWidget()
-        self.tableWidget.setColumnCount(9)
-        self.layout = QGridLayout()
+        self.table_rows_one_direction = DISPLAY_BOOK_DEPTH
 
-        self._required_rate_of_return_inputbox = QLineEdit('0', self)
-        self._required_rate_of_return_inputbox.textEdited.connect(lambda: self.check_arbs(False))
-        label_return = QLabel("&Required Arbitrage Return (%):")
-        label_return.setBuddy(self._required_rate_of_return_inputbox)
-
-        self._sort_by_return = QCheckBox("Sort by return?",self)
-        self._sort_by_return.setChecked(True)
-
-        topLayout = QHBoxLayout()
-        topLayout.addWidget(label_return)
-        topLayout.addWidget(self._required_rate_of_return_inputbox)
-        topLayout.addWidget(self._sort_by_return)
-        topLayout.addStretch(1)
-
-        self.layout.addLayout(topLayout, 0, 0, 1, 10)
-        self.layout.addWidget(self.tableWidget, 1, 0, 10, 10)
-
-        self.setLayout(self.layout)
-
-        self._arbitrage_possibilities = {}
-        self.check_arbs()
-        self.parent.Timer.start(1000)
-        self.parent.Timer.timeout.connect(self.check_arbs)
-        self.show()
-
-    def check_arbs(self, load_markets = True):
-        required_rate_of_return = 1.0
-        try:
-            required_rate_of_return += float(self._required_rate_of_return_inputbox.text()) / 100.0
-        except:
-            pass
-        start_time = time.time()
-        if load_markets:
-            self._arbitrage_possibilities = self.parent.CryptoTrader.get_arbitrage_possibilities(required_rate_of_return)
-        results = self._arbitrage_possibilities
-        count_rows = 0
-        for code_base in results:
-            for code_curr in results[code_base]:
-                for exchangeBid in results[code_base][code_curr]:
-                    for exchangeAsk in results[code_base][code_curr]:
-                        if results[code_base][code_curr][exchangeBid]['Bid'] > results[code_base][code_curr][exchangeAsk]['Ask'] * required_rate_of_return:
-                            count_rows += 1
-
-        self.tableWidget.setHorizontalHeaderLabels(['Base', 'Currency','Exchange1','Exchange1 Bid','Exchange1 Ask','Exchange2','Exchange2 Bid','Exchange2 Ask','Return'])
-        self.tableWidget.setRowCount(count_rows)
-
-        row_index = 0
-        for code_base in results:
-            for code_curr in results[code_base]:
-                for exchangeBid in results[code_base][code_curr]:
-                    for exchangeAsk in results[code_base][code_curr]:
-                        if results[code_base][code_curr][exchangeBid]['Bid'] > results[code_base][code_curr][exchangeAsk]['Ask'] * required_rate_of_return:
-                            self.tableWidget.setItem(row_index,0, QTableWidgetItem(code_base))
-                            self.tableWidget.setItem(row_index,1, QTableWidgetItem(code_curr))
-                            self.tableWidget.setItem(row_index,2, QTableWidgetItem(exchangeAsk))
-                            self.tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeAsk]['Bid'])))
-                            self.tableWidget.setItem(row_index,4, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeAsk]['Ask'])))
-                            self.tableWidget.item(row_index,4).setBackground(self.parent.Parameters.Color['green_light'])
-                            self.tableWidget.setItem(row_index,5, QTableWidgetItem(exchangeBid))
-                            self.tableWidget.setItem(row_index,6, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Bid'])))
-                            self.tableWidget.item(row_index,6).setBackground(self.parent.Parameters.Color['red_light'])
-                            self.tableWidget.setItem(row_index,7, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Ask'])))
-                            self.tableWidget.setItem(row_index,8, QTableWidgetItem('{:.2f}%'.format(100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1))))
-                            row_index += 1
-        if self._sort_by_return.isChecked():
-            self.tableWidget.sortByColumn(8, Qt.DescendingOrder)
-        self.parent.log('INFO', ' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))
 
 class CTViewPair(QWidget):
     def __init__(self, parent = None):
         super().__init__()
         self.parent = parent
         self.table_rows_one_direction = DISPLAY_BOOK_DEPTH
-        self.crypto_trader = parent.CryptoTrader
+        self._Crypto_Trader = parent._Crypto_Trader
         self.params = parent.Parameters
         self.initView()
 
@@ -240,7 +174,7 @@ class CTViewPair(QWidget):
             default_base = self._home_view_dropdown_base_curr.currentText
         if default_curr is None:
             default_curr = self._home_view_dropdown_curr_curr.currentText
-        base_codes = list(self.crypto_trader.trader[exchange]._active_markets)
+        base_codes = list(self._Crypto_Trader.trader[exchange]._active_markets)
         self._home_view_dropdown_base_curr.clear()
         self._home_view_dropdown_base_curr.addItems(base_codes)
         if not default_base in base_codes:
@@ -252,7 +186,7 @@ class CTViewPair(QWidget):
         self._home_view_base_curr = base_curr
         if default_curr is None:
             default_curr = self._home_view_dropdown_curr_curr.currentText
-        curr_codes = list(self.crypto_trader.trader[self._home_view_exchange]._active_markets[base_curr])
+        curr_codes = list(self._Crypto_Trader.trader[self._home_view_exchange]._active_markets[base_curr])
         self._home_view_dropdown_curr_curr.clear()
         self._home_view_dropdown_curr_curr.addItems(curr_codes)
         if not default_curr in curr_codes:
@@ -262,7 +196,7 @@ class CTViewPair(QWidget):
 
     def view_home_refresh_dropdown_curr_change(self, curr_curr):
         self._home_view_curr_curr = curr_curr
-        self._home_view_market_name = self.crypto_trader.get_market_name(self._home_view_exchange, self._home_view_base_curr, curr_curr)
+        self._home_view_market_name = self._Crypto_Trader.get_market_name(self._home_view_exchange, self._home_view_base_curr, curr_curr)
         self.tableWidget.setHorizontalHeaderLabels([
             'Price',
             'Quantity',
@@ -283,15 +217,15 @@ class CTViewPair(QWidget):
         self.tableWidget.setColumnCount(4)
         self.chart = DynamicCanvas(self, width=5, height=4, dpi=100)
 
-        exchanges = self.crypto_trader.trader.keys()
+        exchanges = self._Crypto_Trader.trader.keys()
         self._home_view_dropdown_exchange = Dropdown(exchanges, HOME_VIEW_EXCHANGE)
         self._home_view_dropdown_exchange.activated[str].connect(self.view_home_refresh_dropdown_exchange_change)
 
-        base_codes = self.crypto_trader.trader[HOME_VIEW_EXCHANGE]._active_markets.keys()
+        base_codes = self._Crypto_Trader.trader[HOME_VIEW_EXCHANGE]._active_markets.keys()
         self._home_view_dropdown_base_curr = Dropdown(base_codes, HOME_VIEW_BASE_CODE)
         self._home_view_dropdown_base_curr.activated[str].connect(self.view_home_refresh_dropdown_base_change)
 
-        curr_codes = self.crypto_trader.trader[HOME_VIEW_EXCHANGE]._active_markets[HOME_VIEW_BASE_CODE].keys()
+        curr_codes = self._Crypto_Trader.trader[HOME_VIEW_EXCHANGE]._active_markets[HOME_VIEW_BASE_CODE].keys()
         self._home_view_dropdown_curr_curr = Dropdown(curr_codes, HOME_VIEW_CURRENCY_CODE)
         self._home_view_dropdown_curr_curr.activated[str].connect(self.view_home_refresh_dropdown_curr_change)
 
@@ -354,11 +288,10 @@ class CTViewPair(QWidget):
         code_base = self._home_view_base_curr
         code_curr = self._home_view_curr_curr
         market_name = self._home_view_market_name
-        print("Loading market " + market_name)
 
         align_right = Qt.AlignRight
 
-        results = self.crypto_trader.trader[exchange].load_order_book(market_name)
+        results = self._Crypto_Trader.trader[exchange].load_order_book(market_name)
         for cell_index in range(2 * self.table_rows_one_direction):
             self.tableWidget.setItem(cell_index,0, QTableWidgetItem(""))
             self.tableWidget.setItem(cell_index,1, QTableWidgetItem(""))
@@ -393,6 +326,7 @@ class CTViewPair(QWidget):
                 else:
                     self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setBackground(self.params.Color['red_bold'])
                 self.tableWidget.item(self.table_rows_one_direction - 1 - ask, i).setTextAlignment(align_right)
+        self.parent.log("Loaded market " + market_name)
 
     def view_home_refresh_chart(self):
         exchange = self._home_view_exchange
@@ -404,7 +338,7 @@ class CTViewPair(QWidget):
         interval = self.params.ChartInterval[interval_name]
         lookback = self.params.ChartLookbackWindow[lookback_name]
 
-        load_chart = self.crypto_trader.trader[exchange].load_chart_data(market_name, interval, lookback)
+        load_chart = self._Crypto_Trader.trader[exchange].load_chart_data(market_name, interval, lookback)
         self.chart.initialize_figure(load_chart, interval)
 
 if __name__ == '__main__':
