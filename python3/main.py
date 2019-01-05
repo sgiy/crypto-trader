@@ -1,17 +1,15 @@
 import sys, time
 from datetime import datetime
 
+from PyQt5.QtCore import Qt, QTimer
+
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton,
-    QMenu, QAction)
+    QMenu, QAction, QCheckBox, QComboBox, QStyleFactory,
+        QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QButtonGroup,
+        QSizePolicy, QTableWidget, QTableWidgetItem, QTextEdit, QLineEdit)
 from PyQt5.QtGui import QIcon
 
 # from PyQt5.QtChart import QCandlestickSeries, QChart, QChartView, QCandlestickSet
-
-from PyQt5.QtWidgets import (QComboBox, QStyleFactory,
-    QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QButtonGroup,
-    QSizePolicy, QTableWidget, QTableWidgetItem, QTextEdit, QLineEdit)
-from PyQt5.QtCore import Qt, QTimer
-
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas,
@@ -150,9 +148,13 @@ class CTViewArbs(QWidget):
         label_return = QLabel("&Required Arbitrage Return (%):")
         label_return.setBuddy(self._required_rate_of_return_inputbox)
 
+        self._sort_by_return = QCheckBox("Sort by return?",self)
+        self._sort_by_return.setChecked(True)
+
         topLayout = QHBoxLayout()
         topLayout.addWidget(label_return)
         topLayout.addWidget(self._required_rate_of_return_inputbox)
+        topLayout.addWidget(self._sort_by_return)
         topLayout.addStretch(1)
 
         self.layout.addLayout(topLayout, 0, 0, 1, 10)
@@ -167,7 +169,11 @@ class CTViewArbs(QWidget):
         self.show()
 
     def check_arbs(self, load_markets = True):
-        required_rate_of_return = 1.0 + float(self._required_rate_of_return_inputbox.text()) / 100.0
+        required_rate_of_return = 1.0
+        try:
+            required_rate_of_return += float(self._required_rate_of_return_inputbox.text()) / 100.0
+        except:
+            pass
         start_time = time.time()
         if load_markets:
             self._arbitrage_possibilities = self.parent.CryptoTrader.get_arbitrage_possibilities(required_rate_of_return)
@@ -180,7 +186,7 @@ class CTViewArbs(QWidget):
                         if results[code_base][code_curr][exchangeBid]['Bid'] > results[code_base][code_curr][exchangeAsk]['Ask'] * required_rate_of_return:
                             count_rows += 1
 
-        self.tableWidget.setHorizontalHeaderLabels(['Base', 'Currency','Exchange1','Exchange1 Bid','Exchange1 Ask','Exchange2','Exchange2 Bid','Exchange2 Ask','Spread'])
+        self.tableWidget.setHorizontalHeaderLabels(['Base', 'Currency','Exchange1','Exchange1 Bid','Exchange1 Ask','Exchange2','Exchange2 Bid','Exchange2 Ask','Return'])
         self.tableWidget.setRowCount(count_rows)
 
         row_index = 0
@@ -201,7 +207,8 @@ class CTViewArbs(QWidget):
                             self.tableWidget.setItem(row_index,7, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Ask'])))
                             self.tableWidget.setItem(row_index,8, QTableWidgetItem('{:.2f}%'.format(100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1))))
                             row_index += 1
-        self.tableWidget.sortByColumn(8, Qt.DescendingOrder)
+        if self._sort_by_return.isChecked():
+            self.tableWidget.sortByColumn(8, Qt.DescendingOrder)
         self.parent.log('INFO', ' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))
 
 class CTViewPair(QWidget):
