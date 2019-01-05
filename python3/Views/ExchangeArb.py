@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget,
     QTableWidgetItem, QLineEdit, QLabel, QCheckBox, QHBoxLayout)
 
-class CTViewExchangeArb(QWidget):
+class CTExchangeArb(QWidget):
     def __init__(self, CTMain = None):
         super().__init__()
         self._CTMain = CTMain

@@ -24,7 +24,8 @@ from config import *
 from CryptoTrader import CryptoTrader
 from CryptoTraderParameters import CryptoTraderParameters
 
-from Views.ExchangeArb import CTViewExchangeArb
+from Views.ExchangeArb import CTExchangeArb
+from Views.OrderBook import CTOrderBook
 
 class Dropdown(QComboBox):
     def __init__(self, items_list, selected_value):
@@ -128,89 +129,15 @@ class CTMainWindow(QMainWindow):
         self.StatusBar.showMessage('Ready')
 
     def switch_view(self, view_name):
-        if view_name not in self.Views:
-            if view_name == 'ViewPair':
-                self.Views['ViewPair'] = CTViewPair(self)
-            if view_name == 'ExchangeArbitrage':
-                self.Views['ExchangeArbitrage'] = CTViewExchangeArb(self)
-            if view_name == 'Settings':
-                # TODO
-                pass
+        # if view_name not in self.Views:
+        if view_name == 'ViewPair':
+            self.Views['ViewPair'] = CTViewPair(self)
+        if view_name == 'ExchangeArbitrage':
+            self.Views['ExchangeArbitrage'] = CTExchangeArb(self)
+        if view_name == 'Settings':
+            # TODO
+            pass
         self.setCentralWidget(self.Views[view_name])
-
-class CTOrderBook(QWidget):
-    def __init__(self, CTMain = None, exchange = None, market_name = None, base_curr = None, curr_curr = None):
-        super().__init__()
-        self._CTMain = CTMain
-        self._exchange = exchange
-        self._market_name = market_name
-        self._base_curr = base_curr
-        self._curr_curr = curr_curr
-        self._depth = DISPLAY_BOOK_DEPTH
-
-        self._tableWidget = QTableWidget()
-        self._tableWidget.setRowCount(2 * self._depth)
-        self._tableWidget.setColumnCount(4)
-        self._tableWidget.verticalHeader().hide()
-
-        self._layout = QVBoxLayout()
-        self._layout.addWidget(self._tableWidget)
-        self.setLayout(self._layout)
-
-    def refresh_order_book(self, exchange = None, market_name = None, base_curr = None, curr_curr = None):
-        if exchange is not None:
-            self._exchange = exchange
-        if market_name is not None:
-            self._market_name = market_name
-        if base_curr is not None:
-            self._base_curr = base_curr
-        if curr_curr is not None:
-            self._curr_curr = curr_curr
-
-        self._tableWidget.setHorizontalHeaderLabels([
-            'Price',
-            'Quantity',
-            curr_curr + ' sum',
-            base_curr + ' sum'
-        ])
-
-        results = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_name, self._depth)
-        for cell_index in range(2 * self._depth):
-            self._tableWidget.setItem(cell_index,0, QTableWidgetItem(""))
-            self._tableWidget.setItem(cell_index,1, QTableWidgetItem(""))
-        sum_bid = 0
-        sum_bid_base = 0
-        for bid in results['Bid']:
-            self._tableWidget.setItem(self._depth + bid, 0, QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Price'])))
-            self._tableWidget.setItem(self._depth + bid, 1, QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Quantity'])))
-            sum_bid += results['Bid'][bid]['Quantity']
-            sum_bid_base += results['Bid'][bid]['Quantity'] * results['Bid'][bid]['Price']
-            self._tableWidget.setItem(self._depth + bid, 2, QTableWidgetItem("{0:.8f}".format(sum_bid)))
-            self._tableWidget.setItem(self._depth + bid, 3, QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
-            for i in range(4):
-                if bid > 0:
-                    self._tableWidget.item(self._depth + bid, i).setBackground(self._CTMain._Parameters.Color['green_light'])
-                else:
-                    self._tableWidget.item(self._depth + bid, i).setBackground(self._CTMain._Parameters.Color['green_bold'])
-                self._tableWidget.item(self._depth + bid, i).setTextAlignment(Qt.AlignRight)
-
-        sum_ask = 0
-        sum_ask_base = 0
-        for ask in results['Ask']:
-            self._tableWidget.setItem(self._depth - 1 - ask, 0, QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Price'])))
-            self._tableWidget.setItem(self._depth - 1 - ask, 1, QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Quantity'])))
-            sum_ask += results['Ask'][ask]['Quantity']
-            sum_ask_base += results['Ask'][ask]['Quantity'] * results['Ask'][ask]['Price']
-            self._tableWidget.setItem(self._depth - 1 - ask, 2, QTableWidgetItem("{0:.8f}".format(sum_ask)))
-            self._tableWidget.setItem(self._depth - 1 - ask, 3, QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
-            for i in range(4):
-                if ask > 0:
-                    self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_light'])
-                else:
-                    self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_bold'])
-                self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight)
-        self._CTMain.log("Loaded market " + market_name)
-
 
 class CTViewPair(QWidget):
     def __init__(self, CTMain = None):
@@ -264,7 +191,14 @@ class CTViewPair(QWidget):
         self._home_view_base_curr = HOME_VIEW_BASE_CODE
         self._home_view_curr_curr = HOME_VIEW_CURRENCY_CODE
 
-        self._CT_Order_Book_Widget = CTOrderBook(self._CTMain)
+        self._CT_Order_Book_Widget = CTOrderBook(
+            self._CTMain,
+            None,
+            None,
+            None,
+            None,
+            DISPLAY_BOOK_DEPTH
+            )
         self.chart = DynamicCanvas(self, width=5, height=4, dpi=100)
 
         exchanges = self._CTMain._Crypto_Trader.trader.keys()
