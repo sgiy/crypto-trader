@@ -196,10 +196,10 @@ class Binance(Exchange):
             }
         return self._complete_balances_btc
 
-    def load_order_book(self, market):
-        raw_results = self.get_order_book(market,'5')
-        take_bid = min(5, len(raw_results['bids']))
-        take_ask = min(5, len(raw_results['asks']))
+    def load_order_book(self, market, depth = 5):
+        raw_results = self.get_order_book(market, str(depth))
+        take_bid = min(depth, len(raw_results['bids']))
+        take_ask = min(depth, len(raw_results['asks']))
 
         results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
         for i in range(take_bid):

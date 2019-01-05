@@ -5,10 +5,10 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget,
     QTableWidgetItem, QLineEdit, QLabel, QCheckBox, QHBoxLayout)
 
 class CTViewExchangeArb(QWidget):
-    def __init__(self, parent = None):
+    def __init__(self, CTMain = None):
         super().__init__()
-        self._parent = parent
-        self._Crypto_Trader = parent._Crypto_Trader
+        self._CTMain = CTMain
+
         self._tableWidget = QTableWidget()
         self._tableWidget.setColumnCount(9)
         self._layout = QGridLayout()
@@ -35,8 +35,8 @@ class CTViewExchangeArb(QWidget):
 
         self._arbitrage_possibilities = {}
         self.check_arbs()
-        self._parent.Timer.start(1000)
-        self._parent.Timer.timeout.connect(self.check_arbs)
+        self._CTMain._Timer.start(1000)
+        self._CTMain._Timer.timeout.connect(self.check_arbs)
         self.show()
 
     def check_arbs(self, load_markets = True):
@@ -47,7 +47,7 @@ class CTViewExchangeArb(QWidget):
             pass
         start_time = time.time()
         if load_markets:
-            self._arbitrage_possibilities = self._Crypto_Trader.get_arbitrage_possibilities(required_rate_of_return)
+            self._arbitrage_possibilities = self._CTMain._Crypto_Trader.get_arbitrage_possibilities(required_rate_of_return)
         results = self._arbitrage_possibilities
         count_rows = 0
         for code_base in results:
@@ -81,13 +81,13 @@ class CTViewExchangeArb(QWidget):
                             self._tableWidget.setItem(row_index,2, QTableWidgetItem(exchangeAsk))
                             self._tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeAsk]['Bid'])))
                             self._tableWidget.setItem(row_index,4, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeAsk]['Ask'])))
-                            self._tableWidget.item(row_index,4).setBackground(self._parent.Parameters.Color['green_light'])
+                            self._tableWidget.item(row_index,4).setBackground(self._CTMain._Parameters.Color['green_light'])
                             self._tableWidget.setItem(row_index,5, QTableWidgetItem(exchangeBid))
                             self._tableWidget.setItem(row_index,6, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Bid'])))
-                            self._tableWidget.item(row_index,6).setBackground(self._parent.Parameters.Color['red_light'])
+                            self._tableWidget.item(row_index,6).setBackground(self._CTMain._Parameters.Color['red_light'])
                             self._tableWidget.setItem(row_index,7, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Ask'])))
                             self._tableWidget.setItem(row_index,8, QTableWidgetItem('{:.2f}%'.format(100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1))))
                             row_index += 1
         if self._sort_by_return.isChecked():
             self._tableWidget.sortByColumn(8, Qt.DescendingOrder)
-        self._parent.log(' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))
+        self._CTMain.log(' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))
