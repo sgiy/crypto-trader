@@ -9,7 +9,7 @@ from PyQt5.QtGui import QIcon
 
 from PyQt5.QtWidgets import (QComboBox, QStyleFactory,
     QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QButtonGroup,
-    QSizePolicy, QTableWidget, QTableWidgetItem, QTextEdit)
+    QSizePolicy, QTableWidget, QTableWidgetItem, QTextEdit, QLineEdit)
 from PyQt5.QtCore import Qt, QTimer
 
 
@@ -143,18 +143,35 @@ class CTViewArbs(QWidget):
         self.parent = parent
         self.tableWidget = QTableWidget()
         self.tableWidget.setColumnCount(9)
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.tableWidget)
+        self.layout = QGridLayout()
+
+        self._required_rate_of_return_inputbox = QLineEdit('0', self)
+        self._required_rate_of_return_inputbox.textEdited.connect(lambda: self.check_arbs(False))
+        label_return = QLabel("&Required Arbitrage Return (%):")
+        label_return.setBuddy(self._required_rate_of_return_inputbox)
+
+        topLayout = QHBoxLayout()
+        topLayout.addWidget(label_return)
+        topLayout.addWidget(self._required_rate_of_return_inputbox)
+        topLayout.addStretch(1)
+
+        self.layout.addLayout(topLayout, 0, 0, 1, 10)
+        self.layout.addWidget(self.tableWidget, 1, 0, 10, 10)
+
         self.setLayout(self.layout)
+
+        self._arbitrage_possibilities = {}
         self.check_arbs()
         self.parent.Timer.start(1000)
         self.parent.Timer.timeout.connect(self.check_arbs)
         self.show()
 
-    def check_arbs(self):
-        required_rate_of_return = 1.0
+    def check_arbs(self, load_markets = True):
+        required_rate_of_return = 1.0 + float(self._required_rate_of_return_inputbox.text()) / 100.0
         start_time = time.time()
-        results = self.parent.CryptoTrader.get_arbitrage_possibilities(required_rate_of_return)
+        if load_markets:
+            self._arbitrage_possibilities = self.parent.CryptoTrader.get_arbitrage_possibilities(required_rate_of_return)
+        results = self._arbitrage_possibilities
         count_rows = 0
         for code_base in results:
             for code_curr in results[code_base]:
