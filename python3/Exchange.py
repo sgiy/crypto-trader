@@ -161,34 +161,37 @@ class Exchange:
 
         number_of_ticks_to_take = int(lookback / interval)
         preliminary_ticks = self.load_ticks(market_name, take_i_name, lookback)
-        if take_i_mins == interval:
-            return preliminary_ticks[-number_of_ticks_to_take:]
+        if preliminary_ticks is None:
+            return None
         else:
-            base = interval / take_i_mins
-            number_of_ticks_to_consider = int(number_of_ticks_to_take * base)
-            number_of_ticks_to_consider = min(number_of_ticks_to_consider, len(preliminary_ticks))
-            start_index = len(preliminary_ticks) - number_of_ticks_to_consider
-            results = []
-            for i in range(number_of_ticks_to_consider):
-                if i % base == 0:
-                    open_v = preliminary_ticks[start_index + i][1]
-                    high_v = preliminary_ticks[start_index + i][2]
-                    low_v = preliminary_ticks[start_index + i][3]
-                    volume_v = preliminary_ticks[start_index + i][5]
-                    baseVolume_v = preliminary_ticks[start_index + i][6]
-                else:
-                    if preliminary_ticks[start_index + i][2] > high_v:
+            if take_i_mins == interval:
+                return preliminary_ticks[-number_of_ticks_to_take:]
+            else:
+                base = interval / take_i_mins
+                number_of_ticks_to_consider = int(number_of_ticks_to_take * base)
+                number_of_ticks_to_consider = min(number_of_ticks_to_consider, len(preliminary_ticks))
+                start_index = len(preliminary_ticks) - number_of_ticks_to_consider
+                results = []
+                for i in range(number_of_ticks_to_consider):
+                    if i % base == 0:
+                        open_v = preliminary_ticks[start_index + i][1]
                         high_v = preliminary_ticks[start_index + i][2]
-                    if preliminary_ticks[start_index + i][3] < low_v:
                         low_v = preliminary_ticks[start_index + i][3]
-                    volume_v += preliminary_ticks[start_index + i][5]
-                    baseVolume_v += preliminary_ticks[start_index + i][6]
-                    if i % base == base - 1:
-                        close_v = preliminary_ticks[start_index + i][4]
-                        time_v = preliminary_ticks[start_index + i][0]
-                        new_row = time_v, open_v, high_v, low_v, close_v, volume_v, baseVolume_v
-                        results.append(new_row)
-            return results
+                        volume_v = preliminary_ticks[start_index + i][5]
+                        baseVolume_v = preliminary_ticks[start_index + i][6]
+                    else:
+                        if preliminary_ticks[start_index + i][2] > high_v:
+                            high_v = preliminary_ticks[start_index + i][2]
+                        if preliminary_ticks[start_index + i][3] < low_v:
+                            low_v = preliminary_ticks[start_index + i][3]
+                        volume_v += preliminary_ticks[start_index + i][5]
+                        baseVolume_v += preliminary_ticks[start_index + i][6]
+                        if i % base == base - 1:
+                            close_v = preliminary_ticks[start_index + i][4]
+                            time_v = preliminary_ticks[start_index + i][0]
+                            new_row = time_v, open_v, high_v, low_v, close_v, volume_v, baseVolume_v
+                            results.append(new_row)
+                return results
 
     def submit_trade(self, direction="buy", market="", price=0, amount=0, trade_type=""):
         """

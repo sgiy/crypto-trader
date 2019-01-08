@@ -13,6 +13,10 @@ API_KEYS ={
     'Binance': {
         'APIKey': '',
         'Secret': ''
+    },
+    'Poloniex': {
+        'APIKey': '',
+        'Secret': ''
     }
 }
 EXCHANGE_CURRENCY_RENAME_MAP = {

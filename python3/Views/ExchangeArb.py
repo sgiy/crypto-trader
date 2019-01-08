@@ -13,7 +13,7 @@ class CTExchangeArb(QWidget):
         self._tableWidget.setColumnCount(9)
         self._layout = QGridLayout()
 
-        self._required_rate_of_return_inputbox = QLineEdit('0', self)
+        self._required_rate_of_return_inputbox = QLineEdit('0.2', self)
         self._required_rate_of_return_inputbox.textEdited.connect(lambda: self.check_arbs(False))
         label_return = QLabel("&Required Arbitrage Return (%):")
         label_return.setBuddy(self._required_rate_of_return_inputbox)
