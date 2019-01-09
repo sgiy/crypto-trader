@@ -35,8 +35,8 @@ class CTOrderBook(QWidget):
         self._tableWidget.setHorizontalHeaderLabels([
             'Price',
             'Quantity',
-            curr_curr + ' sum',
-            base_curr + ' sum'
+            self._curr_curr + ' sum',
+            self._base_curr + ' sum'
         ])
 
         results = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_name, self._depth)
@@ -74,4 +74,4 @@ class CTOrderBook(QWidget):
                 else:
                     self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_bold'])
                 self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight)
-        self._CTMain.log("Loaded market " + market_name)
+        self._CTMain.log("Loaded market " + self._market_name)

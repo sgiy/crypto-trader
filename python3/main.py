@@ -24,14 +24,10 @@ from config import *
 from CryptoTrader import CryptoTrader
 from CryptoTraderParameters import CryptoTraderParameters
 
+from Views.Dropdown import Dropdown
 from Views.ExchangeArb import CTExchangeArb
 from Views.OrderBook import CTOrderBook
-
-class Dropdown(QComboBox):
-    def __init__(self, items_list, selected_value):
-        super().__init__()
-        self.addItems(items_list)
-        self.setCurrentText(selected_value)
+from Views.TwoOrderBooks import CTTwoOrderBooks
 
 class DynamicCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=100):
@@ -104,9 +100,13 @@ class CTMainWindow(QMainWindow):
         self.Actions['ViewPair'].triggered.connect(lambda: self.switch_view('ViewPair'))
 
         self.Actions['ExchangeArbitrage'] = QAction('ExchangeArbitrage', self)
-        self.Actions['ExchangeArbitrage'].setShortcut('Ctrl+A')
-        self.Actions['ExchangeArbitrage'].setStatusTip('View Current Exchange Arbitrage Possibilities (Ctrl+A)')
+        self.Actions['ExchangeArbitrage'].setShortcut('Ctrl+E')
+        self.Actions['ExchangeArbitrage'].setStatusTip('View Current Exchange Arbitrage Possibilities (Ctrl+E)')
         self.Actions['ExchangeArbitrage'].triggered.connect(lambda: self.switch_view('ExchangeArbitrage'))
+
+        self.Actions['ViewTwoExchangeOrderBooks'] = QAction('ViewTwoExchangeOrderBooks', self)
+        self.Actions['ViewTwoExchangeOrderBooks'].setStatusTip('View Two Exchange Order Books')
+        self.Actions['ViewTwoExchangeOrderBooks'].triggered.connect(lambda: self.switch_view('ViewTwoExchangeOrderBooks'))
 
         self.Actions['ViewSettings'] = QAction('Settings', self)
         self.Actions['ViewSettings'].setStatusTip('Settings')
@@ -122,6 +122,7 @@ class CTMainWindow(QMainWindow):
         self.ToolBar.addAction(self.Actions['Exit'])
         self.ToolBar.addAction(self.Actions['ViewPair'])
         self.ToolBar.addAction(self.Actions['ExchangeArbitrage'])
+        self.ToolBar.addAction(self.Actions['ViewTwoExchangeOrderBooks'])
         self.ToolBar.addAction(self.Actions['ViewSettings'])
 
     def initStatusBar(self):
@@ -131,9 +132,22 @@ class CTMainWindow(QMainWindow):
     def switch_view(self, view_name):
         # if view_name not in self.Views:
         if view_name == 'ViewPair':
-            self.Views['ViewPair'] = CTViewPair(self)
+            self.Views['ViewPair'] = CTViewPair(CTMain = self)
         if view_name == 'ExchangeArbitrage':
-            self.Views['ExchangeArbitrage'] = CTExchangeArb(self)
+            self.Views['ExchangeArbitrage'] = CTExchangeArb(CTMain = self)
+        if view_name == 'ViewTwoExchangeOrderBooks':
+            self.Views['ViewTwoExchangeOrderBooks'] = CTTwoOrderBooks(
+                CTMain = self,
+                exchange1 = 'Bittrex',
+                market_name1 = 'BTC-XLM',
+                base_curr1 = 'BTC',
+                curr_curr1 = 'XLM',
+                exchange2 = 'Poloniex',
+                market_name2 = 'BTC_STR',
+                base_curr2 = 'BTC',
+                curr_curr2 = 'STR',
+                depth = 5
+                )
         if view_name == 'Settings':
             # TODO
             pass
@@ -253,14 +267,6 @@ class CTViewPair(QWidget):
 
         self._CTMain._Timer.start(1000)
         self._CTMain._Timer.timeout.connect(self.view_home_refresh_order_book)
-
-    # def draw_view_settings(self):
-    #     styleComboBox = QComboBox()
-    #     styleComboBox.addItems(QStyleFactory.keys())
-    #     styleComboBox.activated[str].connect(self.changeStyle)
-    #
-    #     self.clear_view()
-    #     self._layout.addWidget(styleComboBox, 1, 1)
 
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
