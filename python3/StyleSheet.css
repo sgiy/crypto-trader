@@ -1,0 +1,38 @@
+QTableWidget {
+    height: 14px;
+    padding: 0px;
+    border-style: outset;
+    border-width: 2px;
+    margin: 1px;
+}
+
+/* QTableWidget::item {
+    height: 14px;
+    min-height: 14px;
+    max-height: 14px;
+    padding: 0px;
+    border-style: none;
+    border-width: 0px;
+    margin: 1px;
+} */
+
+QHeaderView::section {
+    background: rgb(48, 54, 68);
+    color: #f8f9fa;
+    padding: 6px;
+}
+
+QHeaderView::section:horizontal {
+    border-top: 0px solid #fffff8;
+    height: 1.2em;
+}
+
+QHeaderView::section:vertical {
+    border-left: 0px solid #fffff8;
+    height: 1.2em;
+}
+
+QTableWidgetItem {
+    border-style: outset;
+    border: 10px solid darkgray;
+}

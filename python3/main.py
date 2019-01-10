@@ -1,4 +1,4 @@
-import sys, time
+import sys, time, os
 from datetime import datetime
 
 from PyQt5.QtCore import Qt, QTimer
@@ -81,6 +81,7 @@ class CTMainWindow(QMainWindow):
         self.initToolBar()
         self.initStatusBar()
         self.switch_view('ExchangeArbitrage')
+        self.refresh_stylesheet()
         self.show()
 
     def log(self, message = '', message_type = 'INFO'):
@@ -112,6 +113,10 @@ class CTMainWindow(QMainWindow):
         self.Actions['ViewSettings'].setStatusTip('Settings')
         self.Actions['ViewSettings'].triggered.connect(lambda: self.switch_view('ViewSettings'))
 
+        self.Actions['RefreshStylesheet'] = QAction('RefreshStylesheet', self)
+        self.Actions['RefreshStylesheet'].setStatusTip('Refresh Stylesheet')
+        self.Actions['RefreshStylesheet'].triggered.connect(self.refresh_stylesheet)
+
     def initMenuBar(self):
         self.MenuBar = self.menuBar()
         fileMenu = self.MenuBar.addMenu('&File')
@@ -124,10 +129,15 @@ class CTMainWindow(QMainWindow):
         self.ToolBar.addAction(self.Actions['ExchangeArbitrage'])
         self.ToolBar.addAction(self.Actions['ViewTwoExchangeOrderBooks'])
         self.ToolBar.addAction(self.Actions['ViewSettings'])
+        self.ToolBar.addAction(self.Actions['RefreshStylesheet'])
 
     def initStatusBar(self):
         self.StatusBar = self.statusBar()
         self.StatusBar.showMessage('Ready')
+
+    def refresh_stylesheet(self):
+        css = open(os.path.join(sys.path[0], "StyleSheet.css"), "r")
+        self.setStyleSheet(css.read())
 
     def switch_view(self, view_name):
         # if view_name not in self.Views:
