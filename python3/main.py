@@ -26,6 +26,7 @@ from CryptoTraderParameters import CryptoTraderParameters
 
 from Views.Dropdown import Dropdown
 from Views.ExchangeArb import CTExchangeArb
+from Views.ExchangeArbCircle import CTExchangeArbCircle
 from Views.OrderBook import CTOrderBook
 from Views.TwoOrderBooks import CTTwoOrderBooks
 
@@ -105,6 +106,10 @@ class CTMainWindow(QMainWindow):
         self.Actions['ExchangeArbitrage'].setStatusTip('View Current Exchange Arbitrage Possibilities (Ctrl+E)')
         self.Actions['ExchangeArbitrage'].triggered.connect(lambda: self.switch_view('ExchangeArbitrage'))
 
+        self.Actions['ExchangeArbitrageCircle'] = QAction('ExchangeArbitrageCircle', self)
+        self.Actions['ExchangeArbitrageCircle'].setStatusTip('View Current Exchange Arbitrage Circle Possibilities')
+        self.Actions['ExchangeArbitrageCircle'].triggered.connect(lambda: self.switch_view('ExchangeArbitrageCircle'))
+
         self.Actions['ViewTwoExchangeOrderBooks'] = QAction('ViewTwoExchangeOrderBooks', self)
         self.Actions['ViewTwoExchangeOrderBooks'].setStatusTip('View Two Exchange Order Books')
         self.Actions['ViewTwoExchangeOrderBooks'].triggered.connect(lambda: self.switch_view('ViewTwoExchangeOrderBooks'))
@@ -127,6 +132,7 @@ class CTMainWindow(QMainWindow):
         self.ToolBar.addAction(self.Actions['Exit'])
         self.ToolBar.addAction(self.Actions['ViewPair'])
         self.ToolBar.addAction(self.Actions['ExchangeArbitrage'])
+        self.ToolBar.addAction(self.Actions['ExchangeArbitrageCircle'])
         self.ToolBar.addAction(self.Actions['ViewTwoExchangeOrderBooks'])
         self.ToolBar.addAction(self.Actions['ViewSettings'])
         self.ToolBar.addAction(self.Actions['RefreshStylesheet'])
@@ -145,6 +151,8 @@ class CTMainWindow(QMainWindow):
             self.Views['ViewPair'] = CTViewPair(CTMain = self)
         if view_name == 'ExchangeArbitrage':
             self.Views['ExchangeArbitrage'] = CTExchangeArb(CTMain = self)
+        if view_name == 'ExchangeArbitrageCircle':
+            self.Views['ExchangeArbitrageCircle'] = CTExchangeArbCircle(CTMain = self)
         if view_name == 'ViewTwoExchangeOrderBooks':
             self.Views['ViewTwoExchangeOrderBooks'] = CTTwoOrderBooks(
                 CTMain = self,

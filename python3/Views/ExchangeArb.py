@@ -96,7 +96,7 @@ class CTExchangeArb(QWidget):
             self._tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(row['exchangeAskBid'])))
             ask_item = QTableWidgetItem('{:.8f}'.format(row['exchangeAskAsk']))
             ask_item.setBackground(self._CTMain._Parameters.Color['green_light'])
-            self._tableWidget.setItem(row_index,4,ask_item)
+            self._tableWidget.setItem(row_index,4, ask_item)
             self._tableWidget.setItem(row_index,5, QTableWidgetItem(row['exchangeBid']))
             bid_item = QTableWidgetItem('{:.8f}'.format(row['exchangeBidBid']))
             bid_item.setBackground(self._CTMain._Parameters.Color['red_light'])
