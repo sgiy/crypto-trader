@@ -83,7 +83,7 @@ class Poloniex(Exchange):
             try:
                 self._currencies[currency] = {
                     'Name': currencies[currency]['name'],
-                    'Enabled': 1 - currencies[currency]['disabled']
+                    'Enabled': 1 - max(currencies[currency]['delisted'],currencies[currency]['frozen'])
                 }
             except Exception as e:
                 self.print_exception(str(e))
