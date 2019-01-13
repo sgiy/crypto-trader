@@ -17,7 +17,11 @@ API_KEYS ={
     'Poloniex': {
         'APIKey': '',
         'Secret': ''
-    }
+    },
+    'Kucoin': {
+        'APIKey': '',
+        'Secret': ''
+    },
 }
 EXCHANGE_CURRENCY_RENAME_MAP = {
     'Bittrex':  {

@@ -49,6 +49,8 @@ class CTExchangeArb(QWidget):
         if load_markets:
             self._arbitrage_possibilities = self._CTMain._Crypto_Trader.get_arbitrage_possibilities(required_rate_of_return)
         results = self._arbitrage_possibilities
+        rows_to_report = []
+
         count_rows = 0
         for code_base in results:
             for code_curr in results[code_base]:
@@ -56,6 +58,22 @@ class CTExchangeArb(QWidget):
                     for exchangeAsk in results[code_base][code_curr]:
                         if results[code_base][code_curr][exchangeBid]['Bid'] > results[code_base][code_curr][exchangeAsk]['Ask'] * required_rate_of_return:
                             count_rows += 1
+                            rows_to_report.append({
+                                'code_base': code_base,
+                                'code_curr': code_curr,
+                                'exchangeAsk': exchangeAsk,
+                                'exchangeAskBid': results[code_base][code_curr][exchangeAsk]['Bid'],
+                                'exchangeAskAsk': results[code_base][code_curr][exchangeAsk]['Ask'],
+                                'exchangeBid': exchangeBid,
+                                'exchangeBidBid': results[code_base][code_curr][exchangeBid]['Bid'],
+                                'exchangeBidAsk': results[code_base][code_curr][exchangeBid]['Ask'],
+                                'return': 100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1)
+                            })
+
+        if self._sort_by_return.isChecked():
+            sorted_rows_to_report = sorted(rows_to_report, key=lambda kv: kv['return'], reverse=True)
+        else:
+            sorted_rows_to_report = rows_to_report
 
         self._tableWidget.setHorizontalHeaderLabels([
             'Base',
@@ -71,23 +89,19 @@ class CTExchangeArb(QWidget):
         self._tableWidget.setRowCount(count_rows)
 
         row_index = 0
-        for code_base in results:
-            for code_curr in results[code_base]:
-                for exchangeBid in results[code_base][code_curr]:
-                    for exchangeAsk in results[code_base][code_curr]:
-                        if results[code_base][code_curr][exchangeBid]['Bid'] > results[code_base][code_curr][exchangeAsk]['Ask'] * required_rate_of_return:
-                            self._tableWidget.setItem(row_index,0, QTableWidgetItem(code_base))
-                            self._tableWidget.setItem(row_index,1, QTableWidgetItem(code_curr))
-                            self._tableWidget.setItem(row_index,2, QTableWidgetItem(exchangeAsk))
-                            self._tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeAsk]['Bid'])))
-                            self._tableWidget.setItem(row_index,4, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeAsk]['Ask'])))
-                            self._tableWidget.item(row_index,4).setBackground(self._CTMain._Parameters.Color['green_light'])
-                            self._tableWidget.setItem(row_index,5, QTableWidgetItem(exchangeBid))
-                            self._tableWidget.setItem(row_index,6, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Bid'])))
-                            self._tableWidget.item(row_index,6).setBackground(self._CTMain._Parameters.Color['red_light'])
-                            self._tableWidget.setItem(row_index,7, QTableWidgetItem('{:.8f}'.format(results[code_base][code_curr][exchangeBid]['Ask'])))
-                            self._tableWidget.setItem(row_index,8, QTableWidgetItem('{:.2f}%'.format(100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1))))
-                            row_index += 1
-        if self._sort_by_return.isChecked():
-            self._tableWidget.sortByColumn(8, Qt.DescendingOrder)
+        for row in sorted_rows_to_report:
+            self._tableWidget.setItem(row_index,0, QTableWidgetItem(row['code_base']))
+            self._tableWidget.setItem(row_index,1, QTableWidgetItem(row['code_curr']))
+            self._tableWidget.setItem(row_index,2, QTableWidgetItem(row['exchangeAsk']))
+            self._tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(row['exchangeAskBid'])))
+            ask_item = QTableWidgetItem('{:.8f}'.format(row['exchangeAskAsk']))
+            ask_item.setBackground(self._CTMain._Parameters.Color['green_light'])
+            self._tableWidget.setItem(row_index,4,ask_item)
+            self._tableWidget.setItem(row_index,5, QTableWidgetItem(row['exchangeBid']))
+            bid_item = QTableWidgetItem('{:.8f}'.format(row['exchangeBidBid']))
+            bid_item.setBackground(self._CTMain._Parameters.Color['red_light'])
+            self._tableWidget.setItem(row_index,6, bid_item)
+            self._tableWidget.setItem(row_index,7, QTableWidgetItem('{:.8f}'.format(row['exchangeBidAsk'])))
+            self._tableWidget.setItem(row_index,8, QTableWidgetItem('{:.2f}%'.format(row['return'])))
+            row_index += 1
         self._CTMain.log(' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))
