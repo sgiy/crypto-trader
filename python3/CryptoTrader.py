@@ -122,7 +122,7 @@ class CryptoTrader:
                                     market1 = self._active_markets[code_base1][code_curr][exchange]
                                     market2 = self._active_markets[code_base2][code_curr][exchange]
                                     market3 = self._active_markets[code_base1][code_base2][exchange]
-                                    if market3['Ask'] * market2['Ask'] * required_rate_of_return < market1['Bid']:
+                                    if market3['Ask'] * market2['Ask'] > 0 and market3['Ask'] * market2['Ask'] * required_rate_of_return < market1['Bid']:
                                         self._arbitrage_possibilities.append(
                                             {
                                                 'exchange': exchange,
@@ -135,7 +135,7 @@ class CryptoTrader:
                                                 'return': 100.0 * (market1['Bid'] / (market3['Ask'] * market2['Ask']) - 1)
                                             }
                                         )
-                                    if market3['Bid'] * market2['Bid'] > market1['Ask'] * required_rate_of_return:
+                                    if market1['Ask'] > 0 and market3['Bid'] * market2['Bid'] > market1['Ask'] * required_rate_of_return:
                                         self._arbitrage_possibilities.append(
                                             {
                                                 'exchange': exchange,
