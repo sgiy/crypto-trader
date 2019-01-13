@@ -27,6 +27,9 @@ class Exchange:
     def get_global_code(self, local_code):
         return self._map_exchange_code_to_currency_code.get(local_code, None)
 
+    def get_local_code(self, global_code):
+        return self._map_currency_code_to_exchange_code.get(global_code, None)
+
     def load_currencies(self):
         """
             Individual exchange implementation needs to update self._currencies

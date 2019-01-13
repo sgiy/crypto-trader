@@ -1,8 +1,8 @@
 WINDOW_SIZE = {
     'left':     50,
     'top':      50,
-    'width':    1800,
-    'height':   960,
+    'width':    3500,
+    'height':   2000,
 }
 DISPLAY_BOOK_DEPTH = 5
 API_KEYS ={

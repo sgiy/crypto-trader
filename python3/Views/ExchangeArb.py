@@ -2,7 +2,31 @@ import time
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget,
-    QTableWidgetItem, QLineEdit, QLabel, QCheckBox, QHBoxLayout)
+    QTableWidgetItem, QLineEdit, QLabel, QCheckBox, QHBoxLayout, QPushButton)
+from Views.TwoOrderBooks import CTTwoOrderBooks
+
+class CTSelectArbButton(QPushButton):
+    def __init__(self, parent=None, row=None):
+        super().__init__()
+        self._row = row
+        self._parent = parent
+        self.setText("View");
+        self.clicked.connect(self.select_arb)
+
+    def select_arb(self):
+        self._parent._selected_order_books = CTTwoOrderBooks(
+            CTMain = self._parent._CTMain,
+            exchange1 = self._row['exchangeAsk'],
+            market_name1 = self._row['marketAsk'],
+            base_curr1 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeAsk']].get_local_code(self._row['code_base']),
+            curr_curr1 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeAsk']].get_local_code(self._row['code_curr']),
+            exchange2 = self._row['exchangeBid'],
+            market_name2 = self._row['marketBid'],
+            base_curr2 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeBid']].get_local_code(self._row['code_base']),
+            curr_curr2 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeBid']].get_local_code(self._row['code_curr']),
+            depth = 5
+            )
+        self._parent._selected_order_books.setGeometry(150, 150, 1600, 800)
 
 class CTExchangeArb(QWidget):
     def __init__(self, CTMain = None):
@@ -10,10 +34,10 @@ class CTExchangeArb(QWidget):
         self._CTMain = CTMain
 
         self._tableWidget = QTableWidget()
-        self._tableWidget.setColumnCount(9)
+        self._tableWidget.setColumnCount(10)
         self._layout = QGridLayout()
 
-        self._required_rate_of_return_inputbox = QLineEdit('0.2', self)
+        self._required_rate_of_return_inputbox = QLineEdit('0.5', self)
         self._required_rate_of_return_inputbox.textEdited.connect(lambda: self.check_arbs(False))
         label_return = QLabel("&Required Arbitrage Return (%):")
         label_return.setBuddy(self._required_rate_of_return_inputbox)
@@ -62,9 +86,11 @@ class CTExchangeArb(QWidget):
                                 'code_base': code_base,
                                 'code_curr': code_curr,
                                 'exchangeAsk': exchangeAsk,
+                                'marketAsk': results[code_base][code_curr][exchangeAsk]['Market'],
                                 'exchangeAskBid': results[code_base][code_curr][exchangeAsk]['Bid'],
                                 'exchangeAskAsk': results[code_base][code_curr][exchangeAsk]['Ask'],
                                 'exchangeBid': exchangeBid,
+                                'marketBid': results[code_base][code_curr][exchangeBid]['Market'],
                                 'exchangeBidBid': results[code_base][code_curr][exchangeBid]['Bid'],
                                 'exchangeBidAsk': results[code_base][code_curr][exchangeBid]['Ask'],
                                 'return': 100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1)
@@ -84,24 +110,28 @@ class CTExchangeArb(QWidget):
             'Exchange2',
             'Exchange2 Bid',
             'Exchange2 Ask',
-            'Return'
+            'Return',
+            'View Order Books'
             ])
         self._tableWidget.setRowCount(count_rows)
 
         row_index = 0
+        buttons = {}
         for row in sorted_rows_to_report:
-            self._tableWidget.setItem(row_index,0, QTableWidgetItem(row['code_base']))
-            self._tableWidget.setItem(row_index,1, QTableWidgetItem(row['code_curr']))
-            self._tableWidget.setItem(row_index,2, QTableWidgetItem(row['exchangeAsk']))
-            self._tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(row['exchangeAskBid'])))
+            self._tableWidget.setItem(row_index, 0, QTableWidgetItem(row['code_base']))
+            self._tableWidget.setItem(row_index, 1, QTableWidgetItem(row['code_curr']))
+            self._tableWidget.setItem(row_index, 2, QTableWidgetItem(row['exchangeAsk']))
+            self._tableWidget.setItem(row_index, 3, QTableWidgetItem('{:.8f}'.format(row['exchangeAskBid'])))
             ask_item = QTableWidgetItem('{:.8f}'.format(row['exchangeAskAsk']))
             ask_item.setBackground(self._CTMain._Parameters.Color['green_light'])
-            self._tableWidget.setItem(row_index,4, ask_item)
-            self._tableWidget.setItem(row_index,5, QTableWidgetItem(row['exchangeBid']))
+            self._tableWidget.setItem(row_index, 4, ask_item)
+            self._tableWidget.setItem(row_index, 5, QTableWidgetItem(row['exchangeBid']))
             bid_item = QTableWidgetItem('{:.8f}'.format(row['exchangeBidBid']))
             bid_item.setBackground(self._CTMain._Parameters.Color['red_light'])
-            self._tableWidget.setItem(row_index,6, bid_item)
-            self._tableWidget.setItem(row_index,7, QTableWidgetItem('{:.8f}'.format(row['exchangeBidAsk'])))
-            self._tableWidget.setItem(row_index,8, QTableWidgetItem('{:.2f}%'.format(row['return'])))
+            self._tableWidget.setItem(row_index, 6, bid_item)
+            self._tableWidget.setItem(row_index, 7, QTableWidgetItem('{:.8f}'.format(row['exchangeBidAsk'])))
+            self._tableWidget.setItem(row_index, 8, QTableWidgetItem('{:.2f}%'.format(row['return'])))
+            self._tableWidget.setCellWidget(row_index, 9, CTSelectArbButton(self, row));
+
             row_index += 1
         self._CTMain.log(' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))

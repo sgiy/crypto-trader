@@ -46,7 +46,7 @@ class CTMainWindow(QMainWindow):
 
         self.initToolBar()
         self.initStatusBar()
-        self.switch_view('ExchangeArbitrageCircle')
+        self.switch_view('ExchangeArbitrage')
         self.refresh_stylesheet()
         self.show()
 
