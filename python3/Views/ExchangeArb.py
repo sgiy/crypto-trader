@@ -38,13 +38,13 @@ class CTExchangeArb(QWidget):
         self._layout = QGridLayout()
 
         self._required_rate_of_return_inputbox = QLineEdit('0.5', self)
-        self._required_rate_of_return_inputbox.textEdited.connect(lambda: self.check_arbs(False))
+        self._required_rate_of_return_inputbox.textEdited.connect(lambda: self.check_arbs(load_markets = False))
         label_return = QLabel("&Required Arbitrage Return (%):")
         label_return.setBuddy(self._required_rate_of_return_inputbox)
 
         self._sort_by_return = QCheckBox("Sort by return?",self)
         self._sort_by_return.setChecked(True)
-        self._sort_by_return.stateChanged.connect(lambda: self.check_arbs(False))
+        self._sort_by_return.stateChanged.connect(lambda: self.check_arbs(load_markets = False))
 
         topLayout = QHBoxLayout()
         topLayout.addWidget(label_return)

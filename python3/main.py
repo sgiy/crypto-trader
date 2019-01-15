@@ -16,6 +16,7 @@ from Views.ExchangeArbCircle import CTExchangeArbCircle
 from Views.OrderBook import CTOrderBook
 from Views.TwoOrderBooks import CTTwoOrderBooks
 from Views.ViewPair import CTViewPair
+from Views.Debug import CTDebug
 
 class CTMainWindow(QMainWindow):
     def __init__(self):
@@ -46,7 +47,7 @@ class CTMainWindow(QMainWindow):
 
         self.initToolBar()
         self.initStatusBar()
-        self.switch_view('ExchangeArbitrage')
+        self.switch_view('Debug')
         self.refresh_stylesheet()
         self.show()
 
@@ -79,6 +80,10 @@ class CTMainWindow(QMainWindow):
         self.Actions['ViewTwoExchangeOrderBooks'].setStatusTip('View Two Exchange Order Books')
         self.Actions['ViewTwoExchangeOrderBooks'].triggered.connect(lambda: self.switch_view('ViewTwoExchangeOrderBooks'))
 
+        self.Actions['Debug'] = QAction('Debug', self)
+        self.Actions['Debug'].setStatusTip('Debug')
+        self.Actions['Debug'].triggered.connect(lambda: self.switch_view('Debug'))
+
         self.Actions['ViewSettings'] = QAction('Settings', self)
         self.Actions['ViewSettings'].setStatusTip('Settings')
         self.Actions['ViewSettings'].triggered.connect(lambda: self.switch_view('ViewSettings'))
@@ -99,6 +104,7 @@ class CTMainWindow(QMainWindow):
         self.ToolBar.addAction(self.Actions['ExchangeArbitrage'])
         self.ToolBar.addAction(self.Actions['ExchangeArbitrageCircle'])
         self.ToolBar.addAction(self.Actions['ViewTwoExchangeOrderBooks'])
+        self.ToolBar.addAction(self.Actions['Debug'])
         self.ToolBar.addAction(self.Actions['ViewSettings'])
         self.ToolBar.addAction(self.Actions['RefreshStylesheet'])
 
@@ -139,6 +145,8 @@ class CTMainWindow(QMainWindow):
                 curr_curr2 = 'STR',
                 depth = 5
                 )
+        if view_name == 'Debug':
+            self.Views['Debug'] = CTDebug(CTMain = self)
         if view_name == 'Settings':
             # TODO
             pass

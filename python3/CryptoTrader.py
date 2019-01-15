@@ -3,7 +3,6 @@ from datetime import datetime
 from pprint import pprint
 
 from pydoc import locate
-import ipdb
 
 class CryptoTrader:
     def __init__(self, constants = {}):
