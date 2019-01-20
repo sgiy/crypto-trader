@@ -12,7 +12,7 @@ class CTDebug(QWidget):
         self._layout.setRowStretch(2, 4)
 
         self._text_field_code = QTextEdit()
-        self._text_field_code.setPlaceholderText("Code to Run")
+        self._text_field_code.setPlaceholderText("Code to Run (e.g. self._CTMain._Crypto_Trader.trader['Poloniex'].get_all_markets())")
 
         self._button = QPushButton()
         self._button.setText("Run Code");
