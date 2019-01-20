@@ -6,6 +6,10 @@ from PyQt5.QtCore import QTimer
 
 # Static import
 from config import *
+try:
+    from config_private import *
+except:
+    pass
 
 from CryptoTrader import CryptoTrader
 from CryptoTraderParameters import CryptoTraderParameters
