@@ -23,7 +23,7 @@ not overwrite them when pulling in latest code).
 The project is currently not ready for release, but you are welcome to try what
 is already written (real-time arbitrage checks) and to submit your suggestions.
 
-## Donations are welcome:
+## If you like the project, please consider participating and/or donating:
 
 **BTC**: 39qHV6AVQMxynRx6kRQVD9R4PrkyQKxPhK
 
@@ -32,11 +32,12 @@ is already written (real-time arbitrage checks) and to submit your suggestions.
 | Exchange | Public REST API | Private REST API | Websockets | Comments |
 | -------- | --------------- | ---------------- | ---------- | -------- |
 | Binance  | Good            | Good             | NI         | -------- |
-| Bittrex  | NR              | NR               | NI         | -------- |
-| Hotbit   | NR              | NI               | NI         | -------- |
+| Bittrex  | Good            | Good             | NI         | -------- |
+| Hotbit   | NR              | NA               | NI         | -------- |
 | Kucoin   | NR              | NR               | NI         | -------- |
 | KucoinV2 | Good            | NR               | NI         | Signing issues with post requests that have 2 or more data parameters |
 | Poloniex | Good            | Good             | NI         | -------- |
 
 - NR - Needs review (and development)
 - NI - Not implemented (yet)
+- NA - Not Available. Exchange does not have specific API (e.g. websockets)
