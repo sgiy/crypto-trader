@@ -52,7 +52,7 @@ class Poloniex(Exchange):
     def get_all_markets(self):
         """
             Call: https://poloniex.com/public?command=returnTicker
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_all_markets()
+            Debug: ct['Poloniex'].get_all_markets()
             {'BTC_ARDR': {'baseVolume': '1.00000000',
                           'high24hr': '0.00001600',
                           'highestBid': '0.00001500',
@@ -80,7 +80,7 @@ class Poloniex(Exchange):
     def get_all_markets_24h_volume(self):
         """
             Call: https://poloniex.com/public?command=return24hVolume
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_all_markets_24h_volume()
+            Debug: ct['Poloniex'].get_all_markets_24h_volume()
             { 'BTC_ARDR': {'ARDR': '400000.00000000', 'BTC': '1.00000000'},
               'BTC_BAT':  {'BAT': '400000.00000000', 'BTC': '1.00000000'},
               ...
@@ -97,7 +97,7 @@ class Poloniex(Exchange):
     def get_order_book(self, market, depth = '5'):
         """
             Call: https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_NXT&depth=3
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_order_book('BTC_ETH','2')
+            Debug: ct['Poloniex'].get_order_book('BTC_ETH','2')
             {'asks': [['0.03000002', 100.00000000], ['0.03000003', 100.00000000]],
              'bids': [['0.03000001', 100.00000000], ['0.03000000', 100.00000000]],
              'isFrozen': '0',
@@ -109,7 +109,7 @@ class Poloniex(Exchange):
     def get_all_order_books(self, depth = '5'):
         """
             Call: https://poloniex.com/public?command=returnOrderBook&currencyPair=all&depth=2
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_all_order_books('2')
+            Debug: ct['Poloniex'].get_all_order_books('2')
             {'BTC_ARDR': {'asks': [['0.03000002', 100.00000000], ['0.03000003', 100.00000000]],
                           'bids': [['0.03000001', 100.00000000], ['0.03000000', 100.00000000]],
                           'isFrozen': '0',
@@ -133,7 +133,7 @@ class Poloniex(Exchange):
             and "end" GET parameters.
 
             Call: https://poloniex.com/public?command=returnTradeHistory&currencyPair=BTC_NXT&start=1410158341&end=1410499372
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_trade_history('USDT_BTC', '1540000000','1540000000')
+            Debug: ct['Poloniex'].get_trade_history('USDT_BTC', '1540000000','1540000000')
             [{'amount': '1.00000000',
               'date': '2019-01-20 01:23:45',
               'globalTradeID': 123456789,
@@ -162,7 +162,7 @@ class Poloniex(Exchange):
             to specify the date range for the data returned.
 
             Call: https://poloniex.com/public?command=returnChartData&currencyPair=BTC_XMR&start=1405699200&end=9999999999&period=14400
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_chart_data('BTC_ETH', '1540000000','1540000000', '300')
+            Debug: ct['Poloniex'].get_chart_data('BTC_ETH', '1540000000','1540000000', '300')
             [{'close': 0.03000000,
               'date': 1540000000,
               'high': 0.03000000,
@@ -189,7 +189,7 @@ class Poloniex(Exchange):
             Returns information about currencies.
 
             Call: https://poloniex.com/public?command=returnCurrencies
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_all_currencies()
+            Debug: ct['Poloniex'].get_all_currencies()
             {'1CR': {'delisted': 1,
                      'depositAddress': None,
                      'disabled': 1,
@@ -218,7 +218,7 @@ class Poloniex(Exchange):
             specified by the "currency" GET parameter.
 
             Call: https://poloniex.com/public?command=returnLoanOrders&currency=BTC
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_loan_orders('BTC')
+            Debug: ct['Poloniex'].get_loan_orders('BTC')
             {'demands': [{'amount': '1.00000000',
                           'rangeMax': 2,
                           'rangeMin': 2,
@@ -247,7 +247,7 @@ class Poloniex(Exchange):
     def get_balances(self):
         """
             Returns all of your available balances.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_balances()
+            Debug: ct['Poloniex'].get_balances()
             {'1CR': '0.00000000',
              'ABY': '0.00000000',
              'AC': '0.00000000',
@@ -261,7 +261,7 @@ class Poloniex(Exchange):
             Returns your balances sorted by account. You may optionally specify
             the "account" POST parameter if you wish to fetch only the balances
             of one account.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_available_balances()
+            Debug: ct['Poloniex'].get_available_balances()
             {'exchange': {'ARDR': '123.12345678',
                           'BAT': '123.12345678',
                           ...
@@ -273,7 +273,7 @@ class Poloniex(Exchange):
         """
             Returns all of your balances, including available balance, balance
             on orders, and the estimated BTC value of your balance.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_complete_balances()
+            Debug: ct['Poloniex'].get_complete_balances()
             {'1CR': {'available': '0.00000000',
                      'btcValue': '0.00000000',
                      'onOrders': '0.00000000'},
@@ -290,7 +290,7 @@ class Poloniex(Exchange):
     def get_deposit_addresses(self):
         """
             Returns all of your available balances.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_deposit_addresses()
+            Debug: ct['Poloniex'].get_deposit_addresses()
             {'BTC': '1234567891011tHeReGuLaRsIzEaDdRess',
             ...
             'XMR': 'aLoNgEnOuGhAdDrEsStOcOnTaInBaDwOrDz1aLoNgEnOuGhAdDrEsStOcOnTaInBaDwOrDz2aLoNgEnOuGhAdDrEsStOcOnTaInBaDwOrDz3'
@@ -301,7 +301,7 @@ class Poloniex(Exchange):
         """
             Generates a new deposit address for the currency specified by the
             "currency" POST parameter.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].generate_deposit_address('BAT')
+            Debug: ct['Poloniex'].generate_deposit_address('BAT')
             {'response': '0xSoMeAlPhAnUmEr1c',
              'success': 1}
         """
@@ -312,7 +312,7 @@ class Poloniex(Exchange):
             Returns your deposit and withdrawal history within a range,
             specified by the "start" and "end" POST parameters, both of which
             should be given as UNIX timestamps.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_deposits_and_withdrawals(1540000000, 1540000000)
+            Debug: ct['Poloniex'].get_deposits_and_withdrawals(1540000000, 1540000000)
             {'deposits': [{'address': '1234567891011tHeReGuLaRsIzEaDdReSs',
                            'amount': '0.00000001',
                            'confirmations': 2,
@@ -355,7 +355,7 @@ class Poloniex(Exchange):
             Returns your open orders for a given market, specified by the
             "currencyPair" POST parameter, e.g. "BTC_XCP". Set "currencyPair"
             to "all" to return open orders for all markets.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_open_orders('USDT_BTC')
+            Debug: ct['Poloniex'].get_open_orders('USDT_BTC')
             [{'amount': '123.12345678',
               'date': '2019-01-20 01:23:45',
               'margin': 0,
@@ -372,7 +372,7 @@ class Poloniex(Exchange):
             Returns your open orders for a given market, specified by the
             "currencyPair" POST parameter, e.g. "BTC_XCP". Set "currencyPair" to
             "all" to return open orders for all markets.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_all_open_orders()
+            Debug: ct['Poloniex'].get_all_open_orders()
             {'BTC_ARDR': [],
             ...
              'XMR_ZEC': []}
@@ -390,7 +390,7 @@ class Poloniex(Exchange):
             entries returned using the "limit" parameter, up to a maximum of
             10,000. If the "limit" parameter is not specified, no more than 500
             entries will be returned.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_private_trade_history('USDT_BTC', 1540000000, 1540000000)
+            Debug: ct['Poloniex'].get_private_trade_history('USDT_BTC', 1540000000, 1540000000)
             [{'amount': '0.00010000',
               'category': 'exchange',
               'date': '2019-01-20 01:23:45',
@@ -425,7 +425,7 @@ class Poloniex(Exchange):
 
     def get_private_all_trade_history(self, start, end, limit = '10000'):
         """
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_private_all_trade_history(1540000000, 1540000000)
+            Debug: ct['Poloniex'].get_private_all_trade_history(1540000000, 1540000000)
             {'BTC_BAT': [{'amount': '0.00010000',
                           'category': 'exchange',
                           'date': '2019-01-20 01:23:45',
@@ -483,7 +483,7 @@ class Poloniex(Exchange):
             will receive an error. See the documentation here for how to use the
             information from returnOrderTrades and returnOrderStatus to
             determine various status information about an order.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_order_trades(12345678910)
+            Debug: ct['Poloniex'].get_order_trades(12345678910)
             [{'amount': '0.00010000',
               'currencyPair': 'BTC_BAT',
               'date': '2019-01-20 01:23:45',
@@ -510,7 +510,7 @@ class Poloniex(Exchange):
             Returns the status of a given order, specified by the "orderNumber"
             POST parameter. If the specified orderNumber is not open, or it is
             not yours, you will receive an error.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_order_status(12345678910)
+            Debug: ct['Poloniex'].get_order_status(12345678910)
             {'result': {'12345678910': {'amount': '0.00010000',
                                         'currencyPair': 'BTC_BAT',
                                         'date': '2019-01-20 01:23:45',
@@ -525,7 +525,7 @@ class Poloniex(Exchange):
 
     def submit_trade(self, direction, market, price, amount, trade_type):
         """
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].submit_trade('buy','USDT_BTC',1.00000000,100,'GTC')
+            Debug: ct['Poloniex'].submit_trade('buy','USDT_BTC',1.00000000,100,'GTC')
             {'Amount': 0, 'OrderNumber': '12345678910'}
         """
         request =   {
@@ -550,7 +550,7 @@ class Poloniex(Exchange):
         """
             Cancels an order you have placed in a given market. Required POST
             parameter is "orderNumber".
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].cancel_order(12345678910)
+            Debug: ct['Poloniex'].cancel_order(12345678910)
             {'amount': '0.00010000',
              'message': 'Order #12345678910 canceled.',
              'success': 1}
@@ -565,7 +565,7 @@ class Poloniex(Exchange):
             "rate"; you may optionally specify "amount" if you wish to change
             the amount of the new order. "postOnly" or "immediateOrCancel" may
             be specified for exchange orders.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].move_order(12345678910,1.00000000)
+            Debug: ct['Poloniex'].move_order(12345678910,1.00000000)
             {'orderNumber': '12345678910',
              'resultingTrades': {'USDT_BTC': []
                                 },
@@ -602,7 +602,7 @@ class Poloniex(Exchange):
             current trading fees and trailing 30-day volume in USD (API doc
             says BTC, but the output is actually in USD terms). This
             information is updated once every 24 hours.
-            Debug: self._CTMain._Crypto_Trader.trader['Poloniex'].get_fees()
+            Debug: ct['Poloniex'].get_fees()
             {'makerFee': '0.00100000',
              'nextTier': 500000,
              'takerFee': '0.00200000',
