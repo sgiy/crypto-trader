@@ -23,11 +23,11 @@ not overwrite them when pulling in latest code).
 The project is currently not ready for release, but you are welcome to try what
 is already written (real-time arbitrage checks) and to submit your suggestions.
 
-###### Donations are welcome:
+## Donations are welcome:
 
 **BTC**: 39qHV6AVQMxynRx6kRQVD9R4PrkyQKxPhK
 
-###### Current Status of Exchange API implementations
+## Current Status of Exchange API implementations
 
 | Exchange | Public API | Private API | Websockets | Comments |
 | -------- | ---------- | ----------- | ---------- | -------- |
