@@ -10,6 +10,9 @@ from Exchange import Exchange
 class Poloniex(Exchange):
     def __init__(self, APIKey='', Secret=''):
         super().__init__(APIKey, Secret)
+        """
+            For API details see https://poloniex.com/support/api/
+        """
         self.BASE_URL = 'https://poloniex.com/'
         self._precision = 8
 
