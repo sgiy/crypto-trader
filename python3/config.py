@@ -1,24 +1,24 @@
 WINDOW_SIZE = {
     'left':     50,
     'top':      50,
-    'width':    3500,
-    'height':   2000,
+    'width':    1700,
+    'height':   1000,
 }
 DISPLAY_BOOK_DEPTH = 5
 API_KEYS ={
-    'Bittrex': {
-        'APIKey': '',
-        'Secret': ''
-    },
     'Binance': {
         'APIKey': '',
         'Secret': ''
     },
-    'Poloniex': {
+    'Bittrex': {
         'APIKey': '',
         'Secret': ''
     },
     'Kucoin': {
+        'APIKey': '',
+        'Secret': ''
+    },
+    'Poloniex': {
         'APIKey': '',
         'Secret': ''
     },
