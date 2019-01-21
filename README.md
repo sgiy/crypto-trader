@@ -27,11 +27,10 @@ is already written (real-time arbitrage checks) and to submit your suggestions.
 | -------- | ---------- | ----------- | ---------- | -------- |
 | Binance  | NR         | NR          | NI         | -------- |
 | Bittrex  | NR         | NR          | NI         | -------- |
-| Hotbit   | NR         | NR          | NI         | -------- |
+| Hotbit   | NR         | NI          | NI         | -------- |
 | Kucoin   | NR         | NR          | NI         | -------- |
-| KucoinV2 | Good       | NR          | NI         | Signing issues with post requests that have 2 or more data parameters |
-| Poloniex | Good       | Good        | NI         | -------- |
+| KucoinV2 | Fine       | NR          | NI         | Signing issues with post requests that have 2 or more data parameters |
+| Poloniex | Fine       | Fine        | NI         | -------- |
 
 - NR - Needs review (and development)
 - NI - Not implemented (yet)
-- Good - Looks good to me
