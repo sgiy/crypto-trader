@@ -373,7 +373,7 @@ class Binance(Exchange):
             newOrderRespType: Set the response JSON. ACK, RESULT, or FULL;
                 MARKET and LIMIT order types default to FULL, all other orders
                 default to ACK.
-            ct['Binance'].submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
+            Debug: ct['Binance'].submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
             {'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
              'cummulativeQuoteQty': '0.00000000',
              'executedQty': '0.00000000',
@@ -415,7 +415,7 @@ class Binance(Exchange):
             Test new order creation and signature/recvWindow long. Creates and
             validates a new order but does not send it into the matching engine.
             Parameters same as submit_new_order()
-            ct['Binance'].test_submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
+            Debug: ct['Binance'].test_submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
             {}
         """
         request = {
@@ -443,7 +443,7 @@ class Binance(Exchange):
         """
             Check an order's status.
             Either orderId or origClientOrderId must be sent.
-            ct['Binance'].get_order_status('INSBTC',None, 'XWvrCHRVgsWjwOCrm5Ddwd')
+            Debug: ct['Binance'].get_order_status('INSBTC',None, 'XWvrCHRVgsWjwOCrm5Ddwd')
             {'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
              'cummulativeQuoteQty': '0.00000000',
              'executedQty': '0.00000000',
@@ -477,7 +477,7 @@ class Binance(Exchange):
         """
             Cancel an active order.
             Either orderId or origClientOrderId must be sent.
-            ct['Binance'].cancel_order('INSBTC', None, 'XWvrCHRVgsWjwOCrm5Ddwd')
+            Debug: ct['Binance'].cancel_order('INSBTC', None, 'XWvrCHRVgsWjwOCrm5Ddwd')
             {'clientOrderId': 'NeW_BiNanCeG3N3RaT3DaLpHaNuMeRiC',
              'cummulativeQuoteQty': '0.00000000',
              'executedQty': '0.00000000',
@@ -509,7 +509,7 @@ class Binance(Exchange):
             Get all open orders on a symbol. Careful when accessing this with no
             symbol. Weight: 1 for a single symbol; 40 when the symbol parameter
             is omitted.
-            ct['Binance'].get_open_orders('INSBTC')
+            Debug: ct['Binance'].get_open_orders('INSBTC')
             [{'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
               'cummulativeQuoteQty': '0.00000000',
               'executedQty': '0.00000000',
@@ -541,7 +541,7 @@ class Binance(Exchange):
         """
             Get all account orders; active, canceled, or filled.
             Weight: 5 with symbol
-            ct['Binance'].get_all_orders('INSBTC')
+            Debug: ct['Binance'].get_all_orders('INSBTC')
             [{'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
               'cummulativeQuoteQty': '0.00000000',
               'executedQty': '0.00000000',
@@ -579,7 +579,7 @@ class Binance(Exchange):
         """
             Get current account information.
             Weight: 5
-            ct['Binance'].get_account_info()
+            Debug: ct['Binance'].get_account_info()
             {'balances': [{'asset': 'BTC', 'free': '0.00000000', 'locked': '0.00000000'},
                           {'asset': 'LTC', 'free': '0.00000000', 'locked': '0.00000000'},
                           ...
