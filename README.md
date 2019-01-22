@@ -35,7 +35,6 @@ is already written (real-time arbitrage checks) and to submit your suggestions.
 | Bittrex  | Good            | Good             | NI         | -------- |
 | Hotbit   | NR              | NA               | NI         | -------- |
 | Kucoin   | NR              | NR               | NI         | -------- |
-| KucoinV2 | Good            | NR               | NI         | Signing issues with post requests that have 2 or more data parameters |
 | Poloniex | Good            | Good             | NI         | -------- |
 
 - NR - Needs review (and development)
