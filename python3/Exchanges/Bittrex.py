@@ -2,7 +2,6 @@ import time
 import datetime
 import hmac
 import hashlib
-import urllib
 import requests
 import pprint
 import pandas as pd
