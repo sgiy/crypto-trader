@@ -34,7 +34,7 @@ is already written (real-time arbitrage checks) and to submit your suggestions.
 | Binance  | Good            | Good             | NI         | -------- |
 | Bittrex  | Good            | Good             | NI         | -------- |
 | Hotbit   | NR              | NA               | NI         | -------- |
-| Kucoin   | NR              | NR               | NI         | -------- |
+| Kucoin   | Good            | Good             | NI         | -------- |
 | Poloniex | Good            | Good             | NI         | -------- |
 
 - NR - Needs review (and development)
