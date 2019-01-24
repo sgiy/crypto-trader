@@ -121,6 +121,7 @@ class CTMainWindow(QMainWindow):
         self.setStyleSheet(css.read())
 
     def switch_view(self, view_name):
+        self._Timer.stop()
         # if view_name not in self.Views:
         if view_name == 'ViewPair':
             self.Views['ViewPair'] = CTViewPair(

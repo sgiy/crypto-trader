@@ -33,7 +33,7 @@ is already written (real-time arbitrage checks) and to submit your suggestions.
 | -------- | --------------- | ---------------- | ---------- | -------- |
 | Binance  | Good            | Good             | NI         | -------- |
 | Bittrex  | Good            | Good             | NI         | -------- |
-| Hotbit   | NR              | NA               | NI         | -------- |
+| Hotbit   | Good            | NA               | NI         | -------- |
 | Kucoin   | Good            | Good             | NI         | -------- |
 | Poloniex | Good            | Good             | NI         | -------- |
 
