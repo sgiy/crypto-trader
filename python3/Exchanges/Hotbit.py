@@ -4,7 +4,6 @@ import hmac
 import hashlib
 import urllib
 import requests
-import pprint
 
 from Exchange import Exchange
 
@@ -18,10 +17,21 @@ class Hotbit(Exchange):
     def get_request(self, url):
         try:
             result = requests.get(self.BASE_URL + url).json()
-            return result
+            if result.get('error', None) is None:
+                self.log_request_success()
+                return result
+            else:
+                self.log_request_error(result['error']['message'])
+                if self.retry_count_not_exceeded():
+                    return self.get_request(url)
+                else:
+                    return {}
         except Exception as e:
-            self.print_exception(self.BASE_URL + url + ". " + str(e))
-            return self.get_request(url)
+            self.log_request_error(self.BASE_URL + url + ". " + str(e))
+            if self.retry_count_not_exceeded():
+                return self.get_request(url)
+            else:
+                return {}
 
     def trading_api_request(self, method, endpoint = '', extra = ''):
         """
@@ -33,12 +43,24 @@ class Hotbit(Exchange):
             signature = hashlib.md5("whatever your string is".encode('utf-8')).hexdigest()
             signature = signature.upper()
             url += signature
-            results = getattr(requests, method)(url).json()
-            import ipdb; ipdb.set_trace()
+            result = getattr(requests, method)(url).json()
+
+            if result.get('error', None) is None:
+                self.log_request_success()
+                return result
+            else:
+                self.log_request_error(result['error']['message'])
+                if self.retry_count_not_exceeded():
+                    return self.trading_api_request(method, endpoint, extra)
+                else:
+                    return {}
 
         except Exception as e:
-            self.print_exception(str(e))
-            return {}
+            self.log_request_error(str(e))
+            if self.retry_count_not_exceeded():
+                return self.trading_api_request(method, endpoint, extra)
+            else:
+                return {}
 
     ########################################
     ### Exchange specific public methods ###
@@ -677,7 +699,7 @@ class Hotbit(Exchange):
                     'Enabled': 1
                 }
             except Exception as e:
-                self.print_exception(str(e))
+                self.log_request_error(str(e))
 
         return self._currencies
 
@@ -698,7 +720,7 @@ class Hotbit(Exchange):
                                     float(symbol['sell'])
                                     )
             except Exception as e:
-                self.print_exception(str(market_symbol) + ". " + str(e))
+                self.log_request_error(str(market_symbol) + ". " + str(e))
         return self._active_markets
 
     def load_available_balances(self):

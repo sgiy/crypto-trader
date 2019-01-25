@@ -1,5 +1,6 @@
 # Abstract Exchange class. Each exchange implementation should inherit from it.
 import traceback
+import time
 
 class Exchange:
     def __init__(self, APIKey='', Secret=''):
@@ -17,12 +18,33 @@ class Exchange:
         self._tick_intervals = {}
         self._tick_lookbacks = {}
         self._map_tick_intervals = {}
+        self._max_error_count = 3
+        self._error ={
+            'count': 0,
+            'message': '',
+            'result_timestamp': time.time()
+        }
 
     def raise_not_implemented_error(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
 
-    def print_exception(self, message=''):
-        print(self.__class__.__name__ + " has an exception in method " + traceback.extract_stack(None, 2)[0][2] + "!!! " + message)
+    def log_request_success(self):
+        self._error ={
+            'count': 0,
+            'message': '',
+            'result_timestamp': time.time()
+        }
+
+    def log_request_error(self, message):
+        error_message = 'Exception in class {} method {}: {}'.format(self.__class__.__name__, traceback.extract_stack(None, 2)[0][2], message)
+        print(error_message)
+        self._error ={
+            'count': self._error['count'] + 1,
+            'message': error_message
+        }
+
+    def retry_count_not_exceeded(self):
+        return self._error['count'] < self._max_error_count
 
     def get_global_code(self, local_code):
         return self._map_exchange_code_to_currency_code.get(local_code, None)

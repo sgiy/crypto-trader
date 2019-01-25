@@ -3,7 +3,6 @@ import time
 import hmac
 import hashlib
 import requests
-import pprint
 
 from Exchange import Exchange
 
@@ -20,12 +19,20 @@ class Kucoin(Exchange):
         try:
             result = requests.get(self.BASE_URL + url).json()
             if result.get('success', None) == True:
+                self.log_request_success()
                 return result['data']
             else:
-                return self.get_request(url)
+                self.log_request_error(results['msg'])
+                if self.retry_count_not_exceeded():
+                    return self.get_request(url)
+                else:
+                    return {}
         except Exception as e:
-            self.print_exception(self.BASE_URL + url + ". " + str(e))
-            return self.get_request(url)
+            self.log_request_error(self.BASE_URL + url + ". " + str(e))
+            if self.retry_count_not_exceeded():
+                return self.get_request(url)
+            else:
+                return {}
 
     def trading_api_request(self, method, endpoint = '', req = {}):
         """
@@ -58,16 +65,21 @@ class Kucoin(Exchange):
 
             results = getattr(requests,method)(request_url, **kwargs).json()
             if results.get('success', None) == True:
+                self.log_request_success()
                 return results['data']
             else:
-                print('**** ERROR **** Kucoin trading_api_request:',results.get('success'))
-                import ipdb; ipdb.set_trace()
-                return self.trading_api_request(method,endpoint,req)
+                self.log_request_error(results['msg'])
+                if self.retry_count_not_exceeded():
+                    return self.trading_api_request(method, endpoint, req)
+                else:
+                    return {}
 
         except Exception as e:
-            import ipdb; ipdb.set_trace()
-            self.print_exception(str(e))
-            return {}
+            self.log_request_error(request_url + ". " + str(e))
+            if self.retry_count_not_exceeded():
+                return self.trading_api_request(method, endpoint, req)
+            else:
+                return {}
 
     ########################################
     ### Exchange specific public methods ###
@@ -382,7 +394,7 @@ class Kucoin(Exchange):
                     'Enabled': 1
                 }
             except Exception as e:
-                self.print_exception(str(e))
+                self.log_request_error(str(e))
 
         return self._currencies
 
@@ -415,7 +427,7 @@ class Kucoin(Exchange):
                                     symbol['trading']
                                     )
             except Exception as e:
-                self.print_exception(str(market_symbol) + ". " + str(e))
+                self.log_request_error(str(market_symbol) + ". " + str(e))
         return self._active_markets
 
     def load_available_balances(self):

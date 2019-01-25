@@ -3,7 +3,6 @@ import datetime
 import hmac
 import hashlib
 import requests
-import pprint
 import matplotlib.dates as mpd
 
 from Exchange import Exchange
@@ -39,10 +38,22 @@ class Binance(Exchange):
 
     def get_request(self, url):
         try:
-            return requests.get(self.BASE_URL + url).json()
+            results = requests.get(self.BASE_URL + url).json()
+            if 'code' in results:
+                self.log_request_error(results['msg'])
+                if self.retry_count_not_exceeded():
+                    return self.get_request(url)
+                else:
+                    return {}
+            else:
+                self.log_request_success()
+                return results
         except Exception as e:
-            print('ERROR getting URL: ',self.BASE_URL + url)
-            return self.get_request(url)
+            self.log_request_error(self.BASE_URL + url)
+            if self.retry_count_not_exceeded():
+                return self.get_request(url)
+            else:
+                return {}
 
     def trading_api_request(self, method, url, req={}):
         try:
@@ -55,10 +66,21 @@ class Binance(Exchange):
 
             req_url = self.BASE_URL + url + '?' + query_string
             results = getattr(requests,method)(req_url, headers = headers).json()
-            return results
+            if 'code' in results:
+                self.log_request_error(results['msg'])
+                if self.retry_count_not_exceeded():
+                    return self.trading_api_request(method, url, req)
+                else:
+                    return {}
+            else:
+                self.log_request_success()
+                return results
         except Exception as e:
-            print('ERROR Binance trading_api_request',str(e))
-            return {}
+            self.log_request_error(str(e))
+            if self.retry_count_not_exceeded():
+                return self.trading_api_request(method, url, req)
+            else:
+                return {}
 
     ########################################
     ### Exchange specific public methods ###
@@ -701,7 +723,7 @@ class Binance(Exchange):
                         'Enabled': 1
                     }
             except Exception as e:
-                self.print_exception(str(e))
+                self.log_request_error(str(e))
 
         return self._currencies
 
@@ -726,7 +748,7 @@ class Binance(Exchange):
                                     float(best_books[market_symbol]['AskQty'])
                                     )
             except Exception as e:
-                self.print_exception(str(market_symbol) + ". " + str(e))
+                self.log_request_error(str(market_symbol) + ". " + str(e))
         return self._active_markets
 
     def load_ticks(self, market_name, interval = '5m', lookback = None):

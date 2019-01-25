@@ -3,7 +3,6 @@ import datetime
 import hmac
 import hashlib
 import requests
-import pprint
 import pandas as pd
 import matplotlib.dates as mpd
 
@@ -25,18 +24,25 @@ class Bittrex(Exchange):
         }
 
     def get_request(self, url, base_url_override = None):
-        # print('Requesting url ' + url)
         if base_url_override is None:
             base_url_override = self.BASE_URL
         try:
             result = requests.get(base_url_override + url).json()
             if result.get('success', None) == True:
+                self.log_request_success()
                 return result['result']
             else:
-                return self.get_request(url)
+                self.log_request_error(results['message'])
+                if self.retry_count_not_exceeded():
+                    return self.get_request(url, base_url_override)
+                else:
+                    return {}
         except Exception as e:
-            self.print_exception(base_url_override + url + ". " + str(e))
-            return self.get_request(url)
+            self.log_request_error(base_url_override + url + ". " + str(e))
+            if self.retry_count_not_exceeded():
+                return self.get_request(url, base_url_override)
+            else:
+                return {}
 
     def trading_api_request(self, command, extra=''):
         try:
@@ -47,14 +53,21 @@ class Bittrex(Exchange):
                 headers={"apisign": hmac.new(self.Secret.encode(), request_url.encode(), hashlib.sha512).hexdigest()}
             ).json()
             if result.get('success', None) == True:
+                self.log_request_success()
                 return result['result']
             else:
-                print('**** ERROR **** Bittrex trading_api_request:', result.get('success'))
-                return self.trading_api_request(command, extra)
+                self.log_request_error(results['message'])
+                if self.retry_count_not_exceeded():
+                    return self.trading_api_request(command, extra)
+                else:
+                    return {}
 
         except Exception as e:
-            self.print_exception(str(e))
-            return {}
+            self.log_request_error(str(e))
+            if self.retry_count_not_exceeded():
+                return self.trading_api_request(command, extra)
+            else:
+                return {}
 
     ########################################
     ### Exchange specific public methods ###
@@ -512,7 +525,7 @@ class Bittrex(Exchange):
                     'Enabled': enabled
                 }
             except Exception as e:
-                self.print_exception(str(e))
+                self.log_request_error(str(e))
 
         return self._currencies
 
@@ -529,7 +542,7 @@ class Bittrex(Exchange):
 
                 self.update_market(market_symbol, local_base, local_curr, entry['Bid'], entry['Ask'], True)
             except Exception as e:
-                self.print_exception(str(entry) + ". " + str(e))
+                self.log_request_error(str(entry) + ". " + str(e))
         return self._active_markets
 
     def load_ticks(self, market_name, interval = 'fiveMin', lookback = None):
@@ -560,7 +573,7 @@ class Bittrex(Exchange):
                     'Total': balance["Balance"]
                 }
             except Exception as e:
-                self.print_exception(str(e))
+                self.log_request_error(str(e))
         return self._complete_balances_btc
 
     def load_order_book(self, market, depth = 5):

@@ -3,7 +3,6 @@ import hmac
 import hashlib
 import urllib
 import requests
-import pprint
 
 from Exchange import Exchange
 
@@ -11,18 +10,29 @@ class Poloniex(Exchange):
     def __init__(self, APIKey='', Secret=''):
         super().__init__(APIKey, Secret)
         """
-            For API details see https://poloniex.com/support/api/
+            For API details see https://docs.poloniex.com
         """
         self.BASE_URL = 'https://poloniex.com/'
         self._precision = 8
 
     def get_request(self, url):
         try:
-            result = requests.get(self.BASE_URL + url)
-            return result.json()
+            result = requests.get(self.BASE_URL + url).json()
+            if 'error' in result:
+                self.log_request_error(result['error'])
+                if self.retry_count_not_exceeded():
+                    return self.get_request(url)
+                else:
+                    return {}
+            else:
+                self.log_request_success()
+                return result
         except Exception as e:
-            self.print_exception(str(e))
-            return {}
+            self.log_request_error(str(e))
+            if self.retry_count_not_exceeded():
+                return self.get_request(url)
+            else:
+                return {}
 
     def trading_api_request(self, command, req={}):
         try:
@@ -38,12 +48,20 @@ class Poloniex(Exchange):
 
             result = requests.post(self.BASE_URL + 'tradingApi', data = req, headers = headers).json()
             if 'error' in result:
-                print(result['error'])
-                return self.trading_api_request(command, req)
-            return result
+                self.log_request_error(result['error'])
+                if self.retry_count_not_exceeded():
+                    return self.trading_api_request(command, req)
+                else:
+                    return {}
+            else:
+                self.log_request_success()
+                return result
         except Exception as e:
-            self.print_exception(str(e))
-            return {}
+            self.log_request_error(str(e))
+            if self.retry_count_not_exceeded():
+                return self.trading_api_request(command, req)
+            else:
+                return {}
 
     ########################################
     ### Exchange specific public methods ###
@@ -624,7 +642,7 @@ class Poloniex(Exchange):
                                         currencies[currency]['frozen'])
                 }
             except Exception as e:
-                self.print_exception(str(e))
+                self.log_request_error(str(e))
 
         return self._currencies
 
@@ -647,7 +665,7 @@ class Poloniex(Exchange):
                         all_markets[entry]['isFrozen'] == '0'
                     )
             except Exception as e:
-                self.print_exception(str(entry) + ". " + str(e))
+                self.log_request_error(str(entry) + ". " + str(e))
         return self._active_markets
 
     def load_available_balances(self):
