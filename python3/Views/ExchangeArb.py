@@ -59,7 +59,7 @@ class CTExchangeArb(QWidget):
 
         self._arbitrage_possibilities = {}
         self.check_arbs()
-        self._CTMain._Timer.start(1000)
+        self._CTMain._Timer.start(5000)
         self._CTMain._Timer.timeout.connect(self.check_arbs)
         self.show()
 

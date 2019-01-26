@@ -39,6 +39,7 @@ class CTMainWindow(QMainWindow):
             'API_KEYS': API_KEYS,
             'EXCHANGE_CURRENCY_RENAME_MAP': EXCHANGE_CURRENCY_RENAME_MAP,
         })
+        print('Initialized Exchanges')
         self._Parameters = CryptoTraderParameters()
         self.Views = {}
         self._Timer = QTimer(self)
@@ -54,6 +55,7 @@ class CTMainWindow(QMainWindow):
         self.switch_view('Debug')
         self.refresh_stylesheet()
         self.show()
+        print('Ready')
 
     def log(self, message = '', message_type = 'INFO'):
         message = '{0} ({1}): {2}'.format(message_type, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message)
@@ -158,6 +160,7 @@ class CTMainWindow(QMainWindow):
         self.setCentralWidget(self.Views[view_name])
 
 if __name__ == '__main__':
+    print('Starting...')
     app = QApplication([])
     win = CTMainWindow()
     sys.exit(app.exec_())

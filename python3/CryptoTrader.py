@@ -17,13 +17,16 @@ class CryptoTrader:
             exchange_class = getattr(exchange_file, exchange)
             self.trader[exchange] = exchange_class(self.API_KEYS[exchange]['APIKey'], self.API_KEYS[exchange]['Secret'])
 
+        print('Initializing Currencies')
         self.init_currencies()
+        print('Loading Active Markets')
         self.load_active_markets()
 
     def init_currencies(self):
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
         for exchange in self.trader:
+            print('Loading currencies for ' + exchange)
             currencies = self.trader[exchange].load_currencies()
             self.trader[exchange]._map_currency_code_to_exchange_code = {}
             self._map_exchange_code_to_currency_code[exchange] = {}
