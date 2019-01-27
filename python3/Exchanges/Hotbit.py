@@ -684,6 +684,10 @@ class Hotbit(Exchange):
     # ### Generic methods ###
     # #######################
     def load_currencies(self):
+        """
+            Loading currencies
+            Debug: ct['Hotbit'].load_currencies()
+        """
         self._currencies = {}
         markets = self.get_markets()
         for market in markets:

@@ -632,6 +632,10 @@ class Poloniex(Exchange):
     ### Generic methods ###
     #######################
     def load_currencies(self):
+        """
+            Loading currencies
+            Debug: ct['Poloniex'].load_currencies()
+        """
         currencies = self.get_all_currencies()
         self._currencies = {}
         for currency in currencies:

@@ -703,6 +703,10 @@ class Binance(Exchange):
     ### Generic methods ###
     #######################
     def load_currencies(self):
+        """
+            Loading currencies
+            Debug: ct['Binance'].load_currencies()
+        """
         self._currencies = {}
         self.load_exchangeInfo()
         for symbol in self._exchangeInfo['symbols']:

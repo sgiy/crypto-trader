@@ -511,6 +511,10 @@ class Bittrex(Exchange):
     ### Generic methods ###
     #######################
     def load_currencies(self):
+        """
+            Loading currencies
+            Debug: ct['Bittrex'].load_currencies()
+        """
         currencies = self.get_currencies()
         self._currencies = {}
         for currency in currencies:

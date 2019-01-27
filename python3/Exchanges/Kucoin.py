@@ -385,13 +385,20 @@ class Kucoin(Exchange):
     # ### Generic methods ###
     # #######################
     def load_currencies(self):
+        """
+            Loading currencies
+            Debug: ct['Kucoin'].load_currencies()
+        """
         self._currencies = {}
         coins = self.get_coins()
         for coin in coins:
             try:
+                enabled = 0
+                if coin.get('enable',False):
+                    enabled = 1
                 self._currencies[coin['coin']] = {
                     'Name': coin['name'],
-                    'Enabled': 1
+                    'Enabled': enabled
                 }
             except Exception as e:
                 self.log_request_error(str(e))
