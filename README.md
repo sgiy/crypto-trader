@@ -32,8 +32,8 @@ already written and to submit your suggestions.
 ## Currently implemented views:
 - Balances - Shows aggregate balances in BTC and USD terms across exchanges.
 - ExchangeArbitrage - Shows realtime cross exchange arbitrage opportunities
-    (Cross exchange arbitrage represents cases when an offer of a pair on one
-    exchange at a lower price than a bid on another exchange).
+    (Cross exchange arbitrage represents cases where there is an offer of a pair
+    on one exchange at a lower price than a bid on another exchange).
 - ExchangeArbitrageCircle - Shows realtime circle arbitrage opportunities (
     Circle arbitrage represents cases where on the same exchange one can
     buy currency2 for currency1, then buy currency3 with this
