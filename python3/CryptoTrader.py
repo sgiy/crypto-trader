@@ -12,13 +12,15 @@ class CryptoTrader:
         self._map_exchange_code_to_currency_code = {}
         self.API_KEYS = constants.get('API_KEYS',{})
         self.EXCHANGE_CURRENCY_RENAME_MAP = constants.get('EXCHANGE_CURRENCY_RENAME_MAP',{})
+        self.EXCHANGES_TO_LOAD = constants.get('EXCHANGES_TO_LOAD',{})
 
-        for exchange in self.API_KEYS:
+        for exchange in self.EXCHANGES_TO_LOAD:
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
-            self.trader[exchange] = exchange_class(self.API_KEYS[exchange]['APIKey'], self.API_KEYS[exchange]['Secret'])
-
-        self.trader['Coinbase'] = Coinbase()
+            if exchange in self.API_KEYS:
+                self.trader[exchange] = exchange_class(self.API_KEYS[exchange]['APIKey'], self.API_KEYS[exchange]['Secret'])
+            else:
+                self.trader[exchange] = exchange_class()
 
         print('Initializing Currencies')
         self.init_currencies()
@@ -180,7 +182,7 @@ class CryptoTrader:
                     print("Error in load_balances_btc for currency " + currency + ": " + str(e))
         return self._balances_btc
 
-    def calculate_balances_btc_totals(self):
+    def calculate_balances_btc_totals(self, btc_usd_price = None):
         """
             Load total balances from exchanges
             Debug: self._CTMain._Crypto_Trader.calculate_balances_btc_totals()
@@ -194,7 +196,8 @@ class CryptoTrader:
                         results[exchange] = {'BTC': 0.0}
                     results[exchange]['BTC'] += self._balances_btc[code][exchange]['BtcValue']
 
-        btc_usd_price = self.trader['Coinbase'].get_btc_usd_price()
+        if btc_usd_price is None:
+            btc_usd_price = self.trader['Coinbase'].get_btc_usd_price()
         for exchange in results:
             results[exchange]['USD'] = results[exchange]['BTC'] * btc_usd_price
         return results

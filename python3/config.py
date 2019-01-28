@@ -23,6 +23,14 @@ API_KEYS ={
         'Secret': ''
     },
 }
+EXCHANGES_TO_LOAD = [
+    'Binance',
+    'Bittrex',
+    'Coinbase',
+    'Hotbit',
+    'Kucoin',
+    'Poloniex'
+]
 EXCHANGE_CURRENCY_RENAME_MAP = {
     'Bittrex':  {
                     'BITS': 'BITS_BITSWIFT',

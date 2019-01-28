@@ -39,6 +39,7 @@ class CTMainWindow(QMainWindow):
         self._Crypto_Trader = CryptoTrader({
             'API_KEYS': API_KEYS,
             'EXCHANGE_CURRENCY_RENAME_MAP': EXCHANGE_CURRENCY_RENAME_MAP,
+            'EXCHANGES_TO_LOAD': EXCHANGES_TO_LOAD
         })
         print('Initialized Exchanges')
         self._Parameters = CryptoTraderParameters()
