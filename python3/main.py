@@ -21,6 +21,7 @@ from Views.OrderBook import CTOrderBook
 from Views.TwoOrderBooks import CTTwoOrderBooks
 from Views.ViewPair import CTViewPair
 from Views.Debug import CTDebug
+from Views.Balances import CTBalances
 
 class CTMainWindow(QMainWindow):
     def __init__(self):
@@ -68,6 +69,10 @@ class CTMainWindow(QMainWindow):
         self.Actions['Exit'].setStatusTip('Exit application (Ctrl+Q)')
         self.Actions['Exit'].triggered.connect(self.close)
 
+        self.Actions['Balances'] = QAction('Balances', self)
+        self.Actions['Balances'].setStatusTip('Balances')
+        self.Actions['Balances'].triggered.connect(lambda: self.switch_view('Balances'))
+
         self.Actions['ViewPair'] = QAction('ViewPair', self)
         self.Actions['ViewPair'].setShortcut('Ctrl+P')
         self.Actions['ViewPair'].setStatusTip('View Crypto Pair (Ctrl+P)')
@@ -106,6 +111,7 @@ class CTMainWindow(QMainWindow):
     def initToolBar(self):
         self.ToolBar = self.addToolBar('ToolBar')
         self.ToolBar.addAction(self.Actions['Exit'])
+        self.ToolBar.addAction(self.Actions['Balances'])
         self.ToolBar.addAction(self.Actions['ViewPair'])
         self.ToolBar.addAction(self.Actions['ExchangeArbitrage'])
         self.ToolBar.addAction(self.Actions['ExchangeArbitrageCircle'])
@@ -135,6 +141,8 @@ class CTMainWindow(QMainWindow):
                 chart_interval = HOME_VIEW_CHART_INTERVAL,
                 order_book_depth = DISPLAY_BOOK_DEPTH
                 )
+        if view_name == 'Balances':
+            self.Views['Balances'] = CTBalances(CTMain = self)
         if view_name == 'ExchangeArbitrage':
             self.Views['ExchangeArbitrage'] = CTExchangeArb(CTMain = self)
         if view_name == 'ExchangeArbitrageCircle':

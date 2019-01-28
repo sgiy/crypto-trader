@@ -3,6 +3,7 @@ from datetime import datetime
 from pprint import pprint
 
 from pydoc import locate
+from Exchanges.Coinbase import Coinbase
 
 class CryptoTrader:
     def __init__(self, constants = {}):
@@ -17,6 +18,8 @@ class CryptoTrader:
             exchange_class = getattr(exchange_file, exchange)
             self.trader[exchange] = exchange_class(self.API_KEYS[exchange]['APIKey'], self.API_KEYS[exchange]['Secret'])
 
+        self.trader['Coinbase'] = Coinbase()
+
         print('Initializing Currencies')
         self.init_currencies()
         print('Loading Active Markets')
@@ -25,7 +28,7 @@ class CryptoTrader:
     def init_currencies(self):
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
-        for exchange in self.trader:
+        for exchange in self.API_KEYS:
             print('Loading currencies for ' + exchange)
             currencies = self.trader[exchange].load_currencies()
             self.trader[exchange]._map_currency_code_to_exchange_code = {}
@@ -61,17 +64,8 @@ class CryptoTrader:
                     print(str(e))
 
     def load_active_markets(self):
-        # t = {0: {
-        #     'time': time.time()
-        # }}
         self._active_markets = {}
-        # i = 0
-        for exchange in self.trader:
-            # i += 1
-            # t[i] = {
-            #             'time': time.time(),
-            #             'exchange': exchange
-            #             }
+        for exchange in self.API_KEYS:
             self.trader[exchange].load_markets()
             for code_base in self.trader[exchange]._active_markets:
                 if not code_base in self._active_markets:
@@ -81,8 +75,12 @@ class CryptoTrader:
                         self._active_markets[code_base][code_curr] = {}
                     self._active_markets[code_base][code_curr][exchange] = self.trader[exchange]._active_markets[code_base][code_curr]
 
-        # for j in range(i):
-        #     print(' Check for exchange {0} took {1:.4f} seconds '.format(t[j+1]['exchange'],t[j+1]['time'] - t[j]['time']))
+    def get_currency_code(self, exchange, exchange_code):
+        try:
+            return self._map_exchange_code_to_currency_code[exchange][exchange_code]
+        except Exception as e:
+            print('ERROR CryptoTrader get_currency_code',exchange,exchange_code,str(e))
+            return None
 
     def get_market_name(self, exchange, code_base, code_curr):
         return self.trader[exchange]._active_markets[code_base][code_curr]['Market']
@@ -152,3 +150,51 @@ class CryptoTrader:
                                         )
 
         return self._arbitrage_possibilities
+
+    def calculate_balances_btc(self):
+        """
+            Load balances from exchanges in BTC terms
+            Debug: self._CTMain._Crypto_Trader.calculate_balances_btc()
+        """
+        self._balances_btc = {}
+        for exchange in self.API_KEYS:
+            self.trader[exchange].load_balances_btc()
+            for currency in self.trader[exchange]._complete_balances_btc:
+                try:
+                    if self.trader[exchange]._complete_balances_btc[currency]['Total'] > 0:
+                        code = self.get_currency_code(exchange, currency)
+                        if not 'BtcValue' in self.trader[exchange]._complete_balances_btc[currency]:
+                            if code == 'BTC':
+                                btc_rate = 1
+                            else:
+                                if code in ['USD','USDT']:
+                                    btc_rate = 2.0 / (self._active_markets[code]['BTC'][exchange]['Bid'] + self._active_markets[code]['BTC'][exchange]['Ask'])
+                                else:
+                                    btc_rate = (self._active_markets['BTC'][code][exchange]['Bid'] + self._active_markets['BTC'][code][exchange]['Ask']) / 2.0
+                            self.trader[exchange]._complete_balances_btc[currency]['BtcValue'] = self.trader[exchange]._complete_balances_btc[currency]['Total'] * btc_rate
+                        if not code in self._balances_btc:
+                            self._balances_btc[code] = { 'TotalBtcValue': 0.0 }
+                        self._balances_btc[code][exchange] = self.trader[exchange]._complete_balances_btc[currency]
+                        self._balances_btc[code]['TotalBtcValue'] += self._balances_btc[code][exchange]['BtcValue']
+                except Exception as e:
+                    print("Error in load_balances_btc for currency " + currency + ": " + str(e))
+        return self._balances_btc
+
+    def calculate_balances_btc_totals(self):
+        """
+            Load total balances from exchanges
+            Debug: self._CTMain._Crypto_Trader.calculate_balances_btc_totals()
+        """
+        results = {}
+        self.calculate_balances_btc()
+        for code in self._balances_btc:
+            for exchange in self._balances_btc[code]:
+                if exchange != 'TotalBtcValue':
+                    if not exchange in results:
+                        results[exchange] = {'BTC': 0.0}
+                    results[exchange]['BTC'] += self._balances_btc[code][exchange]['BtcValue']
+
+        btc_usd_price = self.trader['Coinbase'].get_btc_usd_price()
+        for exchange in results:
+            results[exchange]['USD'] = results[exchange]['BTC'] * btc_usd_price
+        return results
