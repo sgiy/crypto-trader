@@ -4,6 +4,8 @@ The goal of this project is to create an open, usable interface enabling a more
 comfortable simultaneous usage of multiple crypto exchanges, for example, by
 showing aggregated balances across exchanges. As an additional benefit (that is
 already available), you can monitor arbitrage opportunities across exchanges.
+This project and information obtained using it does not constitute an investment
+advise. Use at your own risk.
 
 Using the GUI for trading on exchanges requires user to create API keys for
 those exchanges and to input them in program's configuration. The source code of
@@ -20,14 +22,28 @@ the syntax matching config.py). It is recommended to maintain your keys or other
 personal settings, like window size, in config_private.py, since then you will
 not overwrite them when pulling in latest code).
 
-The project is currently not ready for release, but you are welcome to try what
-is already written (real-time arbitrage checks) and to submit your suggestions.
+The project is not yet ready for release, but you are welcome to use what is
+already written and to submit your suggestions.
 
 ## If you like the project, please consider participating and/or donating:
 
 **BTC**: 39qHV6AVQMxynRx6kRQVD9R4PrkyQKxPhK
 
-## Current Status of Exchange API implementations
+## Currently implemented views:
+- Balances - Shows aggregate balances in BTC and USD terms across exchanges.
+- ExchangeArbitrage - Shows realtime cross exchange arbitrage opportunities
+    (Cross exchange arbitrage represents cases when an offer of a pair on one
+    exchange at a lower price than a bid on another exchange).
+- ExchangeArbitrageCircle - Shows realtime circle arbitrage opportunities (
+    Circle arbitrage represents cases where on the same exchange one can
+    buy currency2 for currency1, then buy currency3 with this
+    currency2, then sell currency3 for currency1 in a way that in the end they
+    have more currency1 than they had before these trades).
+- ViewTwoExchangeOrderBooks - Allows to see order books from two exchanges in
+    the same window. This is useful for investigating cross exchange arbitrage
+    opportunities.
+
+## Current Status of Exchange API Wrappers
 
 | Exchange | Public REST API | Private REST API | Websockets | Comments |
 | -------- | --------------- | ---------------- | ---------- | -------- |
