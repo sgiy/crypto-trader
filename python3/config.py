@@ -35,6 +35,18 @@ EXCHANGE_CURRENCY_RENAME_MAP = {
     'Bittrex':  {
                     'BITS': 'BITS_BITSWIFT',
                 },
+    'Poloniex': {
+                    'BITS': 'BITS_BITSTAR',
+                    'BTM': 'BTM_BITMARK',
+                    'STR': 'XLM',
+                    'APH': 'APH_APHRODITE'
+                },
+    'Binance':  {
+                    'BCC': 'BCH'
+                },
+    'Kucoin':   {
+                    'CPC': 'CPC_CPCHAIN'
+                },
 }
 HOME_VIEW_EXCHANGE = 'Bittrex'
 HOME_VIEW_BASE_CODE = 'USD'

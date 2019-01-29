@@ -22,6 +22,7 @@ from Views.TwoOrderBooks import CTTwoOrderBooks
 from Views.ViewPair import CTViewPair
 from Views.Debug import CTDebug
 from Views.Balances import CTBalances
+from Views.Currencies import CTCurrencies
 
 class CTMainWindow(QMainWindow):
     def __init__(self):
@@ -48,10 +49,7 @@ class CTMainWindow(QMainWindow):
 
         self.initActions()
 
-        # Do not add MenuBar for now because no useful functionality yet that
-        # is not already in ToolBar, but keep stub code
-        # self.initMenuBar()
-
+        self.initMenuBar()
         self.initToolBar()
         self.initStatusBar()
         self.switch_view('Debug')
@@ -100,14 +98,20 @@ class CTMainWindow(QMainWindow):
         self.Actions['ViewSettings'].setStatusTip('Settings')
         self.Actions['ViewSettings'].triggered.connect(lambda: self.switch_view('ViewSettings'))
 
+        self.Actions['Currencies'] = QAction('Currencies', self)
+        self.Actions['Currencies'].setStatusTip('Currencies')
+        self.Actions['Currencies'].triggered.connect(lambda: self.switch_view('Currencies'))
+
         self.Actions['RefreshStylesheet'] = QAction('RefreshStylesheet', self)
         self.Actions['RefreshStylesheet'].setStatusTip('Refresh Stylesheet')
         self.Actions['RefreshStylesheet'].triggered.connect(self.refresh_stylesheet)
 
     def initMenuBar(self):
         self.MenuBar = self.menuBar()
-        fileMenu = self.MenuBar.addMenu('&File')
-        fileMenu.addAction(self.Actions['Exit'])
+        file_menu = self.MenuBar.addMenu('&File')
+        file_menu.addAction(self.Actions['Exit'])
+        settings_menu = self.MenuBar.addMenu('&Settings')
+        settings_menu.addAction(self.Actions['Currencies'])
 
     def initToolBar(self):
         self.ToolBar = self.addToolBar('ToolBar')
@@ -166,6 +170,8 @@ class CTMainWindow(QMainWindow):
         if view_name == 'Settings':
             # TODO
             pass
+        if view_name == 'Currencies':
+            self.Views['Currencies'] = CTCurrencies(CTMain = self)
         self.setCentralWidget(self.Views[view_name])
 
 if __name__ == '__main__':
