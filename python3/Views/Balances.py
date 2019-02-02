@@ -37,6 +37,16 @@ class CTBalances(QWidget):
         self.setLayout(self._layout)
 
         self.reload_balances()
+        self.setStyleSheet("""
+                QTableWidget::item {
+                    padding: 2px 4px;
+                    border-style: none;
+                    margin: 0px;
+                    height: 1.0em;
+                    min-height: 1.0em;
+                    max-height: 1.0em;
+                }
+            """)
         self.show()
 
     def reload_balances(self):
@@ -65,8 +75,8 @@ class CTBalances(QWidget):
             self._balances_summary_table.setItem(cell_index, 0, QTableWidgetItem(exchange))
             self._balances_summary_table.setItem(cell_index, 1, QTableWidgetItem("{0:,.4f}".format(self._balances_summary[exchange]['BTC'])))
             self._balances_summary_table.setItem(cell_index, 2, QTableWidgetItem("{0:,.2f}".format(self._balances_summary[exchange]['USD'])))
-            self._balances_summary_table.item(cell_index, 1).setTextAlignment(Qt.AlignRight)
-            self._balances_summary_table.item(cell_index, 2).setTextAlignment(Qt.AlignRight)
+            self._balances_summary_table.item(cell_index, 1).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
+            self._balances_summary_table.item(cell_index, 2).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
             totals['BTC'] += self._balances_summary[exchange]['BTC']
             totals['USD'] += self._balances_summary[exchange]['USD']
             cell_index += 1
@@ -74,8 +84,8 @@ class CTBalances(QWidget):
         self._balances_summary_table.setItem(cell_index, 0, QTableWidgetItem("Total"))
         self._balances_summary_table.setItem(cell_index, 1, QTableWidgetItem("{0:,.4f}".format(totals['BTC'])))
         self._balances_summary_table.setItem(cell_index, 2, QTableWidgetItem("{0:,.2f}".format(totals['USD'])))
-        self._balances_summary_table.item(cell_index, 1).setTextAlignment(Qt.AlignRight)
-        self._balances_summary_table.item(cell_index, 2).setTextAlignment(Qt.AlignRight)
+        self._balances_summary_table.item(cell_index, 1).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
+        self._balances_summary_table.item(cell_index, 2).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
         bold_font = QFont('Droid Sans', 10, QFont.Bold)
         self._balances_summary_table.item(cell_index, 0).setFont(bold_font)
         self._balances_summary_table.item(cell_index, 1).setFont(bold_font)
@@ -95,12 +105,12 @@ class CTBalances(QWidget):
             for exchange in ordered_exchanges:
                 column_index += 1
                 if exchange in holdings:
-                    self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.8f}".format(holdings[exchange]['Total'])))
-                    self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight)
+                    self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.4f}".format(holdings[exchange]['Total'])))
+                    self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
             column_index += 1
             self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.8f}".format(holdings['TotalBtcValue'])))
-            self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight)
+            self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
             column_index += 1
             self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.2f}".format(holdings['TotalBtcValue'] * self._btc_usd_price)))
-            self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight)
+            self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
             row_index += 1

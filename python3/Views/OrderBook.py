@@ -57,7 +57,7 @@ class CTOrderBook(QWidget):
                     self._tableWidget.item(self._depth + bid, i).setBackground(self._CTMain._Parameters.Color['green_light'])
                 else:
                     self._tableWidget.item(self._depth + bid, i).setBackground(self._CTMain._Parameters.Color['green_bold'])
-                self._tableWidget.item(self._depth + bid, i).setTextAlignment(Qt.AlignRight)
+                self._tableWidget.item(self._depth + bid, i).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
 
         sum_ask = 0
         sum_ask_base = 0
@@ -73,5 +73,5 @@ class CTOrderBook(QWidget):
                     self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_light'])
                 else:
                     self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_bold'])
-                self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight)
+                self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
         self._CTMain.log("Loaded market " + self._market_name)
