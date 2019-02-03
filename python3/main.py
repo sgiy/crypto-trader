@@ -14,6 +14,7 @@ except:
 from CryptoTrader import CryptoTrader
 from CryptoTraderParameters import CryptoTraderParameters
 
+from Views.Login import CTLogin
 from Views.Dropdown import Dropdown
 from Views.ExchangeArb import CTExchangeArb
 from Views.ExchangeArbCircle import CTExchangeArbCircle
@@ -167,9 +168,8 @@ class CTMainWindow(QMainWindow):
                 )
         if view_name == 'Debug':
             self.Views['Debug'] = CTDebug(CTMain = self)
-        if view_name == 'Settings':
-            # TODO
-            pass
+        if view_name == 'ViewSettings':
+            self.Views['ViewSettings'] = CTLogin(CTMain = self)
         if view_name == 'Currencies':
             self.Views['Currencies'] = CTCurrencies(CTMain = self)
         self.setCentralWidget(self.Views[view_name])
