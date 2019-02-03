@@ -1,8 +1,11 @@
 import sys, os
 from datetime import datetime
 
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction)
-from PyQt5.QtCore import QTimer
+
+import qtawesome as qta
 
 # Static import
 from config import *
@@ -64,67 +67,99 @@ class CTMainWindow(QMainWindow):
 
     def initActions(self):
         self.Actions = {}
-        self.Actions['Exit'] = QAction('Exit', self)
-        self.Actions['Exit'].setShortcut('Ctrl+Q')
-        self.Actions['Exit'].setStatusTip('Exit application (Ctrl+Q)')
-        self.Actions['Exit'].triggered.connect(self.close)
 
-        self.Actions['Balances'] = QAction('Balances', self)
-        self.Actions['Balances'].setStatusTip('Balances')
-        self.Actions['Balances'].triggered.connect(lambda: self.switch_view('Balances'))
+        self._actions_setup = {
+            'Balances': {
+                        'Icon': qta.icon('mdi.credit-card-multiple'),
+                        'Shortcut': 'Ctrl+B',
+                        'StatusTip': 'Balances',
+                        'Connect': lambda: self.switch_view('Balances'),
+                },
+            'View Order Book': {
+                        'Shortcut': 'Ctrl+P',
+                        'StatusTip': 'View Crypto Pair',
+                        'Connect': lambda: self.switch_view('ViewPair'),
+                },
+            'View Two Exchange Order Books': {
+                        'StatusTip': 'View Two Exchange Order Books',
+                        'Connect': lambda: self.switch_view('ViewTwoExchangeOrderBooks'),
+                },
+            'Cross Exchange Arbitrage': {
+                        'Icon': qta.icon('mdi.arrow-collapse-vertical'),
+                        'StatusTip': 'View Cross Exchange Arbitrage Possibilities',
+                        'Connect': lambda: self.switch_view('ViewCrossExchangeArbitrage'),
+                },
+            'Circle Exchange Arbitrage': {
+                        'Icon': qta.icon('mdi.sync'),
+                        'StatusTip': 'View Circle Exchange Arbitrage Possibilities',
+                        'Connect': lambda: self.switch_view('ViewCircleExchangeArbitrage'),
+                },
+            'Settings': {
+                        'Icon': qta.icon('mdi.settings-outline'),
+                        'Shortcut': 'Ctrl+S',
+                        'StatusTip': 'Settings',
+                        'Connect': lambda: self.switch_view('ViewSettings'),
+                },
+            'Currencies': {
+                        'StatusTip': 'View Exchange Currencies',
+                        'Connect': lambda: self.switch_view('ViewCurrencies'),
+                },
+            'Debug': {
+                        'StatusTip': 'Debug',
+                        'Connect': lambda: self.switch_view('Debug'),
+                },
+            'Refresh Stylesheet': {
+                        'StatusTip': 'Refresh Stylesheet',
+                        'Connect': self.refresh_stylesheet,
+                },
+            'Exit': {
+                        'Icon': qta.icon('mdi.door-open'),
+                        'Shortcut': 'Ctrl+Q',
+                        'StatusTip': 'Exit application',
+                        'Connect': self.close,
+                },
+        }
 
-        self.Actions['ViewPair'] = QAction('ViewPair', self)
-        self.Actions['ViewPair'].setShortcut('Ctrl+P')
-        self.Actions['ViewPair'].setStatusTip('View Crypto Pair (Ctrl+P)')
-        self.Actions['ViewPair'].triggered.connect(lambda: self.switch_view('ViewPair'))
-
-        self.Actions['ExchangeArbitrage'] = QAction('ExchangeArbitrage', self)
-        self.Actions['ExchangeArbitrage'].setShortcut('Ctrl+E')
-        self.Actions['ExchangeArbitrage'].setStatusTip('View Current Exchange Arbitrage Possibilities (Ctrl+E)')
-        self.Actions['ExchangeArbitrage'].triggered.connect(lambda: self.switch_view('ExchangeArbitrage'))
-
-        self.Actions['ExchangeArbitrageCircle'] = QAction('ExchangeArbitrageCircle', self)
-        self.Actions['ExchangeArbitrageCircle'].setStatusTip('View Current Exchange Arbitrage Circle Possibilities')
-        self.Actions['ExchangeArbitrageCircle'].triggered.connect(lambda: self.switch_view('ExchangeArbitrageCircle'))
-
-        self.Actions['ViewTwoExchangeOrderBooks'] = QAction('ViewTwoExchangeOrderBooks', self)
-        self.Actions['ViewTwoExchangeOrderBooks'].setStatusTip('View Two Exchange Order Books')
-        self.Actions['ViewTwoExchangeOrderBooks'].triggered.connect(lambda: self.switch_view('ViewTwoExchangeOrderBooks'))
-
-        self.Actions['Debug'] = QAction('Debug', self)
-        self.Actions['Debug'].setStatusTip('Debug')
-        self.Actions['Debug'].triggered.connect(lambda: self.switch_view('Debug'))
-
-        self.Actions['ViewSettings'] = QAction('Settings', self)
-        self.Actions['ViewSettings'].setStatusTip('Settings')
-        self.Actions['ViewSettings'].triggered.connect(lambda: self.switch_view('ViewSettings'))
-
-        self.Actions['Currencies'] = QAction('Currencies', self)
-        self.Actions['Currencies'].setStatusTip('Currencies')
-        self.Actions['Currencies'].triggered.connect(lambda: self.switch_view('Currencies'))
-
-        self.Actions['RefreshStylesheet'] = QAction('RefreshStylesheet', self)
-        self.Actions['RefreshStylesheet'].setStatusTip('Refresh Stylesheet')
-        self.Actions['RefreshStylesheet'].triggered.connect(self.refresh_stylesheet)
+        for action in self._actions_setup:
+            if 'Icon' in self._actions_setup[action]:
+                self.Actions[action] = QAction(self._actions_setup[action]['Icon'], action, self)
+            else:
+                self.Actions[action] = QAction(action, self)
+            if 'Shortcut' in self._actions_setup[action]:
+                self.Actions[action].setShortcut(self._actions_setup[action]['Shortcut'])
+                self.Actions[action].setStatusTip("{0} ({1})".format(self._actions_setup[action]['StatusTip'],self._actions_setup[action]['Shortcut']))
+            else:
+                self.Actions[action].setStatusTip(self._actions_setup[action]['StatusTip'])
+            self.Actions[action].triggered.connect(self._actions_setup[action]['Connect'])
 
     def initMenuBar(self):
         self.MenuBar = self.menuBar()
         file_menu = self.MenuBar.addMenu('&File')
         file_menu.addAction(self.Actions['Exit'])
+
+        accounts_menu = self.MenuBar.addMenu('&Accounts')
+        accounts_menu.addAction(self.Actions['Balances'])
+
+        arbitrage_menu = self.MenuBar.addMenu('Arbitrage Possibilities')
+        arbitrage_menu.addAction(self.Actions['Cross Exchange Arbitrage'])
+        arbitrage_menu.addAction(self.Actions['Circle Exchange Arbitrage'])
+
+        order_book_menu = self.MenuBar.addMenu('&Order Books')
+        order_book_menu.addAction(self.Actions['View Order Book'])
+        order_book_menu.addAction(self.Actions['View Two Exchange Order Books'])
+
         settings_menu = self.MenuBar.addMenu('&Settings')
         settings_menu.addAction(self.Actions['Currencies'])
+        settings_menu.addAction(self.Actions['Debug'])
+        settings_menu.addAction(self.Actions['Refresh Stylesheet'])
+        settings_menu.addAction(self.Actions['Settings'])
+
 
     def initToolBar(self):
         self.ToolBar = self.addToolBar('ToolBar')
+        self.ToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.ToolBar.addAction(self.Actions['Exit'])
         self.ToolBar.addAction(self.Actions['Balances'])
-        self.ToolBar.addAction(self.Actions['ViewPair'])
-        self.ToolBar.addAction(self.Actions['ExchangeArbitrage'])
-        self.ToolBar.addAction(self.Actions['ExchangeArbitrageCircle'])
-        self.ToolBar.addAction(self.Actions['ViewTwoExchangeOrderBooks'])
-        self.ToolBar.addAction(self.Actions['Debug'])
-        self.ToolBar.addAction(self.Actions['ViewSettings'])
-        self.ToolBar.addAction(self.Actions['RefreshStylesheet'])
 
     def initStatusBar(self):
         self.StatusBar = self.statusBar()
@@ -136,7 +171,6 @@ class CTMainWindow(QMainWindow):
 
     def switch_view(self, view_name):
         self._Timer.stop()
-        # if view_name not in self.Views:
         if view_name == 'ViewPair':
             self.Views['ViewPair'] = CTViewPair(
                 CTMain = self,
@@ -149,10 +183,10 @@ class CTMainWindow(QMainWindow):
                 )
         if view_name == 'Balances':
             self.Views['Balances'] = CTBalances(CTMain = self)
-        if view_name == 'ExchangeArbitrage':
-            self.Views['ExchangeArbitrage'] = CTExchangeArb(CTMain = self)
-        if view_name == 'ExchangeArbitrageCircle':
-            self.Views['ExchangeArbitrageCircle'] = CTExchangeArbCircle(CTMain = self)
+        if view_name == 'ViewCrossExchangeArbitrage':
+            self.Views['ViewCrossExchangeArbitrage'] = CTExchangeArb(CTMain = self)
+        if view_name == 'ViewCircleExchangeArbitrage':
+            self.Views['ViewCircleExchangeArbitrage'] = CTExchangeArbCircle(CTMain = self)
         if view_name == 'ViewTwoExchangeOrderBooks':
             self.Views['ViewTwoExchangeOrderBooks'] = CTTwoOrderBooks(
                 CTMain = self,
@@ -170,8 +204,8 @@ class CTMainWindow(QMainWindow):
             self.Views['Debug'] = CTDebug(CTMain = self)
         if view_name == 'ViewSettings':
             self.Views['ViewSettings'] = CTLogin(CTMain = self)
-        if view_name == 'Currencies':
-            self.Views['Currencies'] = CTCurrencies(CTMain = self)
+        if view_name == 'ViewCurrencies':
+            self.Views['ViewCurrencies'] = CTCurrencies(CTMain = self)
         self.setCentralWidget(self.Views[view_name])
 
 if __name__ == '__main__':
