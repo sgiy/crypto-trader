@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, json
 from datetime import datetime
 
 from PyQt5.QtCore import Qt, QTimer
@@ -7,17 +7,10 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction)
 
 import qtawesome as qta
 
-# Static import
-from config import *
-try:
-    from config_private import *
-except:
-    pass
-
 from CryptoTrader import CryptoTrader
 from CryptoTraderParameters import CryptoTraderParameters
 
-from Views.Login import CTLogin
+from Views.EncryptedSettings import CTEncryptedSettings
 from Views.Dropdown import Dropdown
 from Views.ExchangeArb import CTExchangeArb
 from Views.ExchangeArbCircle import CTExchangeArbCircle
@@ -31,34 +24,42 @@ from Views.Currencies import CTCurrencies
 class CTMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.initUI()
+
+        self.setWindowTitle('Crypto Trader')
+        self._Timer = QTimer(self)
+        self.Views = {}
+        with open(os.path.join(sys.path[0], 'settings'), 'rb') as myfile:
+            msg=myfile.read()
+        self._settings = eval(msg)
+        self.refresh_stylesheet()
+        self.switch_view('ViewSettings')
+        self.setGeometry(
+            300,
+            300,
+            1200,
+            480
+        )
+        self.show()
 
     def initUI(self):
-        self.setWindowTitle('Crypto Trader')
         self.setGeometry(
-            WINDOW_SIZE['left'],
-            WINDOW_SIZE['top'],
-            WINDOW_SIZE['width'],
-            WINDOW_SIZE['height']
+            self._settings['Initial Main Window Position and Size']['left'],
+            self._settings['Initial Main Window Position and Size']['top'],
+            self._settings['Initial Main Window Position and Size']['width'],
+            self._settings['Initial Main Window Position and Size']['height']
         )
-        self._Crypto_Trader = CryptoTrader({
-            'API_KEYS': API_KEYS,
-            'EXCHANGE_CURRENCY_RENAME_MAP': EXCHANGE_CURRENCY_RENAME_MAP,
-            'EXCHANGES_TO_LOAD': EXCHANGES_TO_LOAD
-        })
+        self._Crypto_Trader = CryptoTrader(
+            API_KEYS = self._API_KEYS,
+            SETTINGS = self._settings
+        )
         print('Initialized Exchanges')
         self._Parameters = CryptoTraderParameters()
-        self.Views = {}
-        self._Timer = QTimer(self)
 
         self.initActions()
-
         self.initMenuBar()
         self.initToolBar()
         self.initStatusBar()
-        self.switch_view('Debug')
-        self.refresh_stylesheet()
-        self.show()
+
         print('Ready')
 
     def log(self, message = '', message_type = 'INFO'):
@@ -95,7 +96,7 @@ class CTMainWindow(QMainWindow):
                         'Connect': lambda: self.switch_view('ViewCircleExchangeArbitrage'),
                 },
             'Settings': {
-                        'Icon': qta.icon('mdi.settings-outline'),
+                        'Icon': qta.icon('mdi.shield-key-outline'),
                         'Shortcut': 'Ctrl+S',
                         'StatusTip': 'Settings',
                         'Connect': lambda: self.switch_view('ViewSettings'),
@@ -154,7 +155,6 @@ class CTMainWindow(QMainWindow):
         settings_menu.addAction(self.Actions['Refresh Stylesheet'])
         settings_menu.addAction(self.Actions['Settings'])
 
-
     def initToolBar(self):
         self.ToolBar = self.addToolBar('ToolBar')
         self.ToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
@@ -174,12 +174,12 @@ class CTMainWindow(QMainWindow):
         if view_name == 'ViewPair':
             self.Views['ViewPair'] = CTViewPair(
                 CTMain = self,
-                exchange = HOME_VIEW_EXCHANGE,
-                base_code = HOME_VIEW_BASE_CODE,
-                curr_code = HOME_VIEW_CURRENCY_CODE,
-                chart_lookback = HOME_VIEW_CHART_LOOKBACK,
-                chart_interval = HOME_VIEW_CHART_INTERVAL,
-                order_book_depth = DISPLAY_BOOK_DEPTH
+                exchange = self._settings['Initial View Order Book Exchange'],
+                base_code = self._settings['Initial View Order Book Base Currency'],
+                curr_code = self._settings['Initial View Order Book Quote Currency'],
+                chart_lookback = self._settings['Initial View Order Book Chart Lookback'],
+                chart_interval = self._settings['Initial View Order Book Chart Interval'],
+                order_book_depth = self._settings['Default Order Book Depth']
                 )
         if view_name == 'Balances':
             self.Views['Balances'] = CTBalances(CTMain = self)
@@ -203,7 +203,7 @@ class CTMainWindow(QMainWindow):
         if view_name == 'Debug':
             self.Views['Debug'] = CTDebug(CTMain = self)
         if view_name == 'ViewSettings':
-            self.Views['ViewSettings'] = CTLogin(CTMain = self)
+            self.Views['ViewSettings'] = CTEncryptedSettings(CTMain = self)
         if view_name == 'ViewCurrencies':
             self.Views['ViewCurrencies'] = CTCurrencies(CTMain = self)
         self.setCentralWidget(self.Views[view_name])

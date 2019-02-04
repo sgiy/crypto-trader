@@ -1,0 +1,51 @@
+{
+    'Default Order Book Depth': 5,
+    'Initial View Order Book Exchange': 'Bittrex',
+    'Initial View Order Book Base Currency': 'USD',
+    'Initial View Order Book Quote Currency': 'BTC',
+    'Initial View Order Book Chart Interval': '15 Minutes',
+    'Initial View Order Book Chart Lookback': '1 Day',
+    'Initial Main Window Position and Size': {
+        'left':     50,
+        'top':      50,
+        'width':    1700,
+        'height':   1000,
+    },
+    'Exchange Classes to Initialize': [
+        'Binance',
+        'Bittrex',
+        'Coinbase',
+        'Hotbit',
+        'Kucoin',
+        'Poloniex'
+    ],
+    'Exchanges to Load': [
+        'Binance',
+        'Bittrex',
+        'Kucoin',
+        'Poloniex'
+    ],
+    'Exchanges with Trading API': {
+        'Binance': { 'API Password': 'False' },
+        'Bittrex': { 'API Password': 'False' },
+        'Kucoin': { 'API Password': 'False' },
+        'Poloniex': { 'API Password': 'False' }
+    },
+    'Exchange Currency Rename Map': {
+        'Bittrex':  {
+                        'BITS': 'BITS_BITSWIFT',
+                    },
+        'Poloniex': {
+                        'BITS': 'BITS_BITSTAR',
+                        'BTM': 'BTM_BITMARK',
+                        'STR': 'XLM',
+                        'APH': 'APH_APHRODITE'
+                    },
+        'Binance':  {
+                        'BCC': 'BCH'
+                    },
+        'Kucoin':   {
+                        'CPC': 'CPC_CPCHAIN'
+                    },
+    },
+}

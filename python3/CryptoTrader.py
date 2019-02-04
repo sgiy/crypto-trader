@@ -6,22 +6,20 @@ from pydoc import locate
 from Exchanges.Coinbase import Coinbase
 
 class CryptoTrader:
-    def __init__(self, constants = {}):
+    def __init__(self, API_KEYS = {}, SETTINGS = {}):
         self.trader = {}
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
-        self.API_KEYS = constants.get('API_KEYS',{})
-        self.EXCHANGE_CURRENCY_RENAME_MAP = constants.get('EXCHANGE_CURRENCY_RENAME_MAP',{})
-        self.EXCHANGES_TO_LOAD = constants.get('EXCHANGES_TO_LOAD',{})
+        self.API_KEYS = API_KEYS
+        self.SETTINGS = SETTINGS
 
-        for exchange in self.EXCHANGES_TO_LOAD:
+        for exchange in self.SETTINGS.get('Exchange Classes to Initialize', []):
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
-            if exchange in self.API_KEYS:
+            if exchange in self.SETTINGS.get('Exchanges with API Keys', []):
                 self.trader[exchange] = exchange_class(self.API_KEYS[exchange]['APIKey'], self.API_KEYS[exchange]['Secret'])
             else:
                 self.trader[exchange] = exchange_class()
-
         print('Initializing Currencies')
         self.init_currencies()
         print('Loading Active Markets')
@@ -30,7 +28,7 @@ class CryptoTrader:
     def init_currencies(self):
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
-        for exchange in self.API_KEYS:
+        for exchange in self.SETTINGS.get('Exchanges to Load', []):
             print('Loading currencies for ' + exchange)
             currencies = self.trader[exchange].load_currencies()
             self.trader[exchange]._map_currency_code_to_exchange_code = {}
@@ -38,9 +36,9 @@ class CryptoTrader:
             for currency in currencies:
                 try:
                     code = currency
-                    if exchange in self.EXCHANGE_CURRENCY_RENAME_MAP:
-                        if currency in self.EXCHANGE_CURRENCY_RENAME_MAP[exchange]:
-                            code = self.EXCHANGE_CURRENCY_RENAME_MAP[exchange][currency]
+                    if exchange in self.SETTINGS.get('Exchange Currency Rename Map',{}):
+                        if currency in self.SETTINGS['Exchange Currency Rename Map'][exchange]:
+                            code = self.SETTINGS['Exchange Currency Rename Map'][exchange][currency]
 
                     currency_name = currencies[currency]['Name']
                     exchange_name_column = exchange + 'Name'
@@ -67,7 +65,7 @@ class CryptoTrader:
 
     def load_active_markets(self):
         self._active_markets = {}
-        for exchange in self.API_KEYS:
+        for exchange in self.SETTINGS.get('Exchanges to Load', []):
             self.trader[exchange].load_markets()
             for code_base in self.trader[exchange]._active_markets:
                 if not code_base in self._active_markets:
@@ -159,7 +157,7 @@ class CryptoTrader:
             Debug: self._CTMain._Crypto_Trader.calculate_balances_btc()
         """
         self._balances_btc = {}
-        for exchange in self.API_KEYS:
+        for exchange in self.SETTINGS.get('Exchanges with API Keys', []):
             self.trader[exchange].load_balances_btc()
             for currency in self.trader[exchange]._complete_balances_btc:
                 try:
