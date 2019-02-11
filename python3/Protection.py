@@ -1,8 +1,5 @@
-import os, base64, json
+import os, base64, json, hashlib
 from cryptography.fernet import Fernet
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 class Protector():
     def __init__(self, password=''):
@@ -12,14 +9,14 @@ class Protector():
     def generate_key_from_password(self, password, salt = None):
         if salt is None:
             salt = os.urandom(self._salt_length)
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-            backend=default_backend()
-        )
-        key = base64.urlsafe_b64encode(kdf.derive(password))
+        key =   base64.urlsafe_b64encode(
+                    hashlib.pbkdf2_hmac(
+                        'sha256',
+                        password,
+                        salt,
+                        1000000
+                    )
+                )
         return salt, key
 
     def save_encrypted_file(self, dictionary, full_file_path):

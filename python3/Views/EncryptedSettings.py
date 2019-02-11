@@ -161,4 +161,6 @@ class CTEncryptedSettings(QWidget):
             settings_to_save['API Keys'][exchange]['Secret'] = self._api_key_inputs[exchange]['Secret'].text()
             settings_to_save['API Keys'][exchange]['APIPassword'] = self._api_key_inputs[exchange]['APIPassword'].text()
         protector.save_encrypted_file(settings_to_save, self._full_file_path)
+        self._CTMain._API_KEYS = settings_to_save['API Keys']
+        self._CTMain.initCryptoTrader()
         self._label_notification.setText('Saved!')

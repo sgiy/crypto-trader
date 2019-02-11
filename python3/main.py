@@ -48,11 +48,7 @@ class CTMainWindow(QMainWindow):
             self._settings['Initial Main Window Position and Size']['width'],
             self._settings['Initial Main Window Position and Size']['height']
         )
-        self._Crypto_Trader = CryptoTrader(
-            API_KEYS = self._API_KEYS,
-            SETTINGS = self._settings
-        )
-        print('Initialized Exchanges')
+        self.initCryptoTrader()        
         self._Parameters = CryptoTraderParameters()
 
         self.initActions()
@@ -61,6 +57,13 @@ class CTMainWindow(QMainWindow):
         self.initStatusBar()
 
         print('Ready')
+
+    def initCryptoTrader(self):
+        self._Crypto_Trader = CryptoTrader(
+            API_KEYS = self._API_KEYS,
+            SETTINGS = self._settings
+        )
+        print('Initialized Exchanges')
 
     def log(self, message = '', message_type = 'INFO'):
         message = '{0} ({1}): {2}'.format(message_type, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message)

@@ -12,7 +12,9 @@ class CryptoTrader:
         self._map_exchange_code_to_currency_code = {}
         self.API_KEYS = API_KEYS
         self.SETTINGS = SETTINGS
+        self.init_exchanges()
 
+    def init_exchanges(self):
         for exchange in self.SETTINGS.get('Exchange Classes to Initialize', []):
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
