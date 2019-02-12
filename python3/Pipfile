@@ -14,6 +14,7 @@ matplotlib = "*"
 ipdb = "*"
 datetime = "*"
 pandas = "*"
+pyqtchart = "*"
 
 [requires]
 python_version = "3.7"
