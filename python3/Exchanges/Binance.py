@@ -3,7 +3,6 @@ import datetime
 import hmac
 import hashlib
 import requests
-import matplotlib.dates as mpd
 
 from Exchange import Exchange
 
@@ -778,7 +777,7 @@ class Binance(Exchange):
         load_chart = self.get_candlesticks(market_name, interval)
         results = []
         for i in load_chart:
-            new_row = mpd.date2num(datetime.datetime.fromtimestamp(i[0]/1000)), float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), float(i[7])
+            new_row = i[0], float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), float(i[7])
             results.append(new_row)
         return results
 

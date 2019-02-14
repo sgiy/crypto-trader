@@ -32,6 +32,9 @@ class CTMainWindow(QMainWindow):
             msg=myfile.read()
         self._settings = eval(msg)
         self.refresh_stylesheet()
+        # self._API_KEYS = {}
+        # self.initUI()
+        # self.switch_view('ViewPair')
         self.switch_view('ViewSettings')
         self.setGeometry(
             300,
@@ -48,7 +51,7 @@ class CTMainWindow(QMainWindow):
             self._settings['Initial Main Window Position and Size']['width'],
             self._settings['Initial Main Window Position and Size']['height']
         )
-        self.initCryptoTrader()        
+        self.initCryptoTrader()
         self._Parameters = CryptoTraderParameters()
 
         self.initActions()
@@ -183,7 +186,7 @@ class CTMainWindow(QMainWindow):
                 chart_lookback = self._settings['Initial View Order Book Chart Lookback'],
                 chart_interval = self._settings['Initial View Order Book Chart Interval'],
                 order_book_depth = self._settings['Default Order Book Depth']
-                )
+            )
         if view_name == 'Balances':
             self.Views['Balances'] = CTBalances(CTMain = self)
         if view_name == 'ViewCrossExchangeArbitrage':

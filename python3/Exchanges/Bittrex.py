@@ -4,7 +4,6 @@ import hmac
 import hashlib
 import requests
 import pandas as pd
-import matplotlib.dates as mpd
 
 from Exchange import Exchange
 
@@ -553,7 +552,7 @@ class Bittrex(Exchange):
         load_chart = self.get_ticks(market_name, interval)
         results = []
         for i in load_chart:
-            new_row = mpd.date2num(datetime.datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S")), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
+            new_row = datetime.datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp() * 1000, i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
             results.append(new_row)
         return results
 

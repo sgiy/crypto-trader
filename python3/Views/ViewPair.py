@@ -1,38 +1,13 @@
 from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel,
     QHBoxLayout, QApplication, QSizePolicy)
 
-from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas,
-    NavigationToolbar2QT as NavigationToolbar)
-from matplotlib.figure import Figure
+from PyQt5.QtChart import (QChart, QChartView, QCandlestickSet,
+    QCandlestickSeries, QLineSeries, QDateTimeAxis, QValueAxis)
+from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtCore import Qt, QDateTime
 
 from Views.Dropdown import Dropdown
 from Views.OrderBook import CTOrderBook
-
-# from PyQt5.QtChart import QCandlestickSeries, QChart, QChartView, QCandlestickSet
-# from matplotlib.finance import candlestick2_ochl, candlestick_ohlc
-# import matplotlib.dates as dates
-
-class DynamicCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
-        FigureCanvas.__init__(self, fig)
-        self.setParent(parent)
-        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
-
-    def initialize_figure(self, quotes, interval):
-        pass
-        # self.axes.cla()
-        # self.axes.xaxis_date()
-        # self.axes.xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d %H:%M'))
-        # candlestick_ohlc(self.axes,
-        #                 quotes,
-        #                 width=0.0006 * interval,
-        #                 colorup='g',
-        #                 colordown='r',
-        #                 alpha=0.75)
-        # self.draw()
 
 class CTViewPair(QWidget):
     def __init__(self, CTMain = None, exchange = '', base_code = '', curr_code = '',
@@ -97,7 +72,15 @@ class CTViewPair(QWidget):
             None,
             self._order_book_depth
             )
-        self.chart = DynamicCanvas(self, width=5, height=4, dpi=100)
+        self.chartView = QChartView()
+        self.chartView.setRenderHint(QPainter.Antialiasing)
+        self.chart = self.chartView.chart()
+        self.chart.legend().setVisible(False)
+        self.chart.setTitle("Candlesticks")
+
+        self.CandlestickSeries = QCandlestickSeries()
+        self.CandlestickSeries.setIncreasingColor(Qt.green);
+        self.CandlestickSeries.setDecreasingColor(Qt.red);
 
         exchanges = self._CTMain._Crypto_Trader.trader.keys()
         self._dropdown_exchange = Dropdown(exchanges, self._exchange)
@@ -138,19 +121,11 @@ class CTViewPair(QWidget):
 
         self._layout.addLayout(topLayout, 0, 0, 1, 3)
         self._layout.addWidget(self._order_book_widget, 1, 0, 1, 3)
-        self._layout.addWidget(self.chart, 1, 3, 1, 7)
-        self.navi_toolbar = NavigationToolbar(self.chart, self)
-        self.navi_toolbar.addSeparator()
-
-        self.navi_toolbar.addWidget(label_lookback)
-        self.navi_toolbar.addWidget(self._chart_dropdown_lookback)
-        self.navi_toolbar.addWidget(label_interval)
-        self.navi_toolbar.addWidget(self._chart_dropdown_interval)
-
-        self._layout.addWidget(self.navi_toolbar, 0, 3, 1, 7)
+        self._layout.addWidget(self.chartView, 1, 3, 1, 7)
 
         self._CTMain._Timer.start(1000)
         self._CTMain._Timer.timeout.connect(self.refresh_order_book)
+        self.show()
 
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
@@ -174,4 +149,22 @@ class CTViewPair(QWidget):
         lookback = self._CTMain._Parameters.ChartLookbackWindow[lookback_name]
 
         load_chart = self._CTMain._Crypto_Trader.trader[exchange].load_chart_data(market_name, interval, lookback)
-        self.chart.initialize_figure(load_chart, interval)
+
+        ch_max = load_chart[0][2]
+        ch_min = load_chart[0][3]
+        for point in load_chart:
+            candle = QCandlestickSet(point[1],point[2],point[3],point[4], point[0])
+            ch_max = max(ch_max, point[2])
+            ch_min = min(ch_min, point[3])
+            self.CandlestickSeries.append(candle)
+
+        self.chart.addSeries(self.CandlestickSeries)
+        axisX = QDateTimeAxis()
+        axisX.setFormat("dd-MM-yyyy h:mm")
+        self.chart.setAxisX(axisX, self.CandlestickSeries)
+
+        axisY = QValueAxis()
+        axisY.setRange(max(0, ch_min - 0.1 * (ch_max - ch_min)), ch_max + 0.1 * (ch_max - ch_min))
+        self.chart.setAxisY(axisY, self.CandlestickSeries)
+
+        # self.chart.initialize_figure(load_chart, interval)
