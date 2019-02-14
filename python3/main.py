@@ -10,6 +10,7 @@ import qtawesome as qta
 from CryptoTrader import CryptoTrader
 from CryptoTraderParameters import CryptoTraderParameters
 
+from Views.Login import CTLogin
 from Views.EncryptedSettings import CTEncryptedSettings
 from Views.Dropdown import Dropdown
 from Views.ExchangeArb import CTExchangeArb
@@ -32,10 +33,7 @@ class CTMainWindow(QMainWindow):
             msg=myfile.read()
         self._settings = eval(msg)
         self.refresh_stylesheet()
-        # self._API_KEYS = {}
-        # self.initUI()
-        # self.switch_view('ViewPair')
-        self.switch_view('ViewSettings')
+        self.switch_view('Login')
         self.setGeometry(
             300,
             300,
@@ -208,6 +206,8 @@ class CTMainWindow(QMainWindow):
                 )
         if view_name == 'Debug':
             self.Views['Debug'] = CTDebug(CTMain = self)
+        if view_name == 'Login':
+            self.Views['Login'] = CTLogin(CTMain = self)
         if view_name == 'ViewSettings':
             self.Views['ViewSettings'] = CTEncryptedSettings(CTMain = self)
         if view_name == 'ViewCurrencies':
