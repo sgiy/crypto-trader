@@ -28,7 +28,7 @@
     'Exchanges with Trading API': {
         'Binance': { 'API Password': 'False' },
         'Bittrex': { 'API Password': 'False' },
-        'Kucoin': { 'API Password': 'False' },
+        'Kucoin': { 'API Password': 'True' },
         'Poloniex': { 'API Password': 'False' }
     },
     'Exchange Currency Rename Map': {

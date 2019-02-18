@@ -19,7 +19,17 @@ class CryptoTrader:
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
             if exchange in self.SETTINGS.get('Exchanges with API Keys', []):
-                self.trader[exchange] = exchange_class(self.API_KEYS[exchange]['APIKey'], self.API_KEYS[exchange]['Secret'])
+                if 'APIPassword' in self.API_KEYS[exchange] and self.API_KEYS[exchange]['APIPassword'] != '':
+                    self.trader[exchange] = exchange_class(
+                        self.API_KEYS[exchange]['APIKey'],
+                        self.API_KEYS[exchange]['Secret'],
+                        self.API_KEYS[exchange]['APIPassword']
+                    )
+                else:
+                    self.trader[exchange] = exchange_class(
+                        self.API_KEYS[exchange]['APIKey'],
+                        self.API_KEYS[exchange]['Secret']
+                    )
             else:
                 self.trader[exchange] = exchange_class()
         print('Initializing Currencies')
