@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel,
-    QHBoxLayout, QApplication, QSizePolicy)
+    QHBoxLayout, QApplication, QSizePolicy, QSplitter, QPushButton)
 
 from PyQt5.QtChart import (QChart, QChartView, QCandlestickSet,
     QCandlestickSeries, QLineSeries, QDateTimeAxis, QValueAxis)
@@ -63,6 +63,10 @@ class CTViewPair(QWidget):
         self.refresh_order_book()
         self.refresh_chart()
 
+    def draw_tool_tip(self, item = None, status = None):
+        print(status)
+        print(item)
+
     def draw_view(self):
         self._order_book_widget = CTOrderBook(
             self._CTMain,
@@ -76,7 +80,6 @@ class CTViewPair(QWidget):
         self.chartView.setRenderHint(QPainter.Antialiasing)
         self.chart = self.chartView.chart()
         self.chart.legend().setVisible(False)
-        self.chart.setTitle("Candlesticks")
 
         self.CandlestickSeries = QCandlestickSeries()
         self.CandlestickSeries.setIncreasingColor(Qt.green);
@@ -110,6 +113,10 @@ class CTViewPair(QWidget):
         label_curr_curr = QLabel("&Currency:")
         label_curr_curr.setBuddy(self._dropdown_curr_curr)
 
+        self._debug_button = QPushButton()
+        self._debug_button.setText("Debug");
+        self._debug_button.clicked.connect(self.debug)
+
         topLayout = QHBoxLayout()
         topLayout.addWidget(label_base_exch)
         topLayout.addWidget(self._dropdown_exchange)
@@ -117,11 +124,16 @@ class CTViewPair(QWidget):
         topLayout.addWidget(self._dropdown_base_curr)
         topLayout.addWidget(label_curr_curr)
         topLayout.addWidget(self._dropdown_curr_curr)
+        topLayout.addWidget(self._debug_button)
         topLayout.addStretch(1)
 
-        self._layout.addLayout(topLayout, 0, 0, 1, 3)
-        self._layout.addWidget(self._order_book_widget, 1, 0, 1, 3)
-        self._layout.addWidget(self.chartView, 1, 3, 1, 7)
+        self._layout.addLayout(topLayout, 0, 0, 1, 10)
+        self._splitter = QSplitter()
+        self._splitter.addWidget(self._order_book_widget)
+        self._splitter.addWidget(self.chartView)
+        window_width = self._CTMain.frameGeometry().width()
+        self._splitter.setSizes([round(0.3*window_width), round(0.7 * window_width)])
+        self._layout.addWidget(self._splitter, 1, 0, 9, 10)
 
         self._CTMain._Timer.start(1000)
         self._CTMain._Timer.timeout.connect(self.refresh_order_book)
@@ -129,6 +141,9 @@ class CTViewPair(QWidget):
 
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
+
+    def debug(self):
+        import ipdb; ipdb.set_trace()
 
     def refresh_order_book(self):
         self._order_book_widget.refresh_order_book(
@@ -156,6 +171,7 @@ class CTViewPair(QWidget):
             candle = QCandlestickSet(point[1],point[2],point[3],point[4], point[0])
             ch_max = max(ch_max, point[2])
             ch_min = min(ch_min, point[3])
+            # candle.hovered[bool].connect(self.draw_tool_tip(candle))
             self.CandlestickSeries.append(candle)
 
         self.chart.addSeries(self.CandlestickSeries)
