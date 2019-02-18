@@ -36,11 +36,7 @@ class CTLogin(QWidget):
             self._label_text = 'Please enter your password to load your API keys or press button below to continue with public data'
         else:
             self._label_text = 'Please create a password to encrypt your API Keys'
-            self._label_notification.setText("""
-                    It is recommended to use longer passwords that include
-                    lower and upper case letters, numbers, and special
-                    characters.
-                """)
+            self._label_notification.setText('It is recommended to use longer passwords that include lower and upper case letters, numbers, and special characters.')
         self._label_top = QTextEdit(self._label_text)
         self._label_top.setReadOnly(True)
         self._label_top.setAlignment(Qt.AlignCenter)
@@ -98,7 +94,7 @@ class CTLogin(QWidget):
                 self._CTMain._API_KEYS = {}
 
             # Add to regular settings a list of names of exchanges with API Keys
-            decrypted_settings['Exchanges with API Keys'] = self._CTMain._API_KEYS.keys()
+            decrypted_settings['Exchanges with API Keys'] = list(self._CTMain._API_KEYS.keys())
 
             # Add regular settings to _settings
             if not hasattr(self._CTMain, '_settings'):

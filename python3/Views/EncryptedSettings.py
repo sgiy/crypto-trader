@@ -27,125 +27,57 @@ class CTEncryptedSettings(QWidget):
             self._layout.setColumnStretch(3, 1)
             self.setLayout(self._layout)
 
-        if hasattr(self._CTMain, '_API_KEYS'):
-            # Clear self._layout if already populated
-            if hasattr(self, '_layout'):
-                while self._layout.count():
-                    child = self._layout.takeAt(0)
-                    if child.widget():
-                        child.widget().deleteLater()
+        # Clear self._layout if already populated
+        if hasattr(self, '_layout'):
+            while self._layout.count():
+                child = self._layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
 
-            # Forming a form for exchange API keys
-            self._form_api_keys = QGroupBox('Exchange API Keys')
-            api_keys_layout = QGridLayout()
-            api_keys_layout.setRowStretch(0, 1)
-            api_keys_layout.addWidget(QLabel('Exchange'), 0, 0)
-            api_keys_layout.addWidget(QLabel('API Key'), 0, 1)
-            api_keys_layout.addWidget(QLabel('Secret'), 0, 2)
-            api_keys_layout.addWidget(QLabel('API Password'), 0, 3)
-            row_index = 1
-            self._api_key_inputs = {}
-            for exchange in sorted(self._CTMain._settings['Exchanges with Trading API']):
-                api_keys_layout.setRowStretch(row_index, 1)
+        # Forming a form for exchange API keys
+        self._form_api_keys = QGroupBox('Exchange API Keys')
+        api_keys_layout = QGridLayout()
+        api_keys_layout.setRowStretch(0, 1)
+        api_keys_layout.addWidget(QLabel('Exchange'), 0, 0)
+        api_keys_layout.addWidget(QLabel('API Key'), 0, 1)
+        api_keys_layout.addWidget(QLabel('Secret'), 0, 2)
+        api_keys_layout.addWidget(QLabel('API Password'), 0, 3)
+        row_index = 1
+        self._api_key_inputs = {}
+        for exchange in sorted(self._CTMain._settings['Exchanges with Trading API']):
+            api_keys_layout.setRowStretch(row_index, 1)
 
-                self._api_key_inputs[exchange] = {}
-                self._api_key_inputs[exchange]['APIKey'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('APIKey', ''), self)
-                self._api_key_inputs[exchange]['Secret'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('Secret', ''), self)
-                self._api_key_inputs[exchange]['APIPassword'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('APIPassword', ''), self)
-                if self._CTMain._settings['Exchanges with Trading API'][exchange].get('APIPassword','True') == 'False':
-                    self._api_key_inputs[exchange]['APIPassword'].setReadOnly(True)
+            self._api_key_inputs[exchange] = {}
+            self._api_key_inputs[exchange]['APIKey'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('APIKey', ''), self)
+            self._api_key_inputs[exchange]['Secret'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('Secret', ''), self)
+            self._api_key_inputs[exchange]['APIPassword'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('APIPassword', ''), self)
+            if self._CTMain._settings['Exchanges with Trading API'][exchange].get('APIPassword','True') == 'False':
+                self._api_key_inputs[exchange]['APIPassword'].setReadOnly(True)
 
-                api_keys_layout.addWidget(QLabel(exchange), row_index, 0)
-                api_keys_layout.addWidget(self._api_key_inputs[exchange]['APIKey'], row_index, 1)
-                api_keys_layout.addWidget(self._api_key_inputs[exchange]['Secret'], row_index, 2)
-                api_keys_layout.addWidget(self._api_key_inputs[exchange]['APIPassword'], row_index, 3)
-                row_index += 1
-            self._form_api_keys.setLayout(api_keys_layout)
-            self._layout.addWidget(self._form_api_keys, 0, 1, 1, 2)
+            api_keys_layout.addWidget(QLabel(exchange), row_index, 0)
+            api_keys_layout.addWidget(self._api_key_inputs[exchange]['APIKey'], row_index, 1)
+            api_keys_layout.addWidget(self._api_key_inputs[exchange]['Secret'], row_index, 2)
+            api_keys_layout.addWidget(self._api_key_inputs[exchange]['APIPassword'], row_index, 3)
+            row_index += 1
+        self._form_api_keys.setLayout(api_keys_layout)
+        self._layout.addWidget(self._form_api_keys, 0, 1, 1, 2)
 
-            self._form_save = QGroupBox("Save Changes")
-            save_layout = QGridLayout()
-            save_layout.addWidget(QLabel("Password:"), 0, 0)
-            self._textbox_password = QLineEdit('', self)
-            self._textbox_password.setEchoMode(QLineEdit.Password)
-            self._textbox_password.returnPressed.connect(self.save_changes)
-            save_layout.addWidget(self._textbox_password, 0, 1)
-            self._save_button = QPushButton()
-            self._save_button.setText("Save");
-            self._save_button.clicked.connect(self.save_changes)
-            save_layout.addWidget(self._save_button, 1, 0, 1, 2)
-            self._form_save.setLayout(save_layout)
+        self._form_save = QGroupBox("Save Changes")
+        save_layout = QGridLayout()
+        save_layout.addWidget(QLabel("Password:"), 0, 0)
+        self._textbox_password = QLineEdit('', self)
+        self._textbox_password.setEchoMode(QLineEdit.Password)
+        self._textbox_password.returnPressed.connect(self.save_changes)
+        save_layout.addWidget(self._textbox_password, 0, 1)
+        self._save_button = QPushButton()
+        self._save_button.setText("Save");
+        self._save_button.clicked.connect(self.save_changes)
+        save_layout.addWidget(self._save_button, 1, 0, 1, 2)
+        self._form_save.setLayout(save_layout)
 
-            self._layout.addWidget(self._form_save, 2, 1, 1, 2)
-            self._layout.addWidget(self._label_notification, 3, 1, 1, 2)
-
-        else:
-            if os.path.isfile(self._full_file_path):
-                self._label_text = 'Please enter your password:'
-            else:
-                self._label_text = 'Please create a password to encrypt your API Keys'
-                self._label_notification.setText("""
-                        It is recommended to use longer passwords that include
-                        lower and upper case letters, numbers, and special
-                        characters.
-                    """)
-
-            self._form_group_box = QGroupBox(self._label_text)
-            group_box_layout = QFormLayout()
-            self._textbox_password = QLineEdit('', self)
-            self._textbox_password.setEchoMode(QLineEdit.Password)
-            self._textbox_password.returnPressed.connect(self.enter_password)
-            group_box_layout.addRow(QLabel("Password:"), self._textbox_password)
-            self._form_group_box.setLayout(group_box_layout)
-
-            self._enter_button = QPushButton()
-            self._enter_button.setText("OK");
-            self._enter_button.clicked.connect(self.enter_password)
-
-            self._label_notification.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-
-            self._layout.addWidget(self._form_group_box, 1, 1, 1, 2)
-            self._layout.addWidget(self._enter_button, 2, 1, 1, 2)
-            self._layout.addWidget(self._label_notification, 3, 1, 1, 2)
-
-        self.show()
-
-    def enter_password(self):
-        password = self._textbox_password.text()
-        protector = Protector(password)
-        if os.path.isfile(self._full_file_path):
-            try:
-                # Decrypt encrypted before settings
-                decrypted_settings = protector.decrypt_file(self._full_file_path)
-                self._label_notification.setText('')
-            except:
-                self._label_notification.setText('Wrong password!')
-                return
-
-            # Split out API Keys and store them in a separate capitalized property
-            api_keys = decrypted_settings.pop('API Keys', None)
-            if api_keys is not None:
-                self._CTMain._API_KEYS = api_keys
-            else:
-                self._CTMain._API_KEYS = {}
-
-            # Add to regular settings a list of name of exchanges that have API Keys
-            decrypted_settings['Exchanges with API Keys'] = self._CTMain._API_KEYS.keys()
-
-            # Add regular settings to _settings
-            if not hasattr(self._CTMain, '_settings'):
-                self._CTMain._settings = {}
-            self._CTMain._settings.update(decrypted_settings)
-
-        else:
-            if len(password) < 8:
-                self._label_notification.setText('Password is too short! Please enter at least 8 characters!')
-                return
-            self._CTMain._API_KEYS = {}
-            protector.save_encrypted_file(self._CTMain._settings, self._full_file_path)
-
-        self._CTMain.initUI()
-        self.init_layout()
+        self._layout.addWidget(self._form_save, 2, 1, 1, 2)
+        self._layout.addWidget(self._label_notification, 3, 1, 1, 2)
+        # self.show()
 
     def save_changes(self):
         password = self._textbox_password.text()
