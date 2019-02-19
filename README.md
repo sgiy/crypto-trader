@@ -49,15 +49,18 @@ Make sue you have pipenv installed (it's a python packaging suite)
 pip install pipenv
 ```
 
-When you have pipenv, run in the project's python3 directory
+Run in the project's python3 directory
 ```
 pipenv install
-pipenv run python main.py
 ```
 
-The first line installs in a separate virtual environment packages needed by
-this project in a way that does not interfere with your current python
-installation. The second line runs the project.
+This installs a separate virtual environment for packages needed by this project
+in a way that does not interfere with your current python installation.
+
+Execute the following command line to run the project.
+```
+pipenv run python main.py
+```
 
 ## Current Status of Exchange API Wrappers
 
