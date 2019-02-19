@@ -3,9 +3,8 @@ import traceback
 import time
 
 class Exchange:
-    def __init__(self, APIKey='', Secret=''):
-        self.APIKey = APIKey
-        self.Secret = Secret
+    def __init__(self, APIKey='', Secret='', PassPhrase=''):
+        self.update_keys(APIKey, Secret, PassPhrase)
         self.BASE_URL = ''
         self._currencies = {}
         self._map_currency_code_to_exchange_code = {}
@@ -24,6 +23,11 @@ class Exchange:
             'message': '',
             'result_timestamp': time.time()
         }
+
+    def update_keys(self, APIKey='', Secret='', PassPhrase=''):
+        self.APIKey = APIKey
+        self.Secret = Secret
+        self.PassPhrase = PassPhrase
 
     def raise_not_implemented_error(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")

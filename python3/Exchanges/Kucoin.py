@@ -10,12 +10,11 @@ from Exchange import Exchange
 
 class Kucoin(Exchange):
     def __init__(self, APIKey='', Secret='', PassPhrase=''):
-        super().__init__(APIKey, Secret)
+        super().__init__(APIKey, Secret, PassPhrase)
         """
             For API details see https://docs.kucoin.com/
         """
-        self.BASE_URL = 'https://openapi-v2.kucoin.com'
-        self.PASSPHRASE = PassPhrase
+        self.BASE_URL = 'https://openapi-v2.kucoin.com'        
         self._exchangeInfo = None
 
     def get_request(self, url):
@@ -80,7 +79,7 @@ class Kucoin(Exchange):
                                         'Content-Type': 'application/json',
                                         "KC-API-KEY": self.APIKey,
                                         "KC-API-TIMESTAMP": nonce,
-                                        "KC-API-PASSPHRASE": self.PASSPHRASE,
+                                        "KC-API-PASSPHRASE": self.PassPhrase,
                                         "KC-API-SIGN": signature
                                     }
             result = getattr(requests,method)(request_url, **request).json()

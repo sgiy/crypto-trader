@@ -13,29 +13,28 @@ class CryptoTrader:
         self.API_KEYS = API_KEYS
         self.SETTINGS = SETTINGS
         self.init_exchanges()
+        self.update_keys()
 
     def init_exchanges(self):
         for exchange in self.SETTINGS.get('Exchange Classes to Initialize', []):
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
-            if exchange in self.SETTINGS.get('Exchanges with API Keys', []):
-                if 'APIPassword' in self.API_KEYS[exchange] and self.API_KEYS[exchange]['APIPassword'] != '':
-                    self.trader[exchange] = exchange_class(
-                        self.API_KEYS[exchange]['APIKey'],
-                        self.API_KEYS[exchange]['Secret'],
-                        self.API_KEYS[exchange]['APIPassword']
-                    )
-                else:
-                    self.trader[exchange] = exchange_class(
-                        self.API_KEYS[exchange]['APIKey'],
-                        self.API_KEYS[exchange]['Secret']
-                    )
-            else:
-                self.trader[exchange] = exchange_class()
+            self.trader[exchange] = exchange_class()
         print('Initializing Currencies')
         self.init_currencies()
         print('Loading Active Markets')
         self.load_active_markets()
+
+    def update_keys(self):
+        self.SETTINGS['Exchanges with API Keys'] =[]
+        for exchange in self.API_KEYS.keys():
+            self.trader[exchange].update_keys(
+                self.API_KEYS[exchange].get('APIKey',''),
+                self.API_KEYS[exchange].get('Secret',''),
+                self.API_KEYS[exchange].get('APIPassword','')
+            )
+            if self.API_KEYS[exchange].get('APIKey','') != '':
+                self.SETTINGS['Exchanges with API Keys'].append(exchange)
 
     def init_currencies(self):
         self._map_currency_code_to_exchange_code = {}
