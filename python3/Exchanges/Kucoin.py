@@ -49,7 +49,7 @@ class Kucoin(Exchange):
             KC-API-SIGN = 7QP/oM0ykidMdrfNEUmng8eZjg/ZvPafjIqmxiVfYu4=
         """
         strForSign = nonce + method.upper() + endpoint + body
-        return base64.b64encode(hmac.new(self.SECRET.encode(), strForSign.encode(), hashlib.sha256).digest()).decode()
+        return base64.b64encode(hmac.new(self.Secret.encode(), strForSign.encode(), hashlib.sha256).digest()).decode()
 
     def trading_api_request(self, method, endpoint, body={}):
         """
@@ -78,7 +78,7 @@ class Kucoin(Exchange):
                 request['data'] = body_str
             request['headers'] =   {
                                         'Content-Type': 'application/json',
-                                        "KC-API-KEY": self.APIKEY,
+                                        "KC-API-KEY": self.APIKey,
                                         "KC-API-TIMESTAMP": nonce,
                                         "KC-API-PASSPHRASE": self.PASSPHRASE,
                                         "KC-API-SIGN": signature
