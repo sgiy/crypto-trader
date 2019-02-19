@@ -43,6 +43,22 @@ already written and to submit your suggestions.
     the same window. This is useful for investigating cross exchange arbitrage
     opportunities.
 
+## To run the project
+Make sue you have pipenv installed (it's a python packaging suite)
+```
+pip install pipenv
+```
+
+When you have pipenv, run in the project's python3 directory
+```
+pipenv install
+pipenv run python main.py
+```
+
+The first line installs in a separate virtual environment packages needed by
+this project in a way that does not interfere with your current python
+installation. The second line runs the project.
+
 ## Current Status of Exchange API Wrappers
 
 | Exchange | Public REST API | Private REST API | Websockets | Comments |
