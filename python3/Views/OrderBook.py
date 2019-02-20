@@ -1,3 +1,4 @@
+import threading
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout)
 
@@ -20,6 +21,9 @@ class CTOrderBook(QWidget):
         self._layout.addWidget(self._tableWidget)
         self.setLayout(self._layout)
 
+    def load_order_book(self):
+        self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_name, self._depth)
+
     def refresh_order_book(self, exchange = None, market_name = None, base_curr = None, curr_curr = None, depth = None):
         if exchange is not None:
             self._exchange = exchange
@@ -39,7 +43,11 @@ class CTOrderBook(QWidget):
             self._base_curr + ' sum'
         ])
 
-        results = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_name, self._depth)
+        t = threading.Thread(target = self.load_order_book)
+        t.start()
+        t.join(1) # Keeps thread alive for only 1 second
+
+        results = self._order_book
         for cell_index in range(2 * self._depth):
             self._tableWidget.setItem(cell_index,0, QTableWidgetItem(""))
             self._tableWidget.setItem(cell_index,1, QTableWidgetItem(""))
