@@ -1,13 +1,48 @@
+from datetime import datetime
+
 from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel,
-    QHBoxLayout, QApplication, QSizePolicy, QSplitter, QPushButton)
+    QHBoxLayout, QApplication, QSizePolicy, QSplitter, QPushButton,
+    QGraphicsLineItem, QGraphicsTextItem)
 
 from PyQt5.QtChart import (QChart, QChartView, QCandlestickSet,
     QCandlestickSeries, QLineSeries, QDateTimeAxis, QValueAxis)
-from PyQt5.QtGui import QPainter, QColor
-from PyQt5.QtCore import Qt, QDateTime
+from PyQt5.QtGui import QPainter, QPen, QColor
+from PyQt5.QtCore import Qt, QDateTime,  QPointF, QMargins
 
 from Views.Dropdown import Dropdown
 from Views.OrderBook import CTOrderBook
+
+class CTChartView(QChartView):
+    def __init__(self):
+        super().__init__()
+        self.setRenderHint(QPainter.Antialiasing)
+        self.chart = self.chart()
+        self.crosshair = QPointF(0, 0)
+
+    def mouseMoveEvent(self, event):
+        self.crosshair = self.chart.mapToValue(event.pos(), self.chart.series()[0])
+        # self.chart_tooltip.setPlainText("ChartView.mouseMoveEvent: {}, {}".format(self.crosshair.x(), self.crosshair.y()))
+        map00 = self.chart.mapToValue(QPointF(0,0), self.chart.series()[0])
+        mapmm = self.chart.mapToValue(QPointF(self.width(),self.height()), self.chart.series()[0])
+
+        self.chart_horiz_line.setLine(map00.x(), self.crosshair.y(), mapmm.x(), self.crosshair.y())
+
+        return QChartView.mouseMoveEvent(self, event)
+
+class CTCandlestickSet(QCandlestickSet):
+    def __init__(self, open, high, low, close, timestamp, parent):
+        super().__init__(open, high, low, close, timestamp, parent)
+        self.hovered[bool].connect(self.draw_tool_tip)
+
+    def draw_tool_tip(self, status):
+        if status:
+            self.parent().chartView.chart_tooltip.setPlainText(" time:\t{0}\n open:\t{1:.8f}, close: {2:.8f}\n high:\t{3:.8f}, low:   {4:.8f}".format(
+                datetime.fromtimestamp(int(self.timestamp()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
+                self.open(),
+                self.close(),
+                self.high(),
+                self.low()
+            ))
 
 class CTViewPair(QWidget):
     def __init__(self, CTMain = None, exchange = '', base_code = '', curr_code = '',
@@ -63,10 +98,6 @@ class CTViewPair(QWidget):
         self.refresh_order_book()
         self.refresh_chart()
 
-    def draw_tool_tip(self, item = None, status = None):
-        print(status)
-        print(item)
-
     def draw_view(self):
         self._order_book_widget = CTOrderBook(
             self._CTMain,
@@ -76,9 +107,8 @@ class CTViewPair(QWidget):
             None,
             self._order_book_depth
             )
-        self.chartView = QChartView()
-        self.chartView.setRenderHint(QPainter.Antialiasing)
-        self.chart = self.chartView.chart()
+        self.chartView = CTChartView()
+        self.chart = self.chartView.chart
         self.chart.legend().setVisible(False)
 
         self.CandlestickSeries = QCandlestickSeries()
@@ -168,13 +198,24 @@ class CTViewPair(QWidget):
         ch_max = load_chart[0][2]
         ch_min = load_chart[0][3]
         for point in load_chart:
-            candle = QCandlestickSet(point[1],point[2],point[3],point[4], point[0])
+            candle = CTCandlestickSet(point[1],point[2],point[3],point[4], point[0], self)
+            self.CandlestickSeries.append(candle)
             ch_max = max(ch_max, point[2])
             ch_min = min(ch_min, point[3])
-            # candle.hovered[bool].connect(self.draw_tool_tip(candle))
-            self.CandlestickSeries.append(candle)
 
         self.chart.addSeries(self.CandlestickSeries)
+
+        self.chartView.chart_horiz_line = QGraphicsLineItem(0,0,0,0)
+        self.chartView.scene().addItem(self.chartView.chart_horiz_line)
+
+        self.chartView.chart_tooltip = QGraphicsTextItem("")
+        self.chartView.chart_tooltip.setPos(100,20)
+        self.chartView.scene().addItem(self.chartView.chart_tooltip)
+
+        margins = self.chart.margins()
+        margins.setTop(margins.top() + 70)
+        self.chart.setMargins(margins)
+
         axisX = QDateTimeAxis()
         axisX.setFormat("dd-MM-yyyy h:mm")
         self.chart.setAxisX(axisX, self.CandlestickSeries)
@@ -182,5 +223,7 @@ class CTViewPair(QWidget):
         axisY = QValueAxis()
         axisY.setRange(max(0, ch_min - 0.1 * (ch_max - ch_min)), ch_max + 0.1 * (ch_max - ch_min))
         self.chart.setAxisY(axisY, self.CandlestickSeries)
+
+
 
         # self.chart.initialize_figure(load_chart, interval)
