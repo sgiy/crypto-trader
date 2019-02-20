@@ -1,4 +1,4 @@
-import time
+import time, threading
 from datetime import datetime
 from pprint import pprint
 
@@ -41,7 +41,12 @@ class CryptoTrader:
         self._map_exchange_code_to_currency_code = {}
         for exchange in self.SETTINGS.get('Exchanges to Load', []):
             print('Loading currencies for ' + exchange)
-            currencies = self.trader[exchange].load_currencies()
+            t = threading.Thread(target = self.trader[exchange].load_currencies)
+            t.start()
+            t.join(1)
+
+        for exchange in self.SETTINGS.get('Exchanges to Load', []):
+            currencies = self.trader[exchange]._currencies
             self.trader[exchange]._map_currency_code_to_exchange_code = {}
             self._map_exchange_code_to_currency_code[exchange] = {}
             for currency in currencies:
@@ -77,7 +82,12 @@ class CryptoTrader:
     def load_active_markets(self):
         self._active_markets = {}
         for exchange in self.SETTINGS.get('Exchanges to Load', []):
-            self.trader[exchange].load_markets()
+            print('Loading active markets for ' + exchange)
+            t = threading.Thread(target = self.trader[exchange].load_markets)
+            t.start()
+            t.join(1)
+
+        for exchange in self.SETTINGS.get('Exchanges to Load', []):
             for code_base in self.trader[exchange]._active_markets:
                 if not code_base in self._active_markets:
                     self._active_markets[code_base] = {}
