@@ -13,19 +13,49 @@ from Views.Dropdown import Dropdown
 from Views.OrderBook import CTOrderBook
 
 class CTChartView(QChartView):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         self.setRenderHint(QPainter.Antialiasing)
         self.chart = self.chart()
-        self.crosshair = QPointF(0, 0)
+        self.chart.legend().setVisible(False)
+        self._chart_loaded = False
+
+        self._chart_horizontal_line = QGraphicsLineItem(0,0,0,0)
+        pen = self._chart_horizontal_line.pen()
+        pen.setStyle(Qt.DashLine)
+        self._chart_horizontal_line.setPen(pen)
+        self.scene().addItem(self._chart_horizontal_line)
+        self._chart_vertical_line = QGraphicsLineItem(0,0,0,0)
+        self._chart_vertical_line.setPen(pen)
+        self.scene().addItem(self._chart_vertical_line)
+
+        self._chart_tooltip = QGraphicsTextItem("")
+        self._chart_tooltip.setPos(100,20)
+        self.scene().addItem(self._chart_tooltip)
+
+        self._chart_crosshair = QGraphicsTextItem("")
+        self._chart_crosshair.setPos(600,20)
+        self.scene().addItem(self._chart_crosshair)
+
+        margins = self.chart.margins()
+        margins.setTop(margins.top() + 70)
+        self.chart.setMargins(margins)
 
     def mouseMoveEvent(self, event):
-        self.crosshair = self.chart.mapToValue(event.pos(), self.chart.series()[0])
-        # self.chart_tooltip.setPlainText("ChartView.mouseMoveEvent: {}, {}".format(self.crosshair.x(), self.crosshair.y()))
-        map00 = self.chart.mapToValue(QPointF(0,0), self.chart.series()[0])
-        mapmm = self.chart.mapToValue(QPointF(self.width(),self.height()), self.chart.series()[0])
+        # self.crosshair = self.chart.mapToValue(event.pos(), self.chart.series()[0])
+        # # self.chart_tooltip.setPlainText("ChartView.mouseMoveEvent: {}, {}".format(self.crosshair.x(), self.crosshair.y()))
+        # map00 = self.chart.mapToValue(QPointF(0,0), self.chart.series()[0])
+        # mapmm = self.chart.mapToValue(QPointF(self.width(),self.height()), self.chart.series()[0])
 
-        self.chart_horiz_line.setLine(map00.x(), self.crosshair.y(), mapmm.x(), self.crosshair.y())
+        self._chart_horizontal_line.setLine(0, event.pos().y(), self.width(), event.pos().y())
+        self._chart_vertical_line.setLine(event.pos().x(), 0, event.pos().x(), self.height())
+
+        self._crosshair_coords = self.chart.mapToValue(event.pos(), self.chart.series()[0])
+
+        self._chart_crosshair.setPlainText(" time:\t{0}\n level:\t{1:.8f}".format(
+            datetime.fromtimestamp(int(self._crosshair_coords.x()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
+            self._crosshair_coords.y()
+        ))
 
         return QChartView.mouseMoveEvent(self, event)
 
@@ -36,7 +66,7 @@ class CTCandlestickSet(QCandlestickSet):
 
     def draw_tool_tip(self, status):
         if status:
-            self.parent().chartView.chart_tooltip.setPlainText(" time:\t{0}\n open:\t{1:.8f}, close: {2:.8f}\n high:\t{3:.8f}, low:   {4:.8f}".format(
+            self.parent()._chart_view._chart_tooltip.setPlainText(" time:\t{0}\n open:\t{1:.8f}, close: {2:.8f}\n high:\t{3:.8f}, low:   {4:.8f}".format(
                 datetime.fromtimestamp(int(self.timestamp()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
                 self.open(),
                 self.close(),
@@ -107,13 +137,12 @@ class CTViewPair(QWidget):
             None,
             self._order_book_depth
             )
-        self.chartView = CTChartView()
-        self.chart = self.chartView.chart
-        self.chart.legend().setVisible(False)
 
         self.CandlestickSeries = QCandlestickSeries()
         self.CandlestickSeries.setIncreasingColor(Qt.green);
         self.CandlestickSeries.setDecreasingColor(Qt.red);
+
+        self._chart_view = CTChartView(self)
 
         exchanges = self._CTMain._Crypto_Trader.trader.keys()
         self._dropdown_exchange = Dropdown(exchanges, self._exchange)
@@ -160,7 +189,7 @@ class CTViewPair(QWidget):
         self._layout.addLayout(topLayout, 0, 0, 1, 10)
         self._splitter = QSplitter()
         self._splitter.addWidget(self._order_book_widget)
-        self._splitter.addWidget(self.chartView)
+        self._splitter.addWidget(self._chart_view)
         window_width = self._CTMain.frameGeometry().width()
         self._splitter.setSizes([round(0.3*window_width), round(0.7 * window_width)])
         self._layout.addWidget(self._splitter, 1, 0, 9, 10)
@@ -195,6 +224,7 @@ class CTViewPair(QWidget):
 
         load_chart = self._CTMain._Crypto_Trader.trader[exchange].load_chart_data(market_name, interval, lookback)
 
+        self.CandlestickSeries.clear()
         ch_max = load_chart[0][2]
         ch_min = load_chart[0][3]
         for point in load_chart:
@@ -203,27 +233,16 @@ class CTViewPair(QWidget):
             ch_max = max(ch_max, point[2])
             ch_min = min(ch_min, point[3])
 
-        self.chart.addSeries(self.CandlestickSeries)
-
-        self.chartView.chart_horiz_line = QGraphicsLineItem(0,0,0,0)
-        self.chartView.scene().addItem(self.chartView.chart_horiz_line)
-
-        self.chartView.chart_tooltip = QGraphicsTextItem("")
-        self.chartView.chart_tooltip.setPos(100,20)
-        self.chartView.scene().addItem(self.chartView.chart_tooltip)
-
-        margins = self.chart.margins()
-        margins.setTop(margins.top() + 70)
-        self.chart.setMargins(margins)
+        if not self._chart_view._chart_loaded:
+            self._chart_view.chart.addSeries(self.CandlestickSeries)
+            self._chart_view._chart_loaded = True
 
         axisX = QDateTimeAxis()
         axisX.setFormat("dd-MM-yyyy h:mm")
-        self.chart.setAxisX(axisX, self.CandlestickSeries)
+        self._chart_view.chart.setAxisX(axisX, self.CandlestickSeries)
 
         axisY = QValueAxis()
         axisY.setRange(max(0, ch_min - 0.1 * (ch_max - ch_min)), ch_max + 0.1 * (ch_max - ch_min))
-        self.chart.setAxisY(axisY, self.CandlestickSeries)
-
-
+        self._chart_view.chart.setAxisY(axisY, self.CandlestickSeries)
 
         # self.chart.initialize_figure(load_chart, interval)
