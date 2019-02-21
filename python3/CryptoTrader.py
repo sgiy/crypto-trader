@@ -3,7 +3,6 @@ from datetime import datetime
 from pprint import pprint
 
 from pydoc import locate
-from Exchanges.Coinbase import Coinbase
 
 class CryptoTrader:
     def __init__(self, API_KEYS = {}, SETTINGS = {}):
@@ -43,7 +42,7 @@ class CryptoTrader:
             print('Loading currencies for ' + exchange)
             t = threading.Thread(target = self.trader[exchange].load_currencies)
             t.start()
-            t.join(1)
+            t.join(2)
 
         for exchange in self.SETTINGS.get('Exchanges to Load', []):
             currencies = self.trader[exchange]._currencies
@@ -85,7 +84,7 @@ class CryptoTrader:
             print('Loading active markets for ' + exchange)
             t = threading.Thread(target = self.trader[exchange].load_markets)
             t.start()
-            t.join(1)
+            t.join(5)
 
         for exchange in self.SETTINGS.get('Exchanges to Load', []):
             for code_base in self.trader[exchange]._active_markets:

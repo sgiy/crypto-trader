@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel,
-    QHBoxLayout, QApplication, QSizePolicy, QSplitter, QPushButton,
+    QHBoxLayout, QVBoxLayout, QApplication, QSizePolicy, QSplitter, QPushButton,
     QGraphicsLineItem, QGraphicsTextItem)
 
 from PyQt5.QtChart import (QChart, QChartView, QCandlestickSet,
@@ -11,6 +11,7 @@ from PyQt5.QtCore import Qt, QDateTime,  QPointF, QMargins
 
 from Views.Dropdown import Dropdown
 from Views.OrderBook import CTOrderBook
+from Views.TradeWidget import CTTradeWidget
 
 class CTChartView(QChartView):
     def __init__(self, parent):
@@ -125,7 +126,7 @@ class CTViewPair(QWidget):
         self._curr_curr = curr_curr
         self._market_name = self._CTMain._Crypto_Trader.get_market_name(self._exchange, self._base_curr, curr_curr)
 
-        self.refresh_order_book()
+        self.refresh()
         self.refresh_chart()
 
     def draw_view(self):
@@ -163,6 +164,7 @@ class CTViewPair(QWidget):
         self._chart_dropdown_interval = Dropdown(self._CTMain._Parameters.get_chart_intervals(), self._chart_interval)
         self._chart_dropdown_interval.currentTextChanged.connect(self.refresh_chart)
 
+        self._trade_widget = CTTradeWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr)
         self.refresh_dropdown_exchange_change(self._exchange, self._base_curr, self._curr_curr)
 
         label_base_exch = QLabel("&Echange:")
@@ -187,15 +189,19 @@ class CTViewPair(QWidget):
         topLayout.addStretch(1)
 
         self._layout.addLayout(topLayout, 0, 0, 1, 10)
-        self._splitter = QSplitter()
-        self._splitter.addWidget(self._order_book_widget)
-        self._splitter.addWidget(self._chart_view)
+        self._splitter_top = QSplitter(Qt.Horizontal)
+        self._splitter_left = QSplitter(Qt.Vertical)
+        self._splitter_left.addWidget(self._order_book_widget)
+        self._splitter_left.addWidget(self._trade_widget)
+
+        self._splitter_top.addWidget(self._splitter_left)
+        self._splitter_top.addWidget(self._chart_view)
         window_width = self._CTMain.frameGeometry().width()
-        self._splitter.setSizes([round(0.3*window_width), round(0.7 * window_width)])
-        self._layout.addWidget(self._splitter, 1, 0, 9, 10)
+        self._splitter_top.setSizes([round(0.3*window_width), round(0.7 * window_width)])
+        self._layout.addWidget(self._splitter_top, 1, 0, 9, 10)
 
         self._CTMain._Timer.start(1000)
-        self._CTMain._Timer.timeout.connect(self.refresh_order_book)
+        self._CTMain._Timer.timeout.connect(self.refresh)
         self.show()
 
     def changeStyle(self, styleName):
@@ -204,12 +210,18 @@ class CTViewPair(QWidget):
     def debug(self):
         import ipdb; ipdb.set_trace()
 
-    def refresh_order_book(self):
+    def refresh(self):
         self._order_book_widget.refresh_order_book(
             self._exchange,
             self._market_name,
             self._base_curr,
             self._curr_curr
+            )
+        self._trade_widget.update_currencies(
+            self._exchange,
+            self._base_curr,
+            self._curr_curr,
+            self._market_name
             )
 
     def refresh_chart(self):
