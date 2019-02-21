@@ -5,12 +5,6 @@ class CTTradeWidget(QWidget):
     def __init__(self, CTMain, exchange, code_base, code_curr):
         super().__init__()
         self._CTMain = CTMain
-        self._exchange = exchange
-        self._code_base = code_base
-        self._code_curr = code_curr
-        self._local_base = CTMain._Crypto_Trader.trader[exchange].get_local_code(code_base)
-        self._local_curr = CTMain._Crypto_Trader.trader[exchange].get_local_code(code_curr)
-        self._market_symbol = CTMain._Crypto_Trader.trader[exchange]._active_markets[code_base][code_curr]['Market']
 
         self._layout = QVBoxLayout()
 
@@ -38,7 +32,19 @@ class CTTradeWidget(QWidget):
         self._layout.addLayout(self._form_layout)
         self._layout.addLayout(self._trade_buttons)
 
+        self.update_currencies(exchange, code_base, code_curr)
         self.setLayout(self._layout)
+
+    def update_currencies(self, exchange, code_base, code_curr):
+        self._exchange = exchange
+        self._code_base = code_base
+        self._code_curr = code_curr
+        self._local_base = self._CTMain._Crypto_Trader.trader[exchange].get_local_code(code_base)
+        self._local_curr = self._CTMain._Crypto_Trader.trader[exchange].get_local_code(code_curr)
+        self._market_symbol = self._CTMain._Crypto_Trader.trader[exchange]._active_markets[code_base][code_curr]['Market']
+        self._price.setText("")
+        self._quantity.setText("")
+        self._amount_base.setText("")
 
     def recalculate_total(self):
         if self._price.text() != '' and self._quantity.text() != '':
