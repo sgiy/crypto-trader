@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLineEdit, QPushButton, QLabel)
 
+from PyQt5.QtCore import QTimer
+
 class CTTradeWidget(QWidget):
     def __init__(self, CTMain, exchange, code_base, code_curr, market_symbol = None):
         super().__init__()
@@ -10,6 +12,8 @@ class CTTradeWidget(QWidget):
         self._code_base = code_base
         self._code_curr = code_curr
         self._market_symbol = market_symbol
+
+        self._local_timer = QTimer(self)
 
         self._price = QLineEdit('', self)
         self._price.textEdited[str].connect(self.recalculate_total)
@@ -21,6 +25,8 @@ class CTTradeWidget(QWidget):
         self._label_price = QLabel("Price:")
         self._label_quantity = QLabel("")
         self._label_base_amount = QLabel("")
+        self._available_balances_base = QLabel("")
+        self._available_balances_currency = QLabel("")
 
         self.update_currencies(exchange, code_base, code_curr, market_symbol, True)
 
@@ -42,6 +48,8 @@ class CTTradeWidget(QWidget):
         self._trade_buttons.addWidget(self._sell_button)
 
         self._layout.addLayout(self._form_layout)
+        self._layout.addWidget(self._available_balances_base)
+        self._layout.addWidget(self._available_balances_currency)
         self._layout.addLayout(self._trade_buttons)
 
         self.setLayout(self._layout)
@@ -62,7 +70,20 @@ class CTTradeWidget(QWidget):
             self._base_amount.setText("")
             self._label_quantity.setText("Quantity {}:".format(self._local_curr))
             self._label_base_amount.setText("Total {}:".format(self._local_base))
+            self.update_available_balances()
             self.repaint()
+
+    def update_available_balances(self):
+        self._available_balances_base.setText("Available {}: {:.8f}".format(
+            self._local_base,
+            self._CTMain._Crypto_Trader.trader[self._exchange].get_available_balance(self._local_base, True))
+        )
+        # Need to force reload balances only once, assuming balances are updated
+        # for all currencies simultaneously
+        self._available_balances_currency.setText("Available {}: {:.8f}".format(
+            self._local_curr,
+            self._CTMain._Crypto_Trader.trader[self._exchange].get_available_balance(self._local_curr, False))
+        )
 
     def set_price(self, price):
         self._price.setText("{:.8f}".format(price))
@@ -111,3 +132,9 @@ class CTTradeWidget(QWidget):
             trade_base_amount,
             self._local_base
         ))
+        # Give 0.5 seconds for submitted order to propagate through the exchange
+        # so that the following balances update has new values
+        self._local_timer.setSingleShot(True)
+        self._local_timer.start(500)
+        self._local_timer.timeout.connect(self.update_available_balances)
+        self.repaint()

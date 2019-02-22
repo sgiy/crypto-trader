@@ -241,3 +241,8 @@ class Exchange:
         for key in sorted(data):
             strs.append("{}={}".format(key, data[key]))
         return '&'.join(strs)
+
+    def get_available_balance(self, currency, force_update = False):
+        if not self._available_balances or force_update:
+            self.load_available_balances()
+        return self._available_balances.get(currency, 0)
