@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLineEdit, QPushButton)
+    QLineEdit, QPushButton, QLabel)
 
 class CTTradeWidget(QWidget):
     def __init__(self, CTMain, exchange, code_base, code_curr, market_symbol = None):
@@ -18,14 +18,18 @@ class CTTradeWidget(QWidget):
         self._base_amount  = QLineEdit('', self)
         self._base_amount.textEdited[str].connect(self.recalculate_quantity)
 
+        self._label_price = QLabel("Price:")
+        self._label_quantity = QLabel("")
+        self._label_base_amount = QLabel("")
+
         self.update_currencies(exchange, code_base, code_curr, market_symbol, True)
 
         self._layout = QVBoxLayout()
 
         self._form_layout = QFormLayout()
-        self._form_layout.addRow("Price:", self._price)
-        self._form_layout.addRow("Quantity {}:".format(self._local_curr), self._quantity)
-        self._form_layout.addRow("Total {}:".format(self._local_base), self._base_amount)
+        self._form_layout.addRow(self._label_price, self._price)
+        self._form_layout.addRow(self._label_quantity, self._quantity)
+        self._form_layout.addRow(self._label_base_amount, self._base_amount)
 
         self._buy_button = QPushButton("Buy", self)
         self._buy_button.setStyleSheet("background-color: green; color: white")
@@ -56,6 +60,9 @@ class CTTradeWidget(QWidget):
             self._price.setText("")
             self._quantity.setText("")
             self._base_amount.setText("")
+            self._label_quantity.setText("Quantity {}:".format(self._local_curr))
+            self._label_base_amount.setText("Total {}:".format(self._local_base))
+            self.repaint()
 
     def set_price(self, price):
         self._price.setText("{:.8f}".format(price))
