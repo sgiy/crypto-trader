@@ -82,17 +82,24 @@ class CTTradeWidget(QWidget):
             self.set_quantity(float(self._base_amount.text()) / float(self._price.text()))
 
     def submit_buy(self):
-        self._trade_side = 'Buy'
+        self._trade_side = 'buy'
         self.submit_trade()
 
     def submit_sell(self):
-        self._trade_side = 'Sell'
+        self._trade_side = 'sell'
         self.submit_trade()
 
     def submit_trade(self):
         trade_price = float(self._price.text())
         trade_quantity = float(self._quantity.text())
         trade_base_amount = float(self._base_amount.text())
+        self._CTMain._Crypto_Trader.trader[self._exchange].submit_trade(
+            self._trade_side,
+            self._market_symbol,
+            trade_price,
+            trade_quantity,
+            'Limit'
+        )
         print("{}ing on {} at {} {} with {} price {} quantity {} for total {} of {}".format(
             self._trade_side,
             self._exchange,

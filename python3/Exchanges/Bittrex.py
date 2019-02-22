@@ -603,9 +603,9 @@ class Bittrex(Exchange):
 
     def submit_trade(self, direction, market, price, amount, trade_type):
         request = '&market=' + market + "&quantity={0:.8f}&rate={1:.8f}".format(amount, price)
-        order_kind = 'market/buylimit'
+        order_kind = '/market/buylimit'
         if direction == 'sell':
-            order_kind = 'market/selllimit'
+            order_kind = '/market/selllimit'
         trade = self.trading_api_request(order_kind,request)
         amount_traded = amount
 
