@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel,
     QGraphicsLineItem, QGraphicsTextItem)
 
 from PyQt5.QtChart import (QChart, QChartView, QCandlestickSet,
-    QCandlestickSeries, QLineSeries, QDateTimeAxis, QValueAxis)
+    QCandlestickSeries, QLineSeries, QDateTimeAxis, QValueAxis, QBarSeries,
+    QBarSet)
 from PyQt5.QtGui import QPainter, QPen, QColor
 from PyQt5.QtCore import Qt, QDateTime,  QPointF, QMargins
 
@@ -39,7 +40,7 @@ class CTChartView(QChartView):
         self.scene().addItem(self._chart_crosshair)
 
         margins = self.chart.margins()
-        margins.setTop(margins.top() + 70)
+        margins.setTop(margins.top() + 80)
         self.chart.setMargins(margins)
 
     def mouseMoveEvent(self, event):
@@ -61,18 +62,27 @@ class CTChartView(QChartView):
         return QChartView.mouseMoveEvent(self, event)
 
 class CTCandlestickSet(QCandlestickSet):
-    def __init__(self, open, high, low, close, timestamp, parent):
+    def __init__(self, timestamp, open, high, low, close, volume, base_volume, parent):
         super().__init__(open, high, low, close, timestamp, parent)
+        self._volume = volume
+        self._base_volume = base_volume
+        self._base_curr = parent._base_curr
+        self._curr_curr = parent._curr_curr
         self.hovered[bool].connect(self.draw_tool_tip)
 
     def draw_tool_tip(self, status):
         if status:
-            self.parent()._chart_view._chart_tooltip.setPlainText(" time:\t{0}\n open:\t{1:.8f}, close: {2:.8f}\n high:\t{3:.8f}, low:   {4:.8f}".format(
-                datetime.fromtimestamp(int(self.timestamp()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
-                self.open(),
-                self.close(),
-                self.high(),
-                self.low()
+            self.parent()._chart_view._chart_tooltip.setPlainText(
+                " time:\t{0}\n open:\t{1:.8f}, close: {2:.8f}\n high:\t{3:.8f}, low:   {4:.8f}\n volume {5}: {6:,.2f}, volume {7}: {8:,.2f}".format(
+                    datetime.fromtimestamp(int(self.timestamp()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
+                    self.open(),
+                    self.close(),
+                    self.high(),
+                    self.low(),
+                    self._curr_curr,
+                    self._volume,
+                    self._base_curr,
+                    self._base_volume
             ))
 
 class CTViewPair(QWidget):
@@ -127,7 +137,7 @@ class CTViewPair(QWidget):
         self._market_name = self._CTMain._Crypto_Trader.get_market_name(self._exchange, self._base_curr, curr_curr)
 
         self.refresh()
-        self.refresh_chart()
+        self.draw_chart()
 
     def draw_view(self):
         self._order_book_widget = CTOrderBook(
@@ -140,8 +150,10 @@ class CTViewPair(QWidget):
             )
 
         self.CandlestickSeries = QCandlestickSeries()
-        self.CandlestickSeries.setIncreasingColor(Qt.green);
-        self.CandlestickSeries.setDecreasingColor(Qt.red);
+        self.CandlestickSeries.setIncreasingColor(Qt.green)
+        self.CandlestickSeries.setDecreasingColor(Qt.red)
+
+        self.VolumeBarSeries = QBarSeries()
 
         self._chart_view = CTChartView(self)
 
@@ -159,10 +171,10 @@ class CTViewPair(QWidget):
 
         label_lookback = QLabel("Lookback:")
         self._chart_dropdown_lookback = Dropdown(self._CTMain._Parameters.get_chart_lookback_windows(), self._chart_lookback)
-        self._chart_dropdown_lookback.currentTextChanged.connect(self.refresh_chart)
+        self._chart_dropdown_lookback.currentTextChanged.connect(self.draw_chart)
         label_interval = QLabel("Interval:")
         self._chart_dropdown_interval = Dropdown(self._CTMain._Parameters.get_chart_intervals(), self._chart_interval)
-        self._chart_dropdown_interval.currentTextChanged.connect(self.refresh_chart)
+        self._chart_dropdown_interval.currentTextChanged.connect(self.draw_chart)
 
         self._trade_widget = CTTradeWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr)
         self.refresh_dropdown_exchange_change(self._exchange, self._base_curr, self._curr_curr)
@@ -185,6 +197,10 @@ class CTViewPair(QWidget):
         topLayout.addWidget(self._dropdown_base_curr)
         topLayout.addWidget(label_curr_curr)
         topLayout.addWidget(self._dropdown_curr_curr)
+        topLayout.addWidget(label_lookback)
+        topLayout.addWidget(self._chart_dropdown_lookback)
+        topLayout.addWidget(label_interval)
+        topLayout.addWidget(self._chart_dropdown_interval)
         topLayout.addWidget(self._debug_button)
         topLayout.addStretch(1)
 
@@ -224,7 +240,7 @@ class CTViewPair(QWidget):
             self._market_name
             )
 
-    def refresh_chart(self):
+    def draw_chart(self):
         exchange = self._exchange
         code_base = self._base_curr
         code_curr = self._curr_curr
@@ -237,24 +253,43 @@ class CTViewPair(QWidget):
         load_chart = self._CTMain._Crypto_Trader.trader[exchange].load_chart_data(market_name, interval, lookback)
 
         self.CandlestickSeries.clear()
-        ch_max = load_chart[0][2]
+        self.VolumeBarSeries.clear()
         ch_min = load_chart[0][3]
+        ch_max = load_chart[0][2]
+        t_min = load_chart[0][0]
+        t_max = load_chart[0][0]
+        v_max = load_chart[0][6]
+
         for point in load_chart:
-            candle = CTCandlestickSet(point[1],point[2],point[3],point[4], point[0], self)
+            candle = CTCandlestickSet(point[0] * 1000, point[1], point[2], point[3], point[4], point[5], point[6], self)
             self.CandlestickSeries.append(candle)
-            ch_max = max(ch_max, point[2])
             ch_min = min(ch_min, point[3])
+            ch_max = max(ch_max, point[2])
+            t_min = min(t_min, point[0])
+            t_max = max(t_max, point[0])
+            v_max = max(v_max, point[6])
+
+        min_y = max(0, ch_min - 0.15 * (ch_max - ch_min))
+        max_y = ch_max + 0.1 * (ch_max - ch_min)
+
+        bars = QBarSet("Volume")
+        for point in load_chart:
+            bars.append(min_y + 0.1 * (max_y - min_y)  * point[6] / v_max)
+        self.VolumeBarSeries.append(bars)
 
         if not self._chart_view._chart_loaded:
             self._chart_view.chart.addSeries(self.CandlestickSeries)
+            self._chart_view.chart.addSeries(self.VolumeBarSeries)
             self._chart_view._chart_loaded = True
 
         axisX = QDateTimeAxis()
         axisX.setFormat("dd-MM-yyyy h:mm")
+        axisX.setRange(datetime.fromtimestamp(int(t_min) - 30 * interval), datetime.fromtimestamp(int(t_max) + 30 * interval))
         self._chart_view.chart.setAxisX(axisX, self.CandlestickSeries)
 
         axisY = QValueAxis()
-        axisY.setRange(max(0, ch_min - 0.1 * (ch_max - ch_min)), ch_max + 0.1 * (ch_max - ch_min))
+        axisY.setRange(min_y, max_y)
         self._chart_view.chart.setAxisY(axisY, self.CandlestickSeries)
+        self.VolumeBarSeries.attachAxis(axisY)
 
         # self.chart.initialize_figure(load_chart, interval)
