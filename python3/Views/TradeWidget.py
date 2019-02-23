@@ -13,7 +13,8 @@ class CTTradeWidget(QWidget):
         self._code_curr = code_curr
         self._market_symbol = market_symbol
 
-        self._local_timer = QTimer(self)
+        self._single_shot_timer = QTimer(self)
+        self._single_shot_timer.setSingleShot(True)
 
         self._price = QLineEdit('', self)
         self._price.textEdited[str].connect(self.recalculate_total)
@@ -134,7 +135,6 @@ class CTTradeWidget(QWidget):
         ))
         # Give 0.5 seconds for submitted order to propagate through the exchange
         # so that the following balances update has new values
-        self._local_timer.setSingleShot(True)
-        self._local_timer.start(500)
-        self._local_timer.timeout.connect(self.update_available_balances)
+        self._single_shot_timer.start(500)
+        self._single_shot_timer.timeout.connect(self.update_available_balances)
         self.repaint()
