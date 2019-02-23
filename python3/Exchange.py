@@ -169,7 +169,15 @@ class Exchange:
             Returns a candlestick data: times, opens, closes, ...
             Example:
             [
-                (time, open, high, low, close, volume, baseVolume)
+                (
+                    time, - timestamp in seconds
+                    open,
+                    high,
+                    low,
+                    close,
+                    volume,
+                    baseVolume
+                )
             ]
         """
         self.raise_not_implemented_error()
@@ -194,32 +202,43 @@ class Exchange:
             return None
         else:
             if take_i_mins == interval:
-                return preliminary_ticks[-number_of_ticks_to_take:]
-            else:
-                base = interval / take_i_mins
-                number_of_ticks_to_consider = int(number_of_ticks_to_take * base)
-                number_of_ticks_to_consider = min(number_of_ticks_to_consider, len(preliminary_ticks))
-                start_index = len(preliminary_ticks) - number_of_ticks_to_consider
                 results = []
-                for i in range(number_of_ticks_to_consider):
-                    if i % base == 0:
-                        open_v = preliminary_ticks[start_index + i][1]
-                        high_v = preliminary_ticks[start_index + i][2]
-                        low_v = preliminary_ticks[start_index + i][3]
-                        volume_v = preliminary_ticks[start_index + i][5]
-                        baseVolume_v = preliminary_ticks[start_index + i][6]
+                for entry in preliminary_ticks:
+                    if entry[0] >= preliminary_ticks[-1][0] - lookback * 60:
+                        results.append(entry)
+                return results
+            else:
+                results = []
+                result_dict = {}
+                for entry in preliminary_ticks:
+                    agg_timestamp = int(entry[0] - entry[0] % (interval * 60))
+                    if agg_timestamp in result_dict:
+                        result_dict[agg_timestamp]['h'] = max(result_dict[agg_timestamp]['h'], entry[2])
+                        result_dict[agg_timestamp]['l'] = min(result_dict[agg_timestamp]['l'], entry[3])
+                        result_dict[agg_timestamp]['c'] = entry[4]
+                        result_dict[agg_timestamp]['v'] += entry[5]
+                        result_dict[agg_timestamp]['bv'] += entry[6]
                     else:
-                        if preliminary_ticks[start_index + i][2] > high_v:
-                            high_v = preliminary_ticks[start_index + i][2]
-                        if preliminary_ticks[start_index + i][3] < low_v:
-                            low_v = preliminary_ticks[start_index + i][3]
-                        volume_v += preliminary_ticks[start_index + i][5]
-                        baseVolume_v += preliminary_ticks[start_index + i][6]
-                        if i % base == base - 1:
-                            close_v = preliminary_ticks[start_index + i][4]
-                            time_v = preliminary_ticks[start_index + i][0]
-                            new_row = time_v, open_v, high_v, low_v, close_v, volume_v, baseVolume_v
-                            results.append(new_row)
+                        result_dict[agg_timestamp] = {
+                            'o': entry[1],
+                            'h': entry[2],
+                            'l': entry[3],
+                            'c': entry[4],
+                            'v': entry[5],
+                            'bv': entry[6]
+                        }
+
+                for agg_timestamp in result_dict:
+                    if agg_timestamp >= preliminary_ticks[-1][0] - lookback * 60:
+                        new_row =  (agg_timestamp,
+                                    result_dict[agg_timestamp]['o'],
+                                    result_dict[agg_timestamp]['h'],
+                                    result_dict[agg_timestamp]['l'],
+                                    result_dict[agg_timestamp]['c'],
+                                    result_dict[agg_timestamp]['v'],
+                                    result_dict[agg_timestamp]['bv'])
+                        results.append(new_row)
+
                 return results
 
     def submit_trade(self, direction="buy", market="", price=0, amount=0, trade_type=""):
