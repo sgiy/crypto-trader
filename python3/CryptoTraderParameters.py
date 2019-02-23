@@ -20,6 +20,7 @@ class CryptoTraderParameters:
             '15 Minutes':   15,
             '30 Minutes':   30,
             '1 Hour':       60,
+            '4 Hours':      4*60,
             '8 Hours':      8*60,
             '1 Day':        24*60
         }
