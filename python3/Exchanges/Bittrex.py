@@ -552,7 +552,7 @@ class Bittrex(Exchange):
         load_chart = self.get_ticks(market_name, interval)
         results = []
         for i in load_chart:
-            new_row = datetime.datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp() * 1000, i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
+            new_row = datetime.datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp(), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
             results.append(new_row)
         return results
 
