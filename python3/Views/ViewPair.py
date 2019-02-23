@@ -5,8 +5,7 @@ from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel,
     QGraphicsLineItem, QGraphicsTextItem)
 
 from PyQt5.QtChart import (QChart, QChartView, QCandlestickSet,
-    QCandlestickSeries, QLineSeries, QDateTimeAxis, QValueAxis, QBarSeries,
-    QBarSet)
+    QCandlestickSeries, QLineSeries, QDateTimeAxis, QValueAxis)
 from PyQt5.QtGui import QPainter, QPen, QColor
 from PyQt5.QtCore import Qt, QDateTime,  QPointF, QMargins
 
@@ -153,7 +152,9 @@ class CTViewPair(QWidget):
         self.CandlestickSeries.setIncreasingColor(Qt.green)
         self.CandlestickSeries.setDecreasingColor(Qt.red)
 
-        self.VolumeBarSeries = QBarSeries()
+        self.VolumeBarSeries = QCandlestickSeries()
+        self.VolumeBarSeries.setBodyWidth(1.0)
+        self.VolumeBarSeries.setIncreasingColor(Qt.darkGray)
 
         self._chart_view = CTChartView(self)
 
@@ -272,10 +273,13 @@ class CTViewPair(QWidget):
         min_y = max(0, ch_min - 0.15 * (ch_max - ch_min))
         max_y = ch_max + 0.1 * (ch_max - ch_min)
 
-        bars = QBarSet("Volume")
         for point in load_chart:
-            bars.append(min_y + 0.1 * (max_y - min_y)  * point[6] / v_max)
-        self.VolumeBarSeries.append(bars)
+            open = min_y
+            high = min_y + 0.1 * (max_y - min_y)  * point[6] / v_max
+            low = open
+            close = high
+            volume_candle = QCandlestickSet(open, high, low, close, point[0] * 1000, self)
+            self.VolumeBarSeries.append(volume_candle)
 
         if not self._chart_view._chart_loaded:
             self._chart_view.chart.addSeries(self.CandlestickSeries)
@@ -290,6 +294,7 @@ class CTViewPair(QWidget):
         axisY = QValueAxis()
         axisY.setRange(min_y, max_y)
         self._chart_view.chart.setAxisY(axisY, self.CandlestickSeries)
+        self.VolumeBarSeries.attachAxis(axisX)
         self.VolumeBarSeries.attachAxis(axisY)
 
         # self.chart.initialize_figure(load_chart, interval)
