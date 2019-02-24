@@ -80,8 +80,9 @@ class CTMainWindow(QMainWindow):
                         'StatusTip': 'Balances',
                         'Connect': lambda: self.switch_view('Balances'),
                 },
-            'View Order Book': {
-                        'Shortcut': 'Ctrl+P',
+            'Market': {
+                        'Icon': qta.icon('mdi.finance'),
+                        'Shortcut': 'Ctrl+M',
                         'StatusTip': 'View Crypto Pair',
                         'Connect': lambda: self.switch_view('ViewPair'),
                 },
@@ -150,7 +151,7 @@ class CTMainWindow(QMainWindow):
         arbitrage_menu.addAction(self.Actions['Circle Exchange Arbitrage'])
 
         order_book_menu = self.MenuBar.addMenu('&Order Books')
-        order_book_menu.addAction(self.Actions['View Order Book'])
+        order_book_menu.addAction(self.Actions['Market'])
         order_book_menu.addAction(self.Actions['View Two Exchange Order Books'])
 
         settings_menu = self.MenuBar.addMenu('&Settings')
@@ -164,6 +165,7 @@ class CTMainWindow(QMainWindow):
         self.ToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.ToolBar.addAction(self.Actions['Exit'])
         self.ToolBar.addAction(self.Actions['Balances'])
+        self.ToolBar.addAction(self.Actions['Market'])
 
     def initStatusBar(self):
         self.StatusBar = self.statusBar()
@@ -178,11 +180,11 @@ class CTMainWindow(QMainWindow):
         if view_name == 'ViewPair':
             self.Views['ViewPair'] = CTViewPair(
                 CTMain = self,
-                exchange = self._settings['Initial View Order Book Exchange'],
-                base_code = self._settings['Initial View Order Book Base Currency'],
-                curr_code = self._settings['Initial View Order Book Quote Currency'],
-                chart_lookback = self._settings['Initial View Order Book Chart Lookback'],
-                chart_interval = self._settings['Initial View Order Book Chart Interval'],
+                exchange = self._settings['Initial Market View Exchange'],
+                base_code = self._settings['Initial Market View Base Currency'],
+                curr_code = self._settings['Initial Market View Quote Currency'],
+                chart_lookback = self._settings['Initial Market View Chart Lookback'],
+                chart_interval = self._settings['Initial Market View Chart Interval'],
                 order_book_depth = self._settings['Default Order Book Depth']
             )
         if view_name == 'Balances':

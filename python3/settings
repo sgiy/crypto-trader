@@ -1,10 +1,10 @@
 {
     'Default Order Book Depth': 5,
-    'Initial View Order Book Exchange': 'Bittrex',
-    'Initial View Order Book Base Currency': 'USD',
-    'Initial View Order Book Quote Currency': 'BTC',
-    'Initial View Order Book Chart Interval': '15 Minutes',
-    'Initial View Order Book Chart Lookback': '1 Day',
+    'Initial Market View Exchange': 'Bittrex',
+    'Initial Market View Base Currency': 'USD',
+    'Initial Market View Quote Currency': 'BTC',
+    'Initial Market View Chart Interval': '15 Minutes',
+    'Initial Market View Chart Lookback': '1 Day',
     'Initial Main Window Position and Size': {
         'left':     50,
         'top':      50,
