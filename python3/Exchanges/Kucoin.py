@@ -14,7 +14,7 @@ class Kucoin(Exchange):
         """
             For API details see https://docs.kucoin.com/
         """
-        self.BASE_URL = 'https://openapi-v2.kucoin.com'        
+        self.BASE_URL = 'https://openapi-v2.kucoin.com'
         self._exchangeInfo = None
 
     def get_request(self, url):
@@ -368,20 +368,12 @@ class Kucoin(Exchange):
         """
         return self.get_request('/api/v1/timestamp')
 
-    def get_best_markets_per_base(self, base_curr):
-        return requests.get('https://kitchen-v2.kucoin.com/trade-front/market/getSymbol/' + base_curr).json()
-
-    def get_best_markets(self):
+    def get_all_tickers(self):
         """
-            Get all market prices
-            Debug: ct['Kucoin'].get_best_markets()
+            Get all tickers
+            Debug: ct['Kucoin'].get_all_tickers()
         """
-        result = {}
-        base_currencies = self.get_market_list()
-        for base in base_currencies:
-            best_markets = self.get_best_markets_per_base(base)
-            result[base] = best_markets
-        return result
+        return self.get_request('/api/v1/market/allTickers')
 
     #########################################
     ### Exchange specific private methods ###
@@ -565,21 +557,23 @@ class Kucoin(Exchange):
     def load_markets(self):
         self._markets = {}
         self._active_markets = {}
-        all_markets = self.get_best_markets()
+        all_markets = self.get_all_tickers()['ticker']
 
-        for local_base in all_markets.keys():
-            for entry in all_markets[local_base]['data']:
-                try:
-                    self.update_market(
-                        entry['symbol'],
-                        local_base,
-                        entry['baseCurrency'],
-                        float(entry['buy']),
-                        float(entry['sell']),
-                        float(entry['trading'])
-                    )
-                except Exception as e:
-                    self.log_request_error(str(entry) + ". " + str(e))
+        for market in all_markets:
+            try:
+                symbol = market['symbol']
+                local_curr = symbol[0:symbol.find('-')]
+                local_base = symbol[symbol.find('-')+1:]
+
+                self.update_market(
+                    symbol,
+                    local_base,
+                    local_curr,
+                    float(market['buy']),
+                    float(market['sell'])
+                )
+            except Exception as e:
+                self.log_request_error(str(market) + ". " + str(e))
         return self._active_markets
 
     def load_ticks(self, market_name, interval = 'fiveMin', lookback = None):
