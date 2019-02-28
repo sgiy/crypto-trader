@@ -6,8 +6,6 @@ import requests
 
 from Exchange import Exchange
 
-import ipdb
-
 class Binance(Exchange):
     def __init__(self, APIKey='', Secret=''):
         super().__init__(APIKey, Secret)
@@ -34,6 +32,7 @@ class Binance(Exchange):
             '1w':   7*24*60,
             '1M':   30*24*60
         }
+        self._timestamp_correction = int(self.get_server_time()) - int(time.time()*1000)
 
     def get_request(self, url):
         try:
@@ -56,7 +55,7 @@ class Binance(Exchange):
 
     def trading_api_request(self, method, url, req={}):
         try:
-            req['timestamp'] = int(time.time()*1000)
+            req['timestamp'] = int(time.time()*1000) + self._timestamp_correction
             query_string = '&'.join(["{}={}".format(k, v) for k, v in req.items()])
             signature = hmac.new(self.Secret.encode(), query_string.encode(), hashlib.sha256).hexdigest()
             query_string = query_string + '&signature=' + signature
@@ -97,9 +96,9 @@ class Binance(Exchange):
         """
             Test connectivity to the Rest API and get the current server time.
             Debug: ct['Binance'].get_server_time()
-            {'serverTime': 1500000000000}
+            1500000000000
         """
-        return self.get_request('/api/v1/time')
+        return self.get_request('/api/v1/time').get('serverTime', None)
 
     def load_exchangeInfo(self):
         """
@@ -690,7 +689,7 @@ class Binance(Exchange):
         return results
 
     def get_balances(self):
-        return self.get_account_info()['balances']
+        return self.get_account_info().get('balances', [])
 
 
 
