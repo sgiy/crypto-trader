@@ -116,13 +116,12 @@ class CryptoTrader:
                 if len(markets) > 1:
                     for exchange in markets:
                         exchange_code = self._map_currency_code_to_exchange_code[code_curr][exchange]
-                        if self.trader[exchange]._currencies[exchange_code]['Enabled'] == 1:
-                            if not markets[exchange]['Bid'] is None:
-                                if best_bid is None or best_bid < markets[exchange]['Bid']:
-                                    best_bid = markets[exchange]['Bid']
-                            if not markets[exchange]['Ask'] is None:
-                                if best_ask is None or best_ask > markets[exchange]['Ask']:
-                                    best_ask = markets[exchange]['Ask']
+                        if not markets[exchange]['Bid'] is None:
+                            if best_bid is None or best_bid < markets[exchange]['Bid']:
+                                best_bid = markets[exchange]['Bid']
+                        if not markets[exchange]['Ask'] is None:
+                            if best_ask is None or best_ask > markets[exchange]['Ask']:
+                                best_ask = markets[exchange]['Ask']
                     if not best_bid is None and not best_ask is None and best_bid > best_ask * required_rate_of_return:
                         if not code_base in self._arbitrage_possibilities:
                             self._arbitrage_possibilities[code_base] = {}
