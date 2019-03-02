@@ -13,7 +13,7 @@ class Bittrex(Exchange):
         """
             https://bittrex.github.io/api/v1-1
         """
-        self.BASE_URL = 'https://bittrex.com/api/v1.1'
+        self._BASE_URL = 'https://bittrex.com/api/v1.1'
         self._tick_intervals = {
             'oneMin':       1,
             'fiveMin':      5,
@@ -24,7 +24,7 @@ class Bittrex(Exchange):
 
     def get_request(self, url, base_url_override = None):
         if base_url_override is None:
-            base_url_override = self.BASE_URL
+            base_url_override = self._BASE_URL
         try:
             result = requests.get(base_url_override + url).json()
             if result.get('success', None) == True:
@@ -46,10 +46,10 @@ class Bittrex(Exchange):
     def trading_api_request(self, command, extra=''):
         try:
             nonce = str(int(time.time()*1000))
-            request_url = self.BASE_URL + command + '?' + 'apikey=' + self.APIKey + "&nonce=" + nonce + extra
+            request_url = self._BASE_URL + command + '?' + 'apikey=' + self._API_KEY + "&nonce=" + nonce + extra
             result = requests.get(
                 request_url,
-                headers={"apisign": hmac.new(self.Secret.encode(), request_url.encode(), hashlib.sha512).hexdigest()}
+                headers={"apisign": hmac.new(self._API_SECRET.encode(), request_url.encode(), hashlib.sha512).hexdigest()}
             ).json()
             if result.get('success', None) == True:
                 self.log_request_success()

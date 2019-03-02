@@ -7,16 +7,14 @@ import requests
 
 from Exchange import Exchange
 
-import ipdb
-
 class Hotbit(Exchange):
     def __init__(self, APIKey='', Secret=''):
         super().__init__(APIKey, Secret)
-        self.BASE_URL = 'https://api.hotbit.io/api/v1'
+        self._BASE_URL = 'https://api.hotbit.io/api/v1'
 
     def get_request(self, url):
         try:
-            result = requests.get(self.BASE_URL + url).json()
+            result = requests.get(self._BASE_URL + url).json()
             if result.get('error', None) is None:
                 self.log_request_success()
                 return result
@@ -27,7 +25,7 @@ class Hotbit(Exchange):
                 else:
                     return {}
         except Exception as e:
-            self.log_request_error(self.BASE_URL + url + ". " + str(e))
+            self.log_request_error(self._BASE_URL + url + ". " + str(e))
             if self.retry_count_not_exceeded():
                 return self.get_request(url)
             else:
@@ -38,8 +36,8 @@ class Hotbit(Exchange):
 
         """
         try:
-            url = self.BASE_URL + endpoint + '?Api_key=' + self.APIKey + '&sign='
-            string_to_sign = 'api_key=' + self.APIKey + extra + '&secret_key=' + self.Secret
+            url = self._BASE_URL + endpoint + '?Api_key=' + self._API_KEY + '&sign='
+            string_to_sign = 'api_key=' + self._API_KEY + extra + '&secret_key=' + self._API_SECRET
             signature = hashlib.md5("whatever your string is".encode('utf-8')).hexdigest()
             signature = signature.upper()
             url += signature

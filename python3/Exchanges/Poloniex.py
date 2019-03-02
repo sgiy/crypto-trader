@@ -12,12 +12,12 @@ class Poloniex(Exchange):
         """
             For API details see https://docs.poloniex.com
         """
-        self.BASE_URL = 'https://poloniex.com/'
+        self._BASE_URL = 'https://poloniex.com/'
         self._precision = 8
 
     def get_request(self, url):
         try:
-            result = requests.get(self.BASE_URL + url).json()
+            result = requests.get(self._BASE_URL + url).json()
             if 'error' in result:
                 self.log_request_error(result['error'])
                 if self.retry_count_not_exceeded():
@@ -39,14 +39,14 @@ class Poloniex(Exchange):
             req['command'] = command
             req['nonce'] = int(time.time()*1000000)
             post_data = urllib.parse.urlencode(req)
-            sign = hmac.new(self.Secret.encode(), post_data.encode(), hashlib.sha512).hexdigest()
+            sign = hmac.new(self._API_SECRET.encode(), post_data.encode(), hashlib.sha512).hexdigest()
 
             headers = {
                 'Sign': sign,
-                'Key': self.APIKey
+                'Key': self._API_KEY
             }
 
-            result = requests.post(self.BASE_URL + 'tradingApi', data = req, headers = headers).json()
+            result = requests.post(self._BASE_URL + 'tradingApi', data = req, headers = headers).json()
             if 'error' in result:
                 self.log_request_error(result['error'])
                 if self.retry_count_not_exceeded():

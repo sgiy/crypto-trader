@@ -13,7 +13,7 @@ class Binance(Exchange):
             https://github.com/binance-exchange/binance-official-api-docs
             https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
         """
-        self.BASE_URL = 'https://api.binance.com'
+        self._BASE_URL = 'https://api.binance.com'
         self._exchangeInfo = None
         self._tick_intervals = {
             '1m':   1,
@@ -36,7 +36,7 @@ class Binance(Exchange):
 
     def get_request(self, url):
         try:
-            results = requests.get(self.BASE_URL + url).json()
+            results = requests.get(self._BASE_URL + url).json()
             if 'code' in results:
                 self.log_request_error(results['msg'])
                 if self.retry_count_not_exceeded():
@@ -47,7 +47,7 @@ class Binance(Exchange):
                 self.log_request_success()
                 return results
         except Exception as e:
-            self.log_request_error(self.BASE_URL + url)
+            self.log_request_error(self._BASE_URL + url)
             if self.retry_count_not_exceeded():
                 return self.get_request(url)
             else:
@@ -57,12 +57,12 @@ class Binance(Exchange):
         try:
             req['timestamp'] = int(time.time()*1000) + self._timestamp_correction
             query_string = '&'.join(["{}={}".format(k, v) for k, v in req.items()])
-            signature = hmac.new(self.Secret.encode(), query_string.encode(), hashlib.sha256).hexdigest()
+            signature = hmac.new(self._API_SECRET.encode(), query_string.encode(), hashlib.sha256).hexdigest()
             query_string = query_string + '&signature=' + signature
 
-            headers = { 'X-MBX-APIKEY': self.APIKey }
+            headers = { 'X-MBX-APIKEY': self._API_KEY }
 
-            req_url = self.BASE_URL + url + '?' + query_string
+            req_url = self._BASE_URL + url + '?' + query_string
             results = getattr(requests,method)(req_url, headers = headers).json()
             if 'code' in results:
                 self.log_request_error(results['msg'])

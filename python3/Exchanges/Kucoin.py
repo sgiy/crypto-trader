@@ -14,19 +14,19 @@ class Kucoin(Exchange):
         """
             For API details see https://docs.kucoin.com/
         """
-        self.BASE_URL = 'https://openapi-v2.kucoin.com'
+        self._BASE_URL = 'https://openapi-v2.kucoin.com'
         self._exchangeInfo = None
 
     def get_request(self, url):
         try:
-            result = requests.get(self.BASE_URL + url).json()
+            result = requests.get(self._BASE_URL + url).json()
             if result.get('code', None) == '200000':
                 return result['data']
             else:
-                print(self.BASE_URL + url + ". " + str(result.get('msg')))
+                print(self._BASE_URL + url + ". " + str(result.get('msg')))
                 #return self.get_request(url)
         except Exception as e:
-            print(self.BASE_URL + url + ". " + str(e))
+            print(self._BASE_URL + url + ". " + str(e))
             #return self.get_request(url)
 
     def trading_api_sign(self, method, endpoint, body, nonce):
@@ -48,7 +48,7 @@ class Kucoin(Exchange):
             KC-API-SIGN = 7QP/oM0ykidMdrfNEUmng8eZjg/ZvPafjIqmxiVfYu4=
         """
         strForSign = nonce + method.upper() + endpoint + body
-        return base64.b64encode(hmac.new(self.Secret.encode(), strForSign.encode(), hashlib.sha256).digest()).decode()
+        return base64.b64encode(hmac.new(self._API_SECRET.encode(), strForSign.encode(), hashlib.sha256).digest()).decode()
 
     def trading_api_request(self, method, endpoint, body={}):
         """
@@ -62,7 +62,7 @@ class Kucoin(Exchange):
         """
         try:
             nonce = str(int(time.time()*1000))
-            request_url = self.BASE_URL + endpoint
+            request_url = self._BASE_URL + endpoint
 
             body_str = ''
             if any(body):
@@ -77,9 +77,9 @@ class Kucoin(Exchange):
                 request['data'] = body_str
             request['headers'] =   {
                                         'Content-Type': 'application/json',
-                                        "KC-API-KEY": self.APIKey,
+                                        "KC-API-KEY": self._API_KEY,
                                         "KC-API-TIMESTAMP": nonce,
-                                        "KC-API-PASSPHRASE": self.PassPhrase,
+                                        "KC-API-PASSPHRASE": self._API_PASSPHRASE,
                                         "KC-API-SIGN": signature
                                     }
             result = getattr(requests,method)(request_url, **request).json()

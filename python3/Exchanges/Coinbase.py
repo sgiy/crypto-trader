@@ -1,9 +1,8 @@
 import requests
 
 class Coinbase:
-    def __init__(self, APIKey='', Secret=''):
-        self.APIKey = APIKey
-        self.Secret = Secret
+    def __init__(self):
+        pass
 
     def get_request(self, url):
         return requests.get('https://api.gdax.com' + url).json()

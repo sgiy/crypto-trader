@@ -5,7 +5,16 @@ import time
 class Exchange:
     def __init__(self, APIKey='', Secret='', PassPhrase=''):
         self.update_keys(APIKey, Secret, PassPhrase)
-        self.BASE_URL = ''
+        self._BASE_URL = ''
+        self._API_KEY = ''
+        self._API_SECRET = ''
+        self._API_PASSPHRASE = ''
+
+        self._currencies_dict = {}
+        self._markets_dict = {}
+        self._balances_dict = {}
+        self._timestamps_dict = {}
+
         self._currencies = {}
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
@@ -25,9 +34,9 @@ class Exchange:
         }
 
     def update_keys(self, APIKey='', Secret='', PassPhrase=''):
-        self.APIKey = APIKey
-        self.Secret = Secret
-        self.PassPhrase = PassPhrase
+        self._API_KEY = APIKey
+        self._API_SECRET = Secret
+        self._API_PASSPHRASE = PassPhrase
 
     def raise_not_implemented_error(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
