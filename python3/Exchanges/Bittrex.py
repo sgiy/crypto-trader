@@ -509,28 +509,58 @@ class Bittrex(Exchange):
     #######################
     ### Generic methods ###
     #######################
-    def load_currencies(self):
+    def get_formatted_currencies(self):
         """
             Loading currencies
-            Debug: ct['Bittrex'].load_currencies()
+            Debug: ct['Bittrex'].get_formatted_currencies()
+            Example:
+                {
+                    'BTC': {
+                                'Name': 'Bitcoin',
+                                'DepositEnabled': True,
+                                'WithdrawalEnabled': True,
+                                'Notice': '',
+                                'ExchangeBaseAddress': 'address',
+                                'MinConfirmation': 2,
+                                'WithdrawalFee': 0.001,
+                                'WithdrawalMinAmount': 0.001,
+                                'Precision': 0.00000001
+                            },
+                    ...
+                }
         """
         currencies = self.get_currencies()
-        self._currencies = {}
-        for currency in currencies:
-            try:
-                if currency['IsActive'] and not currency['IsRestricted']:
-                    enabled = 1
-                else:
-                    enabled = 0
+        results = {}
+        if isinstance(currencies, list):
+            for currency in currencies:
+                try:
+                    enabled = currency['IsActive'] and not currency['IsRestricted']
+                    if currency.get('Notice', '') is None:
+                        notice = ''
+                    else:
+                        notice = currency.get('Notice', '')
+                    if currency.get('BaseAddress', '') is None:
+                        address = ''
+                    else:
+                        address = currency.get('BaseAddress', '')
+                    results[currency['Currency']] = {
+                        'Name': currency['CurrencyLong'],
+                        'DepositEnabled': enabled,
+                        'WithdrawalEnabled': enabled,
+                        'Notice': notice,
+                        'ExchangeBaseAddress': address,
+                        'MinConfirmation': currency.get('MinConfirmation', 0),
+                        'WithdrawalFee': currency.get('TxFee', 0),
+                        'WithdrawalMinAmount': 0,
+                        'Precision': 0.00000001
+                    }
+                except Exception as e:
+                    self.log_request_error(str(e))
 
-                self._currencies[currency['Currency']] = {
-                    'Name': currency['CurrencyLong'],
-                    'Enabled': enabled
-                }
-            except Exception as e:
-                self.log_request_error(str(e))
+        return results
 
-        return self._currencies
+
+
 
     def load_markets(self):
         self._markets = {}

@@ -33,6 +33,7 @@ class Binance(Exchange):
             '1M':   30*24*60
         }
         self._timestamp_correction = int(self.get_server_time()) - int(time.time()*1000)
+        self.load_exchangeInfo()
 
     def get_request(self, url):
         try:
@@ -700,34 +701,60 @@ class Binance(Exchange):
     #######################
     ### Generic methods ###
     #######################
-    def load_currencies(self):
+    def get_formatted_currencies(self):
         """
             Loading currencies
-            Debug: ct['Binance'].load_currencies()
-        """
-        self._currencies = {}
-        self.load_exchangeInfo()
-        for symbol in self._exchangeInfo['symbols']:
-            try:
-                if symbol['status'] == 'TRADING':
-                    enabled = 1
-                else:
-                    enabled = 0
-
-                self._currencies[symbol['baseAsset']] = {
-                    'Name': symbol['baseAsset'],
-                    'Enabled': enabled
+            Debug: ct['Binance'].get_formatted_currencies()
+            Example:
+                {
+                    'BTC': {
+                                'Name': 'Bitcoin',
+                                'DepositEnabled': True,
+                                'WithdrawalEnabled': True,
+                                'Notice': '',
+                                'ExchangeBaseAddress': 'address',
+                                'MinConfirmation': 2,
+                                'WithdrawalFee': 0.001,
+                                'WithdrawalMinAmount': 0.001,
+                                'Precision': 0.00000001
+                            },
+                    ...
                 }
-
-                if not symbol['quoteAsset'] in self._currencies:
-                    self._currencies[symbol['quoteAsset']] = {
-                        'Name': symbol['quoteAsset'],
-                        'Enabled': 1
+        """
+        results = {}
+        if isinstance(self._exchangeInfo['symbols'], list):
+            for symbol in self._exchangeInfo['symbols']:
+                try:
+                    self._currencies[symbol['baseAsset']] = {
+                        'Name': symbol['baseAsset'],
+                        'DepositEnabled': True,
+                        'WithdrawalEnabled': True,
+                        'Notice': '',
+                        'ExchangeBaseAddress': '',
+                        'MinConfirmation': 0,
+                        'WithdrawalFee': 0,
+                        'WithdrawalMinAmount': 0,
+                        'Precision': 0.00000001
                     }
-            except Exception as e:
-                self.log_request_error(str(e))
+                    if not symbol['quoteAsset'] in self._currencies:
+                        self._currencies[symbol['quoteAsset']] = {
+                            'Name': symbol['quoteAsset'],
+                            'DepositEnabled': True,
+                            'WithdrawalEnabled': True,
+                            'Notice': '',
+                            'ExchangeBaseAddress': '',
+                            'MinConfirmation': 0,
+                            'WithdrawalFee': 0,
+                            'WithdrawalMinAmount': 0,
+                            'Precision': 0.00000001
+                        }
+                except Exception as e:
+                    self.log_request_error(str(e))
 
-        return self._currencies
+        return results
+
+
+
 
     def load_markets(self):
         self._markets = {}

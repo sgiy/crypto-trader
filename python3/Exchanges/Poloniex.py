@@ -631,24 +631,56 @@ class Poloniex(Exchange):
     #######################
     ### Generic methods ###
     #######################
-    def load_currencies(self):
+    def get_formatted_currencies(self):
         """
             Loading currencies
-            Debug: ct['Poloniex'].load_currencies()
+            Debug: ct['Poloniex'].get_formatted_currencies()
+            Example:
+                {
+                    'BTC': {
+                                'Name': 'Bitcoin',
+                                'DepositEnabled': True,
+                                'WithdrawalEnabled': True,
+                                'Notice': '',
+                                'ExchangeBaseAddress': 'address',
+                                'MinConfirmation': 2,
+                                'WithdrawalFee': 0.001,
+                                'WithdrawalMinAmount': 0.001,
+                                'Precision': 0.00000001
+                            },
+                    ...
+                }
         """
         currencies = self.get_all_currencies()
-        self._currencies = {}
-        for currency in currencies:
-            try:
-                self._currencies[currency] = {
-                    'Name': currencies[currency]['name'],
-                    'Enabled': 1 - max( currencies[currency]['delisted'],
-                                        currencies[currency]['frozen'])
-                }
-            except Exception as e:
-                self.log_request_error(str(e))
+        results = {}
+        if isinstance(currencies, dict):
+            for currency_key in currencies.keys():
+                try:
+                    currency = currencies[currency_key]
+                    if currency['delisted'] == 0:                        
+                        enabled = currency['disabled'] == 0 and currency['frozen'] == 0
+                        if currency.get('depositAddress', '') is None:
+                            address = ''
+                        else:
+                            address = currency.get('depositAddress', '')
+                        results[currency_key] = {
+                            'Name': currency['name'],
+                            'DepositEnabled': enabled,
+                            'WithdrawalEnabled': enabled,
+                            'Notice': '',
+                            'ExchangeBaseAddress': address,
+                            'MinConfirmation': currency.get('minConf', 0),
+                            'WithdrawalFee': float(currency.get('TxFee', 0)),
+                            'WithdrawalMinAmount': 0,
+                            'Precision': 0.00000001
+                        }
+                except Exception as e:
+                    self.log_request_error(str(e))
 
-        return self._currencies
+        return results
+
+
+
 
     def load_markets(self):
         self._markets = {}

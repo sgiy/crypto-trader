@@ -10,15 +10,14 @@ class Exchange:
         self._API_SECRET = ''
         self._API_PASSPHRASE = ''
 
-        self._currencies_dict = {}
-        self._markets_dict = {}
-        self._balances_dict = {}
-        self._timestamps_dict = {}
-
         self._currencies = {}
+        self._markets = {}
+        self._balances = {}
+        self._timestamps = {}
+
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
-        self._markets = {}
+
         self._active_markets = {}
         self._market_prices = {}
         self._available_balances = {}
@@ -37,6 +36,34 @@ class Exchange:
         self._API_KEY = APIKey
         self._API_SECRET = Secret
         self._API_PASSPHRASE = PassPhrase
+
+    def load_currencies(self):
+        """
+            get_formatted_currencies() needs to return a dictionary:
+            exchange currency code to a dictionary
+            Example:
+                {
+                    'BTC': {
+                                'Name': 'Bitcoin',
+                                'DepositEnabled': True,
+                                'WithdrawalEnabled': True,
+                                'Notice': '',
+                                'ExchangeBaseAddress': 'address',
+                                'MinConfirmation': 2,
+                                'WithdrawalFee': 0.001,
+                                'WithdrawalMinAmount': 0.001,
+                                'Precision': 0.00000001
+                            },
+                    ...
+                }
+        """
+        currencies = self.get_formatted_currencies()
+        for currency in currencies.keys():
+            if currency in self._currencies:
+                self._currencies[currency].update(currencies[currency])
+            else:
+                self._currencies[currency] = currencies[currency]
+        self._timestamps['load_currencies'] = time.time()
 
     def raise_not_implemented_error(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
@@ -64,22 +91,6 @@ class Exchange:
 
     def get_local_code(self, global_code):
         return self._map_currency_code_to_exchange_code.get(global_code, None)
-
-    def load_currencies(self):
-        """
-            Individual exchange implementation needs to update self._currencies
-            with a map from exchange currency code to a map having Name and
-            Enabled keys.
-            Example:
-                {
-                    'BTC': {
-                                'Name': 'Bitcoin',
-                                'Enabled': 1
-                            },
-                    ...
-                }
-        """
-        self.raise_not_implemented_error()
 
     def update_market(self,
             market_symbol,

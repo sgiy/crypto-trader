@@ -533,26 +533,49 @@ class Kucoin(Exchange):
     #######################
     ### Generic methods ###
     #######################
-    def load_currencies(self):
+    def get_formatted_currencies(self):
         """
             Loading currencies
-            Debug: ct['Kucoin'].load_currencies()
+            Debug: ct['Kucoin'].get_formatted_currencies()
+            Example:
+                {
+                    'BTC': {
+                                'Name': 'Bitcoin',
+                                'DepositEnabled': True,
+                                'WithdrawalEnabled': True,
+                                'Notice': '',
+                                'ExchangeBaseAddress': 'address',
+                                'MinConfirmation': 2,
+                                'WithdrawalFee': 0.001,
+                                'WithdrawalMinAmount': 0.001,
+                                'Precision': 0.00000001
+                            },
+                    ...
+                }
         """
         currencies = self.get_currencies()
-        self._currencies = {}
+        results = {}
         if isinstance(currencies, list):
             for currency in currencies:
                 try:
-                    enabled = 1
-                    self._currencies[currency['currency']] = {
+                    results[currency['currency']] = {
                         'Name': currency['fullName'],
-                        'Enabled': enabled,
-                        'Precision': currency['precision']
+                        'DepositEnabled': currency['isDepositEnabled'],
+                        'WithdrawalEnabled': currency['isWithdrawEnabled'],
+                        'Notice': '',
+                        'ExchangeBaseAddress': '',
+                        'MinConfirmation': 0,
+                        'WithdrawalFee': float(currency.get('withdrawalMinFee', 0)),
+                        'WithdrawalMinAmount': float(currency.get('withdrawalMinSize', 0)),
+                        'Precision': pow(10,-currency['precision'])
                     }
                 except Exception as e:
                     self.log_request_error(str(e))
 
-        return self._currencies
+        return results
+
+
+
 
     def load_markets(self):
         self._markets = {}
