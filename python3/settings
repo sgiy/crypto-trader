@@ -45,7 +45,8 @@
                         'BCC': 'BCH'
                     },
         'Kucoin':   {
-                        'CPC': 'CPC_CPCHAIN'
+                        'CPC': 'CPC_CPCHAIN',
+                        'HOT': 'HOT_HOTNOW'
                     },
     },
 }
