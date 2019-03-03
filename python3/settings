@@ -34,6 +34,8 @@
     'Exchange Currency Rename Map': {
         'Bittrex':  {
                         'BITS': 'BITS_BITSWIFT',
+                        'BCH': 'BCHABC',
+                        'BSV': 'BCHSV'
                     },
         'Poloniex': {
                         'BITS': 'BITS_BITSTAR',
@@ -42,7 +44,6 @@
                         'APH': 'APH_APHRODITE'
                     },
         'Binance':  {
-                        'BCC': 'BCH'
                     },
         'Kucoin':   {
                         'CPC': 'CPC_CPCHAIN',
