@@ -12,10 +12,10 @@ class CTActiveMarkets(QWidget):
         self._tableWidget = QTableWidget()
         self._layout = QVBoxLayout()
         self._layout.addWidget(self._tableWidget)
-        self.show_currencies()
+        self.show_markets()
         self.setLayout(self._layout)
 
-    def show_currencies(self):
+    def show_markets(self):
         exchanges = sorted(self._CTMain._Crypto_Trader._map_exchange_code_to_currency_code.keys())
         column_names = ['BaseCode','CurrencyCode'] + exchanges
         markets = self._CTMain._Crypto_Trader.load_active_markets()
