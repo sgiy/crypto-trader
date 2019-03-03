@@ -15,8 +15,6 @@ class CTCurrencies(QWidget):
         self.show_currencies()
         self.setLayout(self._layout)
 
-        self.show()
-
     def show_currencies(self):
         exchanges = sorted(self._CTMain._Crypto_Trader._map_exchange_code_to_currency_code.keys())
         column_names = ['Code'] + exchanges

@@ -43,11 +43,6 @@ class CTChartView(QChartView):
         self.chart.setMargins(margins)
 
     def mouseMoveEvent(self, event):
-        # self.crosshair = self.chart.mapToValue(event.pos(), self.chart.series()[0])
-        # # self.chart_tooltip.setPlainText("ChartView.mouseMoveEvent: {}, {}".format(self.crosshair.x(), self.crosshair.y()))
-        # map00 = self.chart.mapToValue(QPointF(0,0), self.chart.series()[0])
-        # mapmm = self.chart.mapToValue(QPointF(self.width(),self.height()), self.chart.series()[0])
-
         self._chart_horizontal_line.setLine(0, event.pos().y(), self.width(), event.pos().y())
         self._chart_vertical_line.setLine(event.pos().x(), 0, event.pos().x(), self.height())
 
@@ -219,7 +214,6 @@ class CTViewPair(QWidget):
 
         self._CTMain._Timer.start(1000)
         self._CTMain._Timer.timeout.connect(self.refresh)
-        self.show()
 
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))

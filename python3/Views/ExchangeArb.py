@@ -61,7 +61,6 @@ class CTExchangeArb(QWidget):
         self.check_arbs()
         self._CTMain._Timer.start(5000)
         self._CTMain._Timer.timeout.connect(self.check_arbs)
-        self.show()
 
     def check_arbs(self, load_markets = True):
         required_rate_of_return = 1.0

@@ -32,6 +32,7 @@ class CTMainWindow(QMainWindow):
         with open(os.path.join(sys.path[0], 'settings'), 'rb') as myfile:
             msg=myfile.read()
         self._settings = eval(msg)
+        self._selected_view = None
         self.refresh_stylesheet()
         self.switch_view('Login')
         self.setGeometry(
@@ -86,10 +87,10 @@ class CTMainWindow(QMainWindow):
                         'StatusTip': 'View Crypto Pair',
                         'Connect': lambda: self.switch_view('ViewPair'),
                 },
-            'View Two Exchange Order Books': {
-                        'StatusTip': 'View Two Exchange Order Books',
-                        'Connect': lambda: self.switch_view('ViewTwoExchangeOrderBooks'),
-                },
+            # 'View Two Exchange Order Books': {
+            #             'StatusTip': 'View Two Exchange Order Books',
+            #             'Connect': lambda: self.switch_view('ViewTwoExchangeOrderBooks'),
+            #     },
             'Cross Exchange Arbitrage': {
                         'Icon': qta.icon('mdi.arrow-collapse-vertical'),
                         'StatusTip': 'View Cross Exchange Arbitrage Possibilities',
@@ -152,7 +153,7 @@ class CTMainWindow(QMainWindow):
 
         order_book_menu = self.MenuBar.addMenu('&Order Books')
         order_book_menu.addAction(self.Actions['Market'])
-        order_book_menu.addAction(self.Actions['View Two Exchange Order Books'])
+        # order_book_menu.addAction(self.Actions['View Two Exchange Order Books'])
 
         settings_menu = self.MenuBar.addMenu('&Settings')
         settings_menu.addAction(self.Actions['Currencies'])
@@ -193,19 +194,19 @@ class CTMainWindow(QMainWindow):
             self.Views['ViewCrossExchangeArbitrage'] = CTExchangeArb(CTMain = self)
         if view_name == 'ViewCircleExchangeArbitrage':
             self.Views['ViewCircleExchangeArbitrage'] = CTExchangeArbCircle(CTMain = self)
-        if view_name == 'ViewTwoExchangeOrderBooks':
-            self.Views['ViewTwoExchangeOrderBooks'] = CTTwoOrderBooks(
-                CTMain = self,
-                exchange1 = 'Bittrex',
-                market_name1 = 'BTC-XLM',
-                base_curr1 = 'BTC',
-                curr_curr1 = 'XLM',
-                exchange2 = 'Poloniex',
-                market_name2 = 'BTC_STR',
-                base_curr2 = 'BTC',
-                curr_curr2 = 'STR',
-                depth = 5
-                )
+        # if view_name == 'ViewTwoExchangeOrderBooks':
+        #     self.Views['ViewTwoExchangeOrderBooks'] = CTTwoOrderBooks(
+        #         CTMain = self,
+        #         exchange1 = 'Bittrex',
+        #         market_name1 = 'BTC-XLM',
+        #         base_curr1 = 'BTC',
+        #         curr_curr1 = 'XLM',
+        #         exchange2 = 'Poloniex',
+        #         market_name2 = 'BTC_STR',
+        #         base_curr2 = 'BTC',
+        #         curr_curr2 = 'STR',
+        #         depth = 5
+        #         )
         if view_name == 'Debug':
             self.Views['Debug'] = CTDebug(CTMain = self)
         if view_name == 'Login':
@@ -215,6 +216,8 @@ class CTMainWindow(QMainWindow):
         if view_name == 'ViewCurrencies':
             self.Views['ViewCurrencies'] = CTCurrencies(CTMain = self)
         self.setCentralWidget(self.Views[view_name])
+        self._selected_view = view_name
+        self.Views[view_name].show()
 
 if __name__ == '__main__':
     print('Starting...')
