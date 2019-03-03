@@ -149,9 +149,12 @@ class CTViewPair(QWidget):
 
         self.VolumeBarSeries = QCandlestickSeries()
         self.VolumeBarSeries.setBodyWidth(1.0)
-        self.VolumeBarSeries.setIncreasingColor(Qt.darkGray)
+        self.VolumeBarSeries.setIncreasingColor(Qt.green)
+        self.VolumeBarSeries.setDecreasingColor(Qt.red)
 
         self._chart_view = CTChartView(self)
+        self._chart_view_volume = QChartView(self)
+        self._chart_view_volume.chart().legend().setVisible(False)
 
         exchanges = self._CTMain._Crypto_Trader.trader.keys()
         self._dropdown_exchange = Dropdown(exchanges, self._exchange)
@@ -205,9 +208,15 @@ class CTViewPair(QWidget):
         self._splitter_left = QSplitter(Qt.Vertical)
         self._splitter_left.addWidget(self._order_book_widget)
         self._splitter_left.addWidget(self._trade_widget)
+        self._splitter_left.setSizes([500,20])
+
+        self._splitter_right = QSplitter(Qt.Vertical)
+        self._splitter_right.addWidget(self._chart_view)
+        self._splitter_right.addWidget(self._chart_view_volume)
+        self._splitter_right.setSizes([500,20])
 
         self._splitter_top.addWidget(self._splitter_left)
-        self._splitter_top.addWidget(self._chart_view)
+        self._splitter_top.addWidget(self._splitter_right)
         window_width = self._CTMain.frameGeometry().width()
         self._splitter_top.setSizes([round(0.3*window_width), round(0.7 * window_width)])
         self._layout.addWidget(self._splitter_top, 1, 0, 9, 10)
@@ -267,17 +276,25 @@ class CTViewPair(QWidget):
         min_y = max(0, ch_min - 0.15 * (ch_max - ch_min))
         max_y = ch_max + 0.1 * (ch_max - ch_min)
 
+        max_volume = 0
         for point in load_chart:
-            open = min_y
-            high = min_y + 0.1 * (max_y - min_y)  * point[6] / v_max
-            low = open
-            close = high
+            # high = min_y + 0.1 * (max_y - min_y)  * point[6] / v_max
+            # low = min_y
+            low = 0
+            high = point[6]
+            max_volume = max(max_volume, point[6])
+            if point[4] >= point[1]:
+                open = low
+                close = high
+            else:
+                open = high
+                close = low
             volume_candle = QCandlestickSet(open, high, low, close, point[0] * 1000, self)
             self.VolumeBarSeries.append(volume_candle)
 
         if not self._chart_view._chart_loaded:
             self._chart_view.chart.addSeries(self.CandlestickSeries)
-            self._chart_view.chart.addSeries(self.VolumeBarSeries)
+            self._chart_view_volume.chart().addSeries(self.VolumeBarSeries)
             self._chart_view._chart_loaded = True
 
         axisX = QDateTimeAxis()
@@ -288,7 +305,14 @@ class CTViewPair(QWidget):
         axisY = QValueAxis()
         axisY.setRange(min_y, max_y)
         self._chart_view.chart.setAxisY(axisY, self.CandlestickSeries)
-        self.VolumeBarSeries.attachAxis(axisX)
-        self.VolumeBarSeries.attachAxis(axisY)
 
-        # self.chart.initialize_figure(load_chart, interval)
+        axisX2 = QDateTimeAxis()
+        axisX2.setFormat("dd-MM-yyyy h:mm")
+        axisX2.setRange(datetime.fromtimestamp(int(t_min) - 30 * interval), datetime.fromtimestamp(int(t_max) + 30 * interval))
+        self._chart_view_volume.chart().setAxisX(axisX2, self.VolumeBarSeries)
+
+        axisY2 = QValueAxis()
+        axisY2.setRange(0, max_volume)
+        self._chart_view_volume.chart().setAxisY(axisY2, self.VolumeBarSeries)
+        # self.VolumeBarSeries.attachAxis(axisX)
+        # self.VolumeBarSeries.attachAxis(axisY)
