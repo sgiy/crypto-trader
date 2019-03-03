@@ -9,13 +9,14 @@ class CryptoTrader:
         self.trader = {}
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
-        self.API_KEYS = API_KEYS
-        self.SETTINGS = SETTINGS
+        self._active_markets = {}
+        self._API_KEYS = API_KEYS
+        self._SETTINGS = SETTINGS
         self.init_exchanges()
         self.update_keys()
 
     def init_exchanges(self):
-        for exchange in self.SETTINGS.get('Exchange Classes to Initialize', []):
+        for exchange in self._SETTINGS.get('Exchange Classes to Initialize', []):
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
             self.trader[exchange] = exchange_class()
@@ -25,35 +26,35 @@ class CryptoTrader:
         self.init_markets()
 
     def update_keys(self):
-        self.SETTINGS['Exchanges with API Keys'] =[]
-        for exchange in self.API_KEYS.keys():
+        self._SETTINGS['Exchanges with API Keys'] =[]
+        for exchange in self._API_KEYS.keys():
             self.trader[exchange].update_keys(
-                self.API_KEYS[exchange].get('APIKey',''),
-                self.API_KEYS[exchange].get('Secret',''),
-                self.API_KEYS[exchange].get('APIPassword','')
+                self._API_KEYS[exchange].get('APIKey',''),
+                self._API_KEYS[exchange].get('Secret',''),
+                self._API_KEYS[exchange].get('APIPassword','')
             )
-            if self.API_KEYS[exchange].get('APIKey','') != '':
-                self.SETTINGS['Exchanges with API Keys'].append(exchange)
+            if self._API_KEYS[exchange].get('APIKey','') != '':
+                self._SETTINGS['Exchanges with API Keys'].append(exchange)
 
     def init_currencies(self):
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
-        for exchange in self.SETTINGS.get('Exchanges to Load', []):
+        for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading currencies for ' + exchange)
             t = threading.Thread(target = self.trader[exchange].load_currencies)
             t.start()
             t.join(2)
 
-        for exchange in self.SETTINGS.get('Exchanges to Load', []):
+        for exchange in self._SETTINGS.get('Exchanges to Load', []):
             currencies = self.trader[exchange]._currencies
             self.trader[exchange]._map_currency_code_to_exchange_code = {}
             self._map_exchange_code_to_currency_code[exchange] = {}
             for currency in currencies:
                 try:
                     code = currency
-                    if exchange in self.SETTINGS.get('Exchange Currency Rename Map',{}):
-                        if currency in self.SETTINGS['Exchange Currency Rename Map'][exchange]:
-                            code = self.SETTINGS['Exchange Currency Rename Map'][exchange][currency]
+                    if exchange in self._SETTINGS.get('Exchange Currency Rename Map',{}):
+                        if currency in self._SETTINGS['Exchange Currency Rename Map'][exchange]:
+                            code = self._SETTINGS['Exchange Currency Rename Map'][exchange][currency]
 
                     currency_name = currencies[currency]['Name']
                     exchange_name_column = exchange + 'Name'
@@ -79,7 +80,7 @@ class CryptoTrader:
                     print(str(e))
 
     def init_markets(self):
-        for exchange in self.SETTINGS.get('Exchanges to Load', []):
+        for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading market definitions for ' + exchange)
             t = threading.Thread(target = self.trader[exchange].update_market_definitions)
             t.start()
@@ -87,13 +88,13 @@ class CryptoTrader:
 
     def load_active_markets(self):
         self._active_markets = {}
-        for exchange in self.SETTINGS.get('Exchanges to Load', []):
+        for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading active markets for ' + exchange)
             t = threading.Thread(target = self.trader[exchange].update_market_quotes)
             t.start()
             t.join(5)
 
-        for exchange in self.SETTINGS.get('Exchanges to Load', []):
+        for exchange in self._SETTINGS.get('Exchanges to Load', []):
             for code_base in self.trader[exchange]._active_markets:
                 if not code_base in self._active_markets:
                     self._active_markets[code_base] = {}
@@ -183,7 +184,7 @@ class CryptoTrader:
             Debug: self._CTMain._Crypto_Trader.calculate_balances_btc()
         """
         self._balances_btc = {}
-        for exchange in self.SETTINGS.get('Exchanges with API Keys', []):
+        for exchange in self._SETTINGS.get('Exchanges with API Keys', []):
             self.trader[exchange].load_balances_btc()
             for currency in self.trader[exchange]._complete_balances_btc:
                 try:
