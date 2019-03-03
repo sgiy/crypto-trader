@@ -75,7 +75,7 @@ class CTTradeWidget(QWidget):
             self.repaint()
 
     def update_available_balances(self):
-        if self._exchange in self._CTMain._Crypto_Trader.SETTINGS.get('Exchanges with API Keys', []):
+        if self._exchange in self._CTMain._Crypto_Trader._SETTINGS.get('Exchanges with API Keys', []):
             self._available_balances_base.setText("Available {}: {:.8f}".format(
                     self._local_base,
                     self._CTMain._Crypto_Trader.trader[self._exchange].get_available_balance(self._local_base, True)
