@@ -21,6 +21,7 @@ from Views.ViewPair import CTViewPair
 from Views.Debug import CTDebug
 from Views.Balances import CTBalances
 from Views.Currencies import CTCurrencies
+from Views.ActiveMarkets import CTActiveMarkets
 
 class CTMainWindow(QMainWindow):
     def __init__(self):
@@ -111,6 +112,10 @@ class CTMainWindow(QMainWindow):
                         'StatusTip': 'View Exchange Currencies',
                         'Connect': lambda: self.switch_view('ViewCurrencies'),
                 },
+            'Tradeable Markets': {
+                        'StatusTip': 'View Tradeable Markets',
+                        'Connect': lambda: self.switch_view('ViewActiveMarkets'),
+                },
             'Debug': {
                         'StatusTip': 'Debug',
                         'Connect': lambda: self.switch_view('Debug'),
@@ -157,6 +162,7 @@ class CTMainWindow(QMainWindow):
 
         settings_menu = self.MenuBar.addMenu('&Settings')
         settings_menu.addAction(self.Actions['Currencies'])
+        settings_menu.addAction(self.Actions['Tradeable Markets'])
         settings_menu.addAction(self.Actions['Debug'])
         settings_menu.addAction(self.Actions['Refresh Stylesheet'])
         settings_menu.addAction(self.Actions['Settings'])
@@ -215,6 +221,8 @@ class CTMainWindow(QMainWindow):
             self.Views['ViewSettings'] = CTEncryptedSettings(CTMain = self)
         if view_name == 'ViewCurrencies':
             self.Views['ViewCurrencies'] = CTCurrencies(CTMain = self)
+        if view_name == 'ViewActiveMarkets':
+            self.Views['ViewActiveMarkets'] = CTActiveMarkets(CTMain = self)
         self.setCentralWidget(self.Views[view_name])
         self._selected_view = view_name
         self.Views[view_name].show()

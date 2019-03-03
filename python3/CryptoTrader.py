@@ -103,6 +103,8 @@ class CryptoTrader:
                         self._active_markets[code_base][code_curr] = {}
                     self._active_markets[code_base][code_curr][exchange] = self.trader[exchange]._active_markets[code_base][code_curr]
 
+        return self._active_markets
+
     def get_currency_code(self, exchange, exchange_code):
         try:
             return self._map_exchange_code_to_currency_code[exchange][exchange_code]
