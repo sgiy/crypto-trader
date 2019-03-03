@@ -574,6 +574,77 @@ class Kucoin(Exchange):
 
         return results
 
+    def update_market_definitions(self, force_update = False):
+        """
+            Used to get the open and available trading markets at Binance along
+            with other meta data.
+            * force_update = False assumes that self._exchangeInfo was filled
+            in recently enough
+            Debug: ct['Kucoin'].update_market_definitions()
+        """
+        symbols = self.get_symbols()
+        if isinstance(symbols, list):
+            for market in symbols:
+                try:
+                    is_active = market.get('enableTrading', False)
+                    is_restricted = not is_active
+
+                    self.update_market(
+                        market['symbol'],
+                        {
+                            'LocalBase':        market['quoteCurrency'],
+                            'LocalCurr':        market['baseCurrency'],
+                            'BaseMinAmount':    float(market.get('quoteMinSize',    0)),
+                            'BaseIncrement':    float(market.get('quoteIncrement',  0.00000001)),
+                            'CurrMinAmount':    float(market.get('baseMinSize',     0)),
+                            'CurrIncrement':    float(market.get('baseIncrement',   0.00000001)),
+                            'PriceMin':         0,
+                            'PriceIncrement':   float(market.get('priceIncrement',  0.00000001)),
+                            'IsActive':         is_active,
+                            'IsRestricted':     is_restricted,
+                        }
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
+
+    def update_market_quotes(self):
+        """
+            Used to get the market quotes
+            Debug: ct['Kucoin'].update_market_quotes()
+        """
+        all_markets = self.get_all_tickers()['ticker']
+        if isinstance(all_markets, list):
+            for ticker in all_markets:
+                try:
+                    market_symbol = ticker['symbol']
+                    dict = {
+                        'BestBid':          float(ticker.get('buy', 0)),
+                        'BestAsk':          float(ticker.get('sell', 0)),
+                        'CurrVolume':       float(ticker.get('vol', 0)),
+                        '24HrHigh':         float(ticker.get('high', 0)),
+                        '24HrLow':          float(ticker.get('low', 0)),
+                        '24HrPercentMove':  float(ticker.get('changeRate', 0)) * 100,
+                        'LastTradedPrice':  float(ticker.get('last', 0)),
+                    }
+                    self.update_market(
+                        market_symbol,
+                        dict
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
+
+    def update_market_24hrs(self):
+        """
+            Used to update 24-hour statistics
+            Debug: ct['Kucoin'].update_market_24hr()
+        """
+        self.update_market_quotes()
+
+
+
+
+
+
 
 
 
@@ -635,7 +706,26 @@ class Kucoin(Exchange):
         return self._complete_balances_btc
 
     def load_order_book(self, market, depth = 5):
-        pass
+        raw_results = self.get_part_order_book_agg(market)
+        take_bid = min(depth, len(raw_results['bids']))
+        take_ask = min(depth, len(raw_results['asks']))
+
+        if take_bid == 0 and take_ask == 0:
+            results = { 'Tradeable': 0, 'Bid': {}, 'Ask': {} }
+        else:
+            results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
+        for i in range(take_bid):
+            results['Bid'][i] = {
+                'Price': float(raw_results['bids'][i][0]),
+                'Quantity': float(raw_results['bids'][i][1]),
+            }
+        for i in range(take_ask):
+            results['Ask'][i] = {
+                'Price': float(raw_results['asks'][i][0]),
+                'Quantity': float(raw_results['asks'][i][1]),
+            }
+
+        return results
 
     def submit_trade(self, direction, market, price, amount, trade_type):
         pass

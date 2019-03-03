@@ -1,5 +1,5 @@
 import time
-import datetime
+from datetime import datetime
 import hmac
 import hashlib
 import requests
@@ -72,6 +72,28 @@ class Bittrex(Exchange):
     ### Exchange specific public methods ###
     ########################################
 
+    def get_currencies(self):
+        """
+            Used to get all supported currencies at Bittrex along with other
+            meta data.
+            Debug: ct['Bittrex'].get_currencies()
+            [
+                {
+                  'BaseAddress': '1N52wHoVR79PMDishab2XmRHsbekCdGquK',
+                  'CoinType': 'BITCOIN',
+                  'Currency': 'BTC',
+                  'CurrencyLong': 'Bitcoin',
+                  'IsActive': True,
+                  'IsRestricted': False,
+                  'MinConfirmation': 2,
+                  'Notice': None,
+                  'TxFee': 0.0005
+                },
+                ...
+              ]
+        """
+        return self.get_request('/public/getcurrencies')
+
     def get_markets(self):
         """
             Used to get the open and available trading markets at Bittrex along
@@ -96,28 +118,6 @@ class Bittrex(Exchange):
               ]
         """
         return self.get_request('/public/getmarkets')
-
-    def get_currencies(self):
-        """
-            Used to get all supported currencies at Bittrex along with other
-            meta data.
-            Debug: ct['Bittrex'].get_currencies()
-            [
-                {
-                  'BaseAddress': '1N52wHoVR79PMDishab2XmRHsbekCdGquK',
-                  'CoinType': 'BITCOIN',
-                  'Currency': 'BTC',
-                  'CurrencyLong': 'Bitcoin',
-                  'IsActive': True,
-                  'IsRestricted': False,
-                  'MinConfirmation': 2,
-                  'Notice': None,
-                  'TxFee': 0.0005
-                },
-                ...
-              ]
-        """
-        return self.get_request('/public/getcurrencies')
 
     def get_ticker(self, market):
         """
@@ -506,6 +506,12 @@ class Bittrex(Exchange):
     def get_latest_tick(self, market, interval = 'fiveMin'):
         return self.get_request('https://bittrex.com/Api/v2.0/pub/market/GetLatestTick?marketName=' + market + '&tickInterval=' + interval, '')
 
+    def parse_timestamp(self, timestamp):
+        millis = timestamp.find('.')
+        if millis > 0:
+            timestamp = timestamp[:millis]
+        return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
+
     #######################
     ### Generic methods ###
     #######################
@@ -559,6 +565,81 @@ class Bittrex(Exchange):
 
         return results
 
+    def update_market_definitions(self):
+        """
+            Used to get the open and available trading markets at Bittrex along
+            with other meta data.
+            * Assumes that currency mappings are already available
+            Debug: ct['Bittrex'].update_market_definitions()
+        """
+        markets = self.get_markets()
+        if isinstance(markets, list):
+            for market in markets:
+                try:
+                    is_active = market.get('IsActive', None)
+                    if is_active is None:
+                        is_active = False
+                    is_restricted = market.get('IsRestricted', None)
+                    if is_restricted is None:
+                        is_restricted = False
+                    notice = market.get('Notice', '')
+                    if notice is None:
+                        notice = ''
+                    self.update_market(
+                        market['MarketName'],
+                        {
+                            'LocalBase':        market['BaseCurrency'],
+                            'LocalCurr':        market['MarketCurrency'],
+                            'BaseMinAmount':    0,
+                            'BaseIncrement':    0.00000001,
+                            'CurrMinAmount':    market.get('MinTradeSize', 0),
+                            'CurrIncrement':    0.00000001,
+                            'PriceMin':         0,
+                            'PriceIncrement':   0.00000001,
+                            'IsActive':         is_active,
+                            'IsRestricted':     is_restricted,
+                            'Notice':           notice,
+                            'Created':          self.parse_timestamp(market['Created']),
+                            'LogoUrl':          market['LogoUrl'],
+                        }
+                    )
+                except Exception as e:
+                    self.log_request_error(str(market) + ". " + str(e))
+
+    def update_market_quotes(self):
+        """
+            Used to get best bids and asks across markets at Bittrex
+            Debug: ct['Bittrex'].update_market_quotes()
+        """
+        market_summaries = self.get_market_summaries()
+        if isinstance(market_summaries, list):
+            for market in market_summaries:
+                market_symbol = market['MarketName']
+                try:
+                    if market['PrevDay'] > 0:
+                        percent_move = 100 * ((market['Bid'] + market['Ask']) / (2 * market['PrevDay']) - 1)
+                    else:
+                        percent_move = 0
+                    self.update_market(
+                        market_symbol,
+                        {
+                            'BaseVolume':       market['BaseVolume'],
+                            'CurrVolume':       market['Volume'],
+                            'BestBid':          market['Bid'],
+                            'BestAsk':          market['Ask'],
+                            '24HrHigh':         market['High'],
+                            '24HrLow':          market['Low'],
+                            '24HrPercentMove':  percent_move,
+                            'LastTradedPrice':  market['Last'],
+                            'TimeStamp':        self.parse_timestamp(market['TimeStamp']),
+                        }
+                    )
+                except Exception as e:
+                    self.log_request_error(str(market) + ". " + str(e))
+
+    def update_market_24hrs(self):
+        self.update_market_quotes()
+
 
 
 
@@ -582,7 +663,7 @@ class Bittrex(Exchange):
         load_chart = self.get_ticks(market_name, interval)
         results = []
         for i in load_chart:
-            new_row = datetime.datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp(), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
+            new_row = datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp(), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
             results.append(new_row)
         return results
 

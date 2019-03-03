@@ -79,20 +79,20 @@ class CTExchangeArb(QWidget):
             for code_curr in results[code_base]:
                 for exchangeBid in results[code_base][code_curr]:
                     for exchangeAsk in results[code_base][code_curr]:
-                        if results[code_base][code_curr][exchangeBid]['Bid'] > results[code_base][code_curr][exchangeAsk]['Ask'] * required_rate_of_return:
+                        if results[code_base][code_curr][exchangeAsk]['BestAsk'] > 0 and results[code_base][code_curr][exchangeBid]['BestBid'] > results[code_base][code_curr][exchangeAsk]['BestAsk'] * required_rate_of_return:
                             count_rows += 1
                             rows_to_report.append({
                                 'code_base': code_base,
                                 'code_curr': code_curr,
                                 'exchangeAsk': exchangeAsk,
-                                'marketAsk': results[code_base][code_curr][exchangeAsk]['Market'],
-                                'exchangeAskBid': results[code_base][code_curr][exchangeAsk]['Bid'],
-                                'exchangeAskAsk': results[code_base][code_curr][exchangeAsk]['Ask'],
+                                'marketAsk': results[code_base][code_curr][exchangeAsk]['MarketSymbol'],
+                                'exchangeAskBid': results[code_base][code_curr][exchangeAsk]['BestBid'],
+                                'exchangeAskAsk': results[code_base][code_curr][exchangeAsk]['BestAsk'],
                                 'exchangeBid': exchangeBid,
-                                'marketBid': results[code_base][code_curr][exchangeBid]['Market'],
-                                'exchangeBidBid': results[code_base][code_curr][exchangeBid]['Bid'],
-                                'exchangeBidAsk': results[code_base][code_curr][exchangeBid]['Ask'],
-                                'return': 100.0 * (results[code_base][code_curr][exchangeBid]['Bid'] / results[code_base][code_curr][exchangeAsk]['Ask'] - 1)
+                                'marketBid': results[code_base][code_curr][exchangeBid]['MarketSymbol'],
+                                'exchangeBidBid': results[code_base][code_curr][exchangeBid]['BestBid'],
+                                'exchangeBidAsk': results[code_base][code_curr][exchangeBid]['BestAsk'],
+                                'return': 100.0 * (results[code_base][code_curr][exchangeBid]['BestBid'] / results[code_base][code_curr][exchangeAsk]['BestAsk'] - 1)
                             })
 
         if self._sort_by_return.isChecked():

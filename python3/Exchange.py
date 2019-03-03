@@ -12,13 +12,15 @@ class Exchange:
 
         self._currencies = {}
         self._markets = {}
+        self._active_markets = {}
         self._balances = {}
         self._timestamps = {}
 
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
+        self._map_market_to_global_codes = {}
 
-        self._active_markets = {}
+
         self._market_prices = {}
         self._available_balances = {}
         self._complete_balances_btc = {}
@@ -65,6 +67,89 @@ class Exchange:
                 self._currencies[currency] = currencies[currency]
         self._timestamps['load_currencies'] = time.time()
 
+    def update_market_definitions(self):
+        """
+            Updates _markets with current market definitions
+        """
+        self.raise_not_implemented_error()
+
+    def get_global_code(self, local_code):
+        return self._map_exchange_code_to_currency_code.get(local_code, None)
+
+    def get_local_code(self, global_code):
+        return self._map_currency_code_to_exchange_code.get(global_code, None)
+
+    def update_market(self, market_symbol, dict):
+        """
+            Updates self._markets and self._active_markets using provided
+            market_symbol (exchange symbol for traded pair, e.g. 'BTC-ETH')
+            local_base (exchange code for base currency)
+            local_curr (exchange code for traded currency)
+            dict contains a dictionary of data to update for the market:
+            {
+                'BaseMinAmount': 0,
+                'BaseIncrement': 0.00000001,
+                'CurrMinAmount': 0,
+                'CurrIncrement': 0.00000001,
+                'IsActive':      True,
+                'IsRestricted':  False,
+                'Notice':        '',
+                'Created':       datetime,
+                'LogoUrl':       'url',
+            }
+        """
+        local_base = dict.pop('LocalBase', None)
+        local_curr = dict.pop('LocalCurr', None)
+        if local_base is not None and local_curr is not None:
+            code_base = self.get_global_code(local_base)
+            code_curr = self.get_global_code(local_curr)
+            self._map_market_to_global_codes[market_symbol] = {
+                'LocalBase': local_base,
+                'LocalCurr': local_curr,
+                'GlobalBase': code_base,
+                'GlobalCurr': code_curr
+            }
+        else:
+            if market_symbol in self._map_market_to_global_codes:
+                code_base = self._map_market_to_global_codes[market_symbol]['GlobalBase']
+                code_curr = self._map_market_to_global_codes[market_symbol]['GlobalCurr']
+            else:
+                code_base = self.get_global_code(local_base)
+                code_curr = self.get_global_code(local_curr)
+
+        if not code_base in self._markets:
+            self._markets[code_base] = {}
+        if not code_curr in self._markets[code_base]:
+            self._markets[code_base][code_curr] = {}
+        if not code_base in self._active_markets:
+            self._active_markets[code_base] = {}
+        if not code_curr in self._active_markets[code_base]:
+            self._active_markets[code_base][code_curr] = {}
+
+        update_dict = {
+            'MarketSymbol':     market_symbol,
+            'BaseMinAmount':    0,
+            'BaseIncrement':    0.00000001,
+            'CurrMinAmount':    0,
+            'CurrIncrement':    0.00000001,
+            'PriceMin':         0,
+            'PriceIncrement':   0.00000001,
+            'IsActive':         True,
+            'IsRestricted':     False,
+            'Notice':           '',
+        }
+        update_dict.update(dict)
+        self._markets[code_base][code_curr].update(update_dict)
+
+        if update_dict['IsActive'] and not update_dict['IsRestricted']:
+            self._active_markets[code_base][code_curr].update(update_dict)
+        else:
+            self._active_markets[code_base].pop(code_curr)
+
+    def get_market_name(self, code_base, code_curr):
+        return self._markets[code_base][code_curr]['MarketSymbol']
+
+
     def raise_not_implemented_error(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
 
@@ -85,72 +170,6 @@ class Exchange:
 
     def retry_count_not_exceeded(self):
         return self._error['count'] < self._max_error_count
-
-    def get_global_code(self, local_code):
-        return self._map_exchange_code_to_currency_code.get(local_code, None)
-
-    def get_local_code(self, global_code):
-        return self._map_currency_code_to_exchange_code.get(global_code, None)
-
-    def update_market(self,
-            market_symbol,
-            local_base,
-            local_curr,
-            best_bid,
-            best_ask,
-            is_active = True,
-            qty_bid = None,
-            qty_ask = None):
-        """
-            Updates self._markets and self._active_markets using provided
-            market_symbol (exchange symbol for traded pair, e.g. 'BTC-ETH')
-            local_base (exchange code for base currency)
-            local_curr (exchange code for traded currency)
-            best_bid (best bid price)
-            best_ask (best ask price)
-            is_active (flag showing if market is active as opposed to frozen)
-            qty_bid (if available, this shows quantity of traded currency available at bid price)
-            qty_ask (if available, this shows quantity of traded currency available at ask price)
-        """
-        code_base = self.get_global_code(local_base)
-        code_curr = self.get_global_code(local_curr)
-
-        if not code_base in self._markets:
-                self._markets[code_base] = {}
-
-        market = {
-            'Market': market_symbol,
-            'Bid': best_bid,
-            'Ask': best_ask,
-        }
-        if qty_bid is not None:
-            market['QtyBid'] = qty_bid
-            market['QtyAsk'] = qty_ask
-        self._markets[code_base][code_curr] = market
-
-        if is_active:
-            if not code_base in self._active_markets:
-                self._active_markets[code_base] = {}
-            self._active_markets[code_base][code_curr] = market
-
-    def load_markets(self):
-        """
-            Individual exchange implementation needs to update self._markets
-            and self._active_markets using update_market function resulting in
-            maps of maps with a structure:
-            {
-                'BTC': {
-                    'ETH': {
-                        'Market': market_symbol,
-                        'Bid': best_bid,
-                        'Ask': best_ask,
-                        'QtyBid': qty_bid, -optional
-                        'QtyAsk': qty_ask  -optional
-                    }
-                }
-            }.
-        """
-        self.raise_not_implemented_error()
 
     def load_available_balances(self):
         """

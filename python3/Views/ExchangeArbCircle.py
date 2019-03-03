@@ -73,26 +73,26 @@ class CTExchangeArbCircle(QWidget):
         row_index = 0
         for row in sorted_rows_to_report:
             self._tableWidget.setItem(row_index,0, QTableWidgetItem(row['exchange']))
-            self._tableWidget.setItem(row_index,1, QTableWidgetItem(row['market1']['Market']))
+            self._tableWidget.setItem(row_index,1, QTableWidgetItem(row['market1']['MarketSymbol']))
             self._tableWidget.setItem(row_index,2, QTableWidgetItem(row['action1']))
             if row['action1'] == 'buy':
-                price = row['market1']['Ask']
+                price = row['market1']['BestAsk']
             else:
-                price = row['market1']['Bid']
+                price = row['market1']['BestBid']
             self._tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(price)))
-            self._tableWidget.setItem(row_index,4, QTableWidgetItem(row['market2']['Market']))
+            self._tableWidget.setItem(row_index,4, QTableWidgetItem(row['market2']['MarketSymbol']))
             self._tableWidget.setItem(row_index,5, QTableWidgetItem(row['action2']))
             if row['action2'] == 'buy':
-                price = row['market2']['Ask']
+                price = row['market2']['BestAsk']
             else:
-                price = row['market2']['Bid']
+                price = row['market2']['BestBid']
             self._tableWidget.setItem(row_index,6, QTableWidgetItem('{:.8f}'.format(price)))
-            self._tableWidget.setItem(row_index,7, QTableWidgetItem(row['market3']['Market']))
+            self._tableWidget.setItem(row_index,7, QTableWidgetItem(row['market3']['MarketSymbol']))
             self._tableWidget.setItem(row_index,8, QTableWidgetItem(row['action3']))
             if row['action3'] == 'buy':
-                price = row['market3']['Ask']
+                price = row['market3']['BestAsk']
             else:
-                price = row['market3']['Bid']
+                price = row['market3']['BestBid']
             self._tableWidget.setItem(row_index,9, QTableWidgetItem('{:.8f}'.format(price)))
             self._tableWidget.setItem(row_index,10, QTableWidgetItem('{:.2f}%'.format(row['return'])))
             row_index += 1

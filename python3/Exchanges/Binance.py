@@ -753,6 +753,102 @@ class Binance(Exchange):
 
         return results
 
+    def update_market_definitions(self, force_update = False):
+        """
+            Used to get the open and available trading markets at Binance along
+            with other meta data.
+            * force_update = False assumes that self._exchangeInfo was filled
+            in recently enough
+            Debug: ct['Binance'].update_market_definitions()
+        """
+        if isinstance(self._exchangeInfo['symbols'], list):
+            for market in self._exchangeInfo['symbols']:
+                try:
+                    is_active = market.get('status', '') == 'TRADING'
+                    is_restricted = not is_active
+                    dict = {
+                        'LocalBase':        market['quoteAsset'],
+                        'LocalCurr':        market['baseAsset'],
+                        'IsActive':         is_active,
+                        'IsRestricted':     is_restricted,
+                    }
+
+                    for filter in market['filters']:
+                        if filter.get('filterType', '') == 'PRICE_FILTER':
+                            dict.update(
+                                {
+                                    'PriceMin':         float(filter['minPrice']),
+                                    'PriceIncrement':   float(filter['tickSize']),
+                                }
+                            )
+                        if filter.get('filterType', '') == 'LOT_SIZE':
+                            dict.update(
+                                {
+                                    'BaseMinAmount':   0,
+                                    'BaseIncrement':   pow(10, -market['quotePrecision']),
+                                    'CurrMinAmount':   float(filter['minQty']),
+                                    'CurrIncrement':   float(filter['stepSize']),
+                                }
+                            )
+
+                    self.update_market(
+                        market['symbol'],
+                        dict
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
+
+    def update_market_quotes(self):
+        """
+            Used to get the market quotes
+            Debug: ct['Binance'].update_market_quotes()
+        """
+        book_ticker = self.get_book_ticker()
+        if isinstance(book_ticker, list):
+            for ticker in book_ticker:
+                try:
+                    market_symbol = ticker['symbol']
+                    dict = {
+                        'BestBid': float(ticker['bidPrice']),
+                        'BestAsk': float(ticker['askPrice']),
+                        'BestBidSize': float(ticker['bidQty']),
+                        'BestAskSize': float(ticker['askQty']),
+                    }
+                    self.update_market(
+                        market_symbol,
+                        dict
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
+
+    def update_market_24hrs(self):
+        """
+            Used to update 24-hour statistics
+            Debug: ct['Binance'].update_market_24hr()
+        """
+        statistics = self.get_24hour_statistics()
+        if isinstance(statistics, list):
+            for market in statistics:
+                try:
+                    market_symbol = market['symbol']
+                    self.update_market(
+                        market_symbol,
+                        {
+                            'BaseVolume':       float(market.get('quoteVolume', 0)),
+                            'CurrVolume':       float(market.get('volume', 0)),
+                            'BestBid':          float(market['bidPrice']),
+                            'BestAsk':          float(market['askPrice']),
+                            'BestBidSize':      float(market['bidQty']),
+                            'BestAskSize':      float(market['askQty']),
+                            '24HrHigh':         float(market['highPrice']),
+                            '24HrLow':          float(market['lowPrice']),
+                            '24HrPercentMove':  float(market['priceChangePercent']),
+                            'LastTradedPrice':  float(market['lastPrice']),
+                            'TimeStamp':        datetime.datetime.fromtimestamp(market['closeTime'] / 1000),
+                        }
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
 
 
 

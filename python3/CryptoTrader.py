@@ -22,7 +22,7 @@ class CryptoTrader:
         print('Initializing Currencies')
         self.init_currencies()
         print('Loading Active Markets')
-        self.load_active_markets()
+        self.init_markets()
 
     def update_keys(self):
         self.SETTINGS['Exchanges with API Keys'] =[]
@@ -78,11 +78,18 @@ class CryptoTrader:
                 except Exception as e:
                     print(str(e))
 
+    def init_markets(self):
+        for exchange in self.SETTINGS.get('Exchanges to Load', []):
+            print('Loading market definitions for ' + exchange)
+            t = threading.Thread(target = self.trader[exchange].update_market_definitions)
+            t.start()
+            t.join(5)
+
     def load_active_markets(self):
         self._active_markets = {}
         for exchange in self.SETTINGS.get('Exchanges to Load', []):
             print('Loading active markets for ' + exchange)
-            t = threading.Thread(target = self.trader[exchange].load_markets)
+            t = threading.Thread(target = self.trader[exchange].update_market_quotes)
             t.start()
             t.join(5)
 
@@ -103,7 +110,7 @@ class CryptoTrader:
             return None
 
     def get_market_name(self, exchange, code_base, code_curr):
-        return self.trader[exchange]._active_markets[code_base][code_curr]['Market']
+        return self.trader[exchange].get_market_name(code_base, code_curr)
 
     def get_arbitrage_possibilities(self, required_rate_of_return):
         self.load_active_markets()
@@ -116,12 +123,12 @@ class CryptoTrader:
                 if len(markets) > 1:
                     for exchange in markets:
                         exchange_code = self._map_currency_code_to_exchange_code[code_curr][exchange]
-                        if not markets[exchange]['Bid'] is None:
-                            if best_bid is None or best_bid < markets[exchange]['Bid']:
-                                best_bid = markets[exchange]['Bid']
-                        if not markets[exchange]['Ask'] is None:
-                            if best_ask is None or best_ask > markets[exchange]['Ask']:
-                                best_ask = markets[exchange]['Ask']
+                        if not markets[exchange]['BestBid'] is None:
+                            if best_bid is None or best_bid < markets[exchange]['BestBid']:
+                                best_bid = markets[exchange]['BestBid']
+                        if not markets[exchange]['BestAsk'] is None:
+                            if best_ask is None or best_ask > markets[exchange]['BestAsk']:
+                                best_ask = markets[exchange]['BestAsk']
                     if not best_bid is None and not best_ask is None and best_bid > best_ask * required_rate_of_return:
                         if not code_base in self._arbitrage_possibilities:
                             self._arbitrage_possibilities[code_base] = {}
@@ -141,7 +148,7 @@ class CryptoTrader:
                                     market1 = self._active_markets[code_base1][code_curr][exchange]
                                     market2 = self._active_markets[code_base2][code_curr][exchange]
                                     market3 = self._active_markets[code_base1][code_base2][exchange]
-                                    if market3['Ask'] is not None and market2['Ask'] is not None and market1['Bid'] is not None and market3['Ask'] * market2['Ask'] > 0 and market3['Ask'] * market2['Ask'] * required_rate_of_return < market1['Bid']:
+                                    if market3['BestAsk'] is not None and market2['BestAsk'] is not None and market1['BestBid'] is not None and market3['BestAsk'] * market2['BestAsk'] > 0 and market3['BestAsk'] * market2['BestAsk'] * required_rate_of_return < market1['BestBid']:
                                         self._arbitrage_possibilities.append(
                                             {
                                                 'exchange': exchange,
@@ -151,10 +158,10 @@ class CryptoTrader:
                                                 'action2': 'buy',
                                                 'market3': market3,
                                                 'action3': 'buy',
-                                                'return': 100.0 * (market1['Bid'] / (market3['Ask'] * market2['Ask']) - 1)
+                                                'return': 100.0 * (market1['BestBid'] / (market3['BestAsk'] * market2['BestAsk']) - 1)
                                             }
                                         )
-                                    if market1['Ask'] is not None and market3['Bid'] is not None and market2['Bid'] is not None and market1['Ask'] > 0 and market3['Bid'] * market2['Bid'] > market1['Ask'] * required_rate_of_return:
+                                    if market1['BestAsk'] is not None and market3['BestBid'] is not None and market2['BestBid'] is not None and market1['BestAsk'] > 0 and market3['BestBid'] * market2['BestBid'] > market1['BestAsk'] * required_rate_of_return:
                                         self._arbitrage_possibilities.append(
                                             {
                                                 'exchange': exchange,
@@ -164,7 +171,7 @@ class CryptoTrader:
                                                 'action2': 'sell',
                                                 'market3': market3,
                                                 'action3': 'sell',
-                                                'return': 100.0 * (market3['Bid'] * market2['Bid'] / market1['Ask'] - 1)
+                                                'return': 100.0 * (market3['BestBid'] * market2['BestBid'] / market1['BestAsk'] - 1)
                                             }
                                         )
 
@@ -187,9 +194,9 @@ class CryptoTrader:
                                 btc_rate = 1
                             else:
                                 if code in ['USD','USDT']:
-                                    btc_rate = 2.0 / (self._active_markets[code]['BTC'][exchange]['Bid'] + self._active_markets[code]['BTC'][exchange]['Ask'])
+                                    btc_rate = 2.0 / (self._active_markets[code]['BTC'][exchange]['BestBid'] + self._active_markets[code]['BTC'][exchange]['BestAsk'])
                                 else:
-                                    btc_rate = (self._active_markets['BTC'][code][exchange]['Bid'] + self._active_markets['BTC'][code][exchange]['Ask']) / 2.0
+                                    btc_rate = (self._active_markets['BTC'][code][exchange]['BestBid'] + self._active_markets['BTC'][code][exchange]['BestAsk']) / 2.0
                             self.trader[exchange]._complete_balances_btc[currency]['BtcValue'] = self.trader[exchange]._complete_balances_btc[currency]['Total'] * btc_rate
                         if not code in self._balances_btc:
                             self._balances_btc[code] = { 'TotalBtcValue': 0.0 }

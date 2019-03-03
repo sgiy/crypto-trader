@@ -657,7 +657,7 @@ class Poloniex(Exchange):
             for currency_key in currencies.keys():
                 try:
                     currency = currencies[currency_key]
-                    if currency['delisted'] == 0:                        
+                    if currency['delisted'] == 0:
                         enabled = currency['disabled'] == 0 and currency['frozen'] == 0
                         if currency.get('depositAddress', '') is None:
                             address = ''
@@ -678,6 +678,55 @@ class Poloniex(Exchange):
                     self.log_request_error(str(e))
 
         return results
+
+    def update_market_definitions(self):
+        """
+            Used to get the open and available trading markets at Bittrex along
+            with other meta data.
+            * Assumes that currency mappings are already available
+            Debug: ct['Poloniex'].update_market_definitions()
+        """
+        markets = self.get_all_markets()
+        if isinstance(markets, dict):
+            for market_symbol in markets:
+                try:
+                    entry = markets[market_symbol]
+                    local_base = market_symbol[0:market_symbol.find('_')]
+                    local_curr = market_symbol[market_symbol.find('_')+1:]
+                    is_frozen = entry.get('isFrozen', 1)
+                    is_active = is_frozen == 0
+                    is_restricted = is_frozen == 1
+                    self.update_market(
+                        market_symbol,
+                        {
+                            'LocalBase':        local_base,
+                            'LocalCurr':        local_curr,
+                            'BaseMinAmount':    0,
+                            'BaseIncrement':    0.00000001,
+                            'CurrMinAmount':    0,
+                            'CurrIncrement':    0.00000001,
+                            'PriceMin':         0,
+                            'PriceIncrement':   0.00000001,
+                            'IsActive':         is_active,
+                            'IsRestricted':     is_restricted,
+                            'BaseVolume':       float(entry['baseVolume']),
+                            'CurrVolume':       float(entry['quoteVolume']),
+                            'BestBid':          float(entry['highestBid']),
+                            'BestAsk':          float(entry['lowestAsk']),
+                            '24HrHigh':         float(entry['high24hr']),
+                            '24HrLow':          float(entry['low24hr']),
+                            '24HrPercentMove':  float(entry['percentChange']),
+                            'LastTradedPrice':  float(entry['last']),
+                        }
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
+
+    def update_market_quotes(self):
+        self.update_market_definitions()
+
+    def update_market_24hrs(self):
+        self.update_market_definitions()
 
 
 
