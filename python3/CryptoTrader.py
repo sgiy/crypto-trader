@@ -86,14 +86,7 @@ class CryptoTrader:
             t.start()
             t.join(5)
 
-    def load_active_markets(self):
-        self._active_markets = {}
-        for exchange in self._SETTINGS.get('Exchanges to Load', []):
-            print('Loading active markets for ' + exchange)
-            t = threading.Thread(target = self.trader[exchange].update_market_quotes)
-            t.start()
-            t.join(5)
-
+    def refresh_agg_active_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             for code_base in self.trader[exchange]._active_markets:
                 if not code_base in self._active_markets:
@@ -103,7 +96,31 @@ class CryptoTrader:
                         self._active_markets[code_base][code_curr] = {}
                     self._active_markets[code_base][code_curr][exchange] = self.trader[exchange]._active_markets[code_base][code_curr]
 
+    def load_active_markets(self):
+        for exchange in self._SETTINGS.get('Exchanges to Load', []):
+            print('Loading active markets for ' + exchange)
+            t = threading.Thread(target = self.trader[exchange].update_market_quotes)
+            t.start()
+            t.join(5)
+
+        self.refresh_agg_active_markets()
+
         return self._active_markets
+
+    def load_24hour_moves(self):
+        for exchange in self._SETTINGS.get('Exchanges to Load', []):
+            print('Loading active markets for ' + exchange)
+            t = threading.Thread(target = self.trader[exchange].update_market_24hrs)
+            t.start()
+            t.join(5)
+
+        self.refresh_agg_active_markets()
+
+        return self._active_markets
+
+
+
+
 
     def get_currency_code(self, exchange, exchange_code):
         try:

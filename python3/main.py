@@ -22,6 +22,7 @@ from Views.Debug import CTDebug
 from Views.Balances import CTBalances
 from Views.Currencies import CTCurrencies
 from Views.ActiveMarkets import CTActiveMarkets
+from Views.TwentyFourHours import CTTwentyFourHours
 
 class CTMainWindow(QMainWindow):
     def __init__(self):
@@ -83,7 +84,7 @@ class CTMainWindow(QMainWindow):
                         'Connect': lambda: self.switch_view('Balances'),
                 },
             'Market': {
-                        'Icon': qta.icon('mdi.finance'),
+                        'Icon': qta.icon('mdi.monitor-dashboard'),
                         'Shortcut': 'Ctrl+M',
                         'StatusTip': 'View Crypto Pair',
                         'Connect': lambda: self.switch_view('ViewPair'),
@@ -115,6 +116,11 @@ class CTMainWindow(QMainWindow):
             'Tradeable Markets': {
                         'StatusTip': 'View Tradeable Markets',
                         'Connect': lambda: self.switch_view('ViewActiveMarkets'),
+                },
+            '24-Hour Market Moves': {
+                        'Icon': qta.icon('mdi.finance'),
+                        'StatusTip': 'View 24-Hour Market Moves',
+                        'Connect': lambda: self.switch_view('View24HourMoves'),
                 },
             'Debug': {
                         'StatusTip': 'Debug',
@@ -156,7 +162,8 @@ class CTMainWindow(QMainWindow):
         arbitrage_menu.addAction(self.Actions['Cross Exchange Arbitrage'])
         arbitrage_menu.addAction(self.Actions['Circle Exchange Arbitrage'])
 
-        order_book_menu = self.MenuBar.addMenu('&Order Books')
+        order_book_menu = self.MenuBar.addMenu('&Market')
+        order_book_menu.addAction(self.Actions['24-Hour Market Moves'])
         order_book_menu.addAction(self.Actions['Market'])
         # order_book_menu.addAction(self.Actions['View Two Exchange Order Books'])
 
@@ -172,6 +179,7 @@ class CTMainWindow(QMainWindow):
         self.ToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.ToolBar.addAction(self.Actions['Exit'])
         self.ToolBar.addAction(self.Actions['Balances'])
+        self.ToolBar.addAction(self.Actions['24-Hour Market Moves'])
         self.ToolBar.addAction(self.Actions['Market'])
 
     def initStatusBar(self):
@@ -223,6 +231,8 @@ class CTMainWindow(QMainWindow):
             self.Views['ViewCurrencies'] = CTCurrencies(CTMain = self)
         if view_name == 'ViewActiveMarkets':
             self.Views['ViewActiveMarkets'] = CTActiveMarkets(CTMain = self)
+        if view_name == 'View24HourMoves':
+            self.Views['View24HourMoves'] = CTTwentyFourHours(CTMain = self)
         self.setCentralWidget(self.Views[view_name])
         self._selected_view = view_name
         self.Views[view_name].show()
