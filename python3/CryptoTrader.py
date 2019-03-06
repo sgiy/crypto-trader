@@ -203,6 +203,7 @@ class CryptoTrader:
             Debug: self._CTMain._Crypto_Trader.calculate_balances_btc()
         """
         self._balances_btc = {}
+        self.load_active_markets()
         for exchange in self._SETTINGS.get('Exchanges with API Keys', []):
             self.trader[exchange].load_balances_btc()
             for currency in self.trader[exchange]._complete_balances_btc:
