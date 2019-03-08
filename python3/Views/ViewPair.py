@@ -12,6 +12,7 @@ from PyQt5.QtCore import Qt, QDateTime,  QPointF, QMargins
 from Views.Dropdown import Dropdown
 from Views.OrderBook import CTOrderBook
 from Views.TradeWidget import CTTradeWidget
+from Views.OpenOrdersWidget import CTOpenOrdersWidget
 
 class CTChartView(QChartView):
     def __init__(self, parent):
@@ -176,7 +177,9 @@ class CTViewPair(QWidget):
         self._chart_dropdown_interval.currentTextChanged.connect(self.draw_chart)
 
         self._trade_widget = CTTradeWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr)
+        self._open_orders_widget = CTOpenOrdersWidget(self._CTMain, self._exchange, "")
         self.refresh_dropdown_exchange_change(self._exchange, self._base_curr, self._curr_curr)
+
 
         label_base_exch = QLabel("&Echange:")
         label_base_exch.setBuddy(self._dropdown_exchange)
@@ -207,8 +210,9 @@ class CTViewPair(QWidget):
         self._splitter_top = QSplitter(Qt.Horizontal)
         self._splitter_left = QSplitter(Qt.Vertical)
         self._splitter_left.addWidget(self._order_book_widget)
+        self._splitter_left.addWidget(self._open_orders_widget)
         self._splitter_left.addWidget(self._trade_widget)
-        self._splitter_left.setSizes([500,20])
+        self._splitter_left.setSizes([500,100,100])
 
         self._splitter_right = QSplitter(Qt.Vertical)
         self._splitter_right.addWidget(self._chart_view)
@@ -243,6 +247,10 @@ class CTViewPair(QWidget):
             self._curr_curr,
             self._market_name
             )
+        self._open_orders_widget.update_market(
+            self._exchange,
+            self._market_name
+        )
 
     def draw_chart(self):
         exchange = self._exchange

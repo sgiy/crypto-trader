@@ -55,7 +55,7 @@ class Bittrex(Exchange):
                 self.log_request_success()
                 return result['result']
             else:
-                self.log_request_error(results['message'])
+                self.log_request_error(result['message'])
                 if self.retry_count_not_exceeded():
                     return self.trading_api_request(command, extra)
                 else:
@@ -255,8 +255,7 @@ class Bittrex(Exchange):
 
     def get_open_orders_in_market(self, market):
         """
-            Get all orders that you currently have opened. A specific market can
-            be requested.
+            Get all orders that you currently have opened for a specific market.
             Debug: ct['Bittrex'].get_open_orders_in_market('BTC-LTC')
             [
                 {
@@ -639,6 +638,32 @@ class Bittrex(Exchange):
 
     def update_market_24hrs(self):
         self.update_market_quotes()
+
+    def update_user_open_orders_per_market(self, market):
+        """
+            Used to update outstanding orders
+            Debug: ct['Bittrex'].update_user_market_open_orders()
+        """
+        open_orders = self.get_open_orders_in_market(market)
+        results = []
+        for order in open_orders:
+            if order['OrderType'] == 'LIMIT_BUY':
+                order_type = 'Buy'
+            else:
+                order_type = 'Sell'
+
+            results.append({
+                'OrderId': order['OrderUuid'],
+                'OrderType': order_type,
+                'OpderOpenedAt': self.parse_timestamp(order['Opened']),
+                'Price': order.get('Limit',0),
+                'Amount': order.get('Quantity',0),
+                'Total': order.get('Price',0),
+                'AmountRemaining': order.get('QuantityRemaining',0),
+            })
+
+        self._open_orders[market] = results
+
 
 
 

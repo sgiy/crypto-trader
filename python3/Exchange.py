@@ -20,6 +20,7 @@ class Exchange:
         self._map_exchange_code_to_currency_code = {}
         self._map_market_to_global_codes = {}
 
+        self._open_orders = {}
 
         self._market_prices = {}
         self._available_balances = {}

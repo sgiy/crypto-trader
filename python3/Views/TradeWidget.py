@@ -71,7 +71,7 @@ class CTTradeWidget(QWidget):
             self._base_amount.setText("")
             self._label_quantity.setText("Quantity {}:".format(self._local_curr))
             self._label_base_amount.setText("Total {}:".format(self._local_base))
-            self.update_available_balances()
+            self.update_after_trade()
             self.repaint()
 
     def update_available_balances(self):
@@ -99,6 +99,10 @@ class CTTradeWidget(QWidget):
                     0
                 )
             )
+
+    def update_after_trade(self):
+        self.update_available_balances()
+        self._CTMain._Crypto_Trader.trader[self._exchange].update_user_open_orders_per_market(self._market_symbol)
 
     def set_price(self, price):
         self._price.setText("{:.8f}".format(price))
@@ -150,5 +154,5 @@ class CTTradeWidget(QWidget):
         # Give 0.5 seconds for submitted order to propagate through the exchange
         # so that the following balances update has new values
         self._single_shot_timer.start(500)
-        self._single_shot_timer.timeout.connect(self.update_available_balances)
+        self._single_shot_timer.timeout.connect(self.update_after_trade)
         self.repaint()
