@@ -118,15 +118,11 @@ class CryptoTrader:
 
         return self._active_markets
 
-
-
-
-
     def get_currency_code(self, exchange, exchange_code):
-        try:
-            return self._map_exchange_code_to_currency_code[exchange][exchange_code]
-        except Exception as e:
-            print('ERROR CryptoTrader get_currency_code',exchange,exchange_code,str(e))
+        if exchange in self._map_exchange_code_to_currency_code:
+            return self._map_exchange_code_to_currency_code[exchange].get(exchange_code, exchange_code)
+        else:
+            print('ERROR CryptoTrader get_currency_code on {} code: '.format(exchange, exchange_code))
             return None
 
     def get_market_name(self, exchange, code_base, code_curr):
@@ -217,7 +213,10 @@ class CryptoTrader:
                                 if code in ['USD','USDT']:
                                     btc_rate = 2.0 / (self._active_markets[code]['BTC'][exchange]['BestBid'] + self._active_markets[code]['BTC'][exchange]['BestAsk'])
                                 else:
-                                    btc_rate = (self._active_markets['BTC'][code][exchange]['BestBid'] + self._active_markets['BTC'][code][exchange]['BestAsk']) / 2.0
+                                    if code in self._active_markets['BTC']:
+                                        btc_rate = (self._active_markets['BTC'][code][exchange]['BestBid'] + self._active_markets['BTC'][code][exchange]['BestAsk']) / 2.0
+                                    else:
+                                        btc_rate = 0
                             self.trader[exchange]._complete_balances_btc[currency]['BtcValue'] = self.trader[exchange]._complete_balances_btc[currency]['Total'] * btc_rate
                         if not code in self._balances_btc:
                             self._balances_btc[code] = { 'TotalBtcValue': 0.0 }
