@@ -94,21 +94,34 @@ class CTBalances(QWidget):
         # Populate balances details table
         self._balances_details = self._CTMain._Crypto_Trader._balances_btc
         self._balances_details_table.setRowCount(len(self._balances_details))
-        self._balances_details_table.setColumnCount(len(self._balances_summary) + 3)
+        self._balances_details_table.setColumnCount(len(self._balances_summary) + 5)
         self._balances_details_table.verticalHeader().hide()
-        self._balances_details_table.setHorizontalHeaderLabels(['Currency Code'] + ordered_exchanges + ['Total BTC Value', 'Total USD Value'])
+        self._balances_details_table.setHorizontalHeaderLabels(
+                ['Currency Code'] +
+                ordered_exchanges +
+                ['Total Amount', 'Total BTC Value', 'Currency USD Price', 'Total USD Value']
+            )
 
         row_index = 0
         for code, holdings in sorted(self._balances_details.items(), key=lambda k_v: k_v[1]['TotalBtcValue'], reverse=True):
             column_index = 0
+            currency_total = 0
             self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem(code))
             for exchange in ordered_exchanges:
                 column_index += 1
                 if exchange in holdings:
                     self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.4f}".format(holdings[exchange]['Total'])))
                     self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
+                    if holdings[exchange].get('BtcValue', 0) > 0:
+                        currency_total += holdings[exchange].get('Total', 0)
+            column_index += 1
+            self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.4f}".format(currency_total)))
+            self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
             column_index += 1
             self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.8f}".format(holdings['TotalBtcValue'])))
+            self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
+            column_index += 1
+            self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.4f}".format(holdings['TotalBtcValue'] * self._btc_usd_price / currency_total)))
             self._balances_details_table.item(row_index, column_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
             column_index += 1
             self._balances_details_table.setItem(row_index, column_index, QTableWidgetItem("{0:,.2f}".format(holdings['TotalBtcValue'] * self._btc_usd_price)))
