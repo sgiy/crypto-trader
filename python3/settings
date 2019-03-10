@@ -1,4 +1,5 @@
 {
+    'Font Size': 9,
     'Default Order Book Depth': 5,
     'Initial Market View Exchange': 'Bittrex',
     'Initial Market View Base Currency': 'USD',
@@ -8,8 +9,8 @@
     'Initial Main Window Position and Size': {
         'left':     50,
         'top':      50,
-        'width':    1700,
-        'height':   1000,
+        'width':    1500,
+        'height':   800
     },
     'Exchange Classes to Initialize': [
         'Binance',

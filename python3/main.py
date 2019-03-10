@@ -2,7 +2,7 @@ import sys, os, json
 from datetime import datetime
 
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction)
 
 import qtawesome as qta
@@ -24,6 +24,11 @@ from Views.Currencies import CTCurrencies
 from Views.ActiveMarkets import CTActiveMarkets
 from Views.TwentyFourHours import CTTwentyFourHours
 
+def read_settings():
+    with open(os.path.join(sys.path[0], 'settings'), 'rb') as myfile:
+        msg=myfile.read()
+    return eval(msg)
+
 class CTMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -31,27 +36,20 @@ class CTMainWindow(QMainWindow):
         self.setWindowTitle('Crypto Trader')
         self._Timer = QTimer(self)
         self.Views = {}
-        with open(os.path.join(sys.path[0], 'settings'), 'rb') as myfile:
-            msg=myfile.read()
-        self._settings = eval(msg)
-        self._selected_view = None
-        self.refresh_stylesheet()
-        self.switch_view('Login')
-        self.setGeometry(
-            300,
-            300,
-            1200,
-            480
-        )
-        self.show()
 
-    def initUI(self):
+        self._settings = read_settings()
         self.setGeometry(
             self._settings['Initial Main Window Position and Size']['left'],
             self._settings['Initial Main Window Position and Size']['top'],
             self._settings['Initial Main Window Position and Size']['width'],
             self._settings['Initial Main Window Position and Size']['height']
         )
+        self._selected_view = None
+        self.refresh_stylesheet()
+        self.switch_view('Login')
+        self.show()
+
+    def initUI(self):
         self.initCryptoTrader()
         self._Parameters = CryptoTraderParameters()
 
@@ -239,6 +237,13 @@ class CTMainWindow(QMainWindow):
 
 if __name__ == '__main__':
     print('Starting...')
+    font = QFont("Helvetica")
+
+    settings = read_settings()
+    font.setPointSize(settings.get('Font Size', 12))
+
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling);
+    QApplication.setFont(font)
     app = QApplication([])
     win = CTMainWindow()
     sys.exit(app.exec_())
