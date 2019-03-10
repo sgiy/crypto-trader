@@ -181,7 +181,7 @@ class CTViewPair(QWidget):
         self.refresh_dropdown_exchange_change(self._exchange, self._base_curr, self._curr_curr)
 
 
-        label_base_exch = QLabel("&Echange:")
+        label_base_exch = QLabel("&Exchange:")
         label_base_exch.setBuddy(self._dropdown_exchange)
         label_base_curr = QLabel("&Base:")
         label_base_curr.setBuddy(self._dropdown_base_curr)
