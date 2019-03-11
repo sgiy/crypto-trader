@@ -45,6 +45,8 @@ class Bittrex(Exchange):
 
     def trading_api_request(self, command, extra=''):
         try:
+            if self._API_KEY == '':
+                return {}
             nonce = str(int(time.time()*1000))
             request_url = self._BASE_URL + command + '?' + 'apikey=' + self._API_KEY + "&nonce=" + nonce + extra
             result = requests.get(
@@ -642,7 +644,7 @@ class Bittrex(Exchange):
     def update_user_open_orders_per_market(self, market):
         """
             Used to update outstanding orders
-            Debug: ct['Bittrex'].update_user_market_open_orders()
+            Debug: ct['Bittrex'].update_user_market_open_orders('BTC-LTC')
         """
         open_orders = self.get_open_orders_in_market(market)
         results = []
@@ -664,7 +666,30 @@ class Bittrex(Exchange):
 
         self._open_orders[market] = results
 
+    def update_recent_market_trades_per_market(self, market):
+        """
+            Used to update recent market trades at a given market
+            Debug: ct['Bittrex'].update_recent_market_trades_per_market('BTC-LTC')
+        """
+        trades = self.get_market_history(market)
+        results = []
+        for trade in trades:
+            if trade['OrderType'] == 'BUY':
+                order_type = 'Buy'
+            else:
+                order_type = 'Sell'
 
+            if trade.get('Price',0) > 0 and trade.get('Quantity',0) > 0:
+                results.append({
+                    'TradeId': trade['Id'],
+                    'TradeType': order_type,
+                    'TradeTime': self.parse_timestamp(trade['TimeStamp']),
+                    'Price': trade['Price'],
+                    'Amount': trade['Quantity'],
+                    'Total': trade['Total']
+                })
+
+        self._recent_market_trades[market] = results
 
 
 
