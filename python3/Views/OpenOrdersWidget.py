@@ -48,23 +48,23 @@ class CTOpenOrdersWidget(QWidget):
         self._table_widget.setColumnCount(7)
         self._table_widget.verticalHeader().hide()
         self._table_widget.setHorizontalHeaderLabels([
-            'OrderId',
             'OrderType',
             'OpderOpenedAt',
             'Price',
             'Amount',
             'Total',
-            'AmountRemaining'
+            'AmountRemaining',
+            ''
         ])
 
         row_index = 0
         for order in self._open_orders:
             self._table_widget.setItem(row_index, 0, QTableWidgetItem("{}".format(order['OrderType'])))
             self._table_widget.setItem(row_index, 1, QTableWidgetItem("{}".format(order['OpderOpenedAt'])))
-            self._table_widget.setItem(row_index, 2, QTableWidgetItem("{0:,.8}".format(order['Price'])))
-            self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.8}".format(order['Amount'])))
-            self._table_widget.setItem(row_index, 4, QTableWidgetItem("{0:,.8}".format(order['Total'])))
-            self._table_widget.setItem(row_index, 5, QTableWidgetItem("{0:,.8}".format(order['AmountRemaining'])))
+            self._table_widget.setItem(row_index, 2, QTableWidgetItem("{0:,.8f}".format(order['Price'])))
+            self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.8f}".format(order['Amount'])))
+            self._table_widget.setItem(row_index, 4, QTableWidgetItem("{0:,.8f}".format(order['Total'])))
+            self._table_widget.setItem(row_index, 5, QTableWidgetItem("{0:,.8f}".format(order['AmountRemaining'])))
             self._table_widget.setCellWidget(row_index, 6, CTCancelOrderButton(self, order['OrderId']));
             row_index += 1
 
