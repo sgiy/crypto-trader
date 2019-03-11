@@ -76,25 +76,25 @@ class CTTradeWidget(QWidget):
 
     def update_available_balances(self):
         if self._exchange in self._CTMain._Crypto_Trader._SETTINGS.get('Exchanges with API Keys', []):
-            self._available_balances_base.setText("Available {}: {:.8f}".format(
+            self._available_balances_base.setText("Available {}: {:,.8f}".format(
                     self._local_base,
                     self._CTMain._Crypto_Trader.trader[self._exchange].get_available_balance(self._local_base, True)
                 )
             )
             # Need to force reload balances only once, assuming balances are updated
             # for all currencies simultaneously
-            self._available_balances_currency.setText("Available {}: {:.8f}".format(
+            self._available_balances_currency.setText("Available {}: {:,.8f}".format(
                     self._local_curr,
                     self._CTMain._Crypto_Trader.trader[self._exchange].get_available_balance(self._local_curr, False)
                 )
             )
         else:
-            self._available_balances_base.setText("Available {}: {:.8f}".format(
+            self._available_balances_base.setText("Available {}: {:,.8f}".format(
                     self._local_base,
                     0
                 )
             )
-            self._available_balances_currency.setText("Available {}: {:.8f}".format(
+            self._available_balances_currency.setText("Available {}: {:,.8f}".format(
                     self._local_curr,
                     0
                 )
