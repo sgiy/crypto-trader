@@ -38,7 +38,7 @@ class CTRecentTradesWidget(QWidget):
         t.join(1)
         self._recent_trades = self._CTMain._Crypto_Trader.trader[self._exchange]._recent_market_trades.get(self._market_symbol, [])
 
-        self._table_widget.setRowCount(len(self._recent_trades))
+        self._table_widget.setRowCount(min(10, len(self._recent_trades)))
         self._table_widget.setColumnCount(4)
         self._table_widget.verticalHeader().hide()
         self._table_widget.setHorizontalHeaderLabels([
@@ -50,16 +50,17 @@ class CTRecentTradesWidget(QWidget):
 
         row_index = 0
         for trade in sorted(self._recent_trades, key=lambda k_v: k_v['TradeTime'], reverse=True):
-            self._table_widget.setItem(row_index, 0, QTableWidgetItem("{}".format(trade['TradeTime'])))
-            self._table_widget.setItem(row_index, 1, QTableWidgetItem("{0:,.8f}".format(trade['Price'])))
-            self._table_widget.setItem(row_index, 2, QTableWidgetItem("{0:,.8f}".format(trade['Amount'])))
-            self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.8f}".format(trade['Total'])))
-            for col_index in range(4):
-                self._table_widget.item(row_index, col_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
-                if trade['TradeType'] == 'Buy':
-                    self._table_widget.item(row_index, col_index).setBackground(self._CTMain._Parameters.Color['green_light'])
-                else:
-                    self._table_widget.item(row_index, col_index).setBackground(self._CTMain._Parameters.Color['red_light'])
-            row_index += 1
+            if row_index < 10:
+                self._table_widget.setItem(row_index, 0, QTableWidgetItem("{}".format(trade['TradeTime'])))
+                self._table_widget.setItem(row_index, 1, QTableWidgetItem("{0:,.8f}".format(trade['Price'])))
+                self._table_widget.setItem(row_index, 2, QTableWidgetItem("{0:,.8f}".format(trade['Amount'])))
+                self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.8f}".format(trade['Total'])))
+                for col_index in range(4):
+                    self._table_widget.item(row_index, col_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
+                    if trade['TradeType'] == 'Buy':
+                        self._table_widget.item(row_index, col_index).setBackground(self._CTMain._Parameters.Color['green_light'])
+                    else:
+                        self._table_widget.item(row_index, col_index).setBackground(self._CTMain._Parameters.Color['red_light'])
+                row_index += 1
 
         self.repaint()
