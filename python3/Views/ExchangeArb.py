@@ -17,11 +17,11 @@ class CTSelectArbButton(QPushButton):
         self._parent._selected_order_books = CTTwoOrderBooks(
             CTMain = self._parent._CTMain,
             exchange1 = self._row['exchangeAsk'],
-            market_name1 = self._row['marketAsk'],
+            market_symbol_1 = self._row['marketAsk'],
             base_curr1 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeAsk']].get_local_code(self._row['code_base']),
             curr_curr1 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeAsk']].get_local_code(self._row['code_curr']),
             exchange2 = self._row['exchangeBid'],
-            market_name2 = self._row['marketBid'],
+            market_symbol_2 = self._row['marketBid'],
             base_curr2 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeBid']].get_local_code(self._row['code_base']),
             curr_curr2 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeBid']].get_local_code(self._row['code_curr']),
             depth = 5

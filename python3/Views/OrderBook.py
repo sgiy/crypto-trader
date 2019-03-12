@@ -3,11 +3,11 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout)
 
 class CTOrderBook(QWidget):
-    def __init__(self, CTMain = None, exchange = None, market_name = None, base_curr = None, curr_curr = None, depth = None):
+    def __init__(self, CTMain = None, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):
         super().__init__()
         self._CTMain = CTMain
         self._exchange = exchange
-        self._market_name = market_name
+        self._market_symbol = market_symbol
         self._base_curr = base_curr
         self._curr_curr = curr_curr
         self._depth = depth
@@ -22,14 +22,14 @@ class CTOrderBook(QWidget):
         self.setLayout(self._layout)
 
     def load_order_book(self):
-        self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_name, self._depth)
+        self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_symbol, self._depth)
 
-    def refresh_order_book(self, exchange = None, market_name = None, base_curr = None, curr_curr = None, depth = None):
+    def refresh_order_book(self, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):
         try:
             if exchange is not None:
                 self._exchange = exchange
-            if market_name is not None:
-                self._market_name = market_name
+            if market_symbol is not None:
+                self._market_symbol = market_symbol
             if base_curr is not None:
                 self._base_curr = base_curr
             if curr_curr is not None:
@@ -84,6 +84,6 @@ class CTOrderBook(QWidget):
                     else:
                         self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_bold'])
                     self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
-            self._CTMain.log("Loaded market " + self._market_name)
+            self._CTMain.log("Loaded market " + self._market_symbol)
         except Exception as e:
             print(str(e))

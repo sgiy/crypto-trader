@@ -125,8 +125,8 @@ class CryptoTrader:
             print('ERROR CryptoTrader get_currency_code on {} code: '.format(exchange, exchange_code))
             return None
 
-    def get_market_name(self, exchange, code_base, code_curr):
-        return self.trader[exchange].get_market_name(code_base, code_curr)
+    def get_market_symbol(self, exchange, code_base, code_curr):
+        return self.trader[exchange].get_market_symbol(code_base, code_curr)
 
     def get_arbitrage_possibilities(self, required_rate_of_return):
         self.load_active_markets()

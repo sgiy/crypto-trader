@@ -206,19 +206,6 @@ class CTMainWindow(QMainWindow):
             self.Views['ViewCrossExchangeArbitrage'] = CTExchangeArb(CTMain = self)
         if view_name == 'ViewCircleExchangeArbitrage':
             self.Views['ViewCircleExchangeArbitrage'] = CTExchangeArbCircle(CTMain = self)
-        # if view_name == 'ViewTwoExchangeOrderBooks':
-        #     self.Views['ViewTwoExchangeOrderBooks'] = CTTwoOrderBooks(
-        #         CTMain = self,
-        #         exchange1 = 'Bittrex',
-        #         market_name1 = 'BTC-XLM',
-        #         base_curr1 = 'BTC',
-        #         curr_curr1 = 'XLM',
-        #         exchange2 = 'Poloniex',
-        #         market_name2 = 'BTC_STR',
-        #         base_curr2 = 'BTC',
-        #         curr_curr2 = 'STR',
-        #         depth = 5
-        #         )
         if view_name == 'Debug':
             self.Views['Debug'] = CTDebug(CTMain = self)
         if view_name == 'Login':

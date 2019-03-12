@@ -876,7 +876,7 @@ class Binance(Exchange):
                 self.log_request_error(str(market_symbol) + ". " + str(e))
         return self._active_markets
 
-    def load_ticks(self, market_name, interval = '5m', lookback = None):
+    def load_ticks(self, market_symbol, interval = '5m', lookback = None):
         """
             https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
             [
@@ -896,7 +896,7 @@ class Binance(Exchange):
               ]
             ]
         """
-        load_chart = self.get_candlesticks(market_name, interval)
+        load_chart = self.get_candlesticks(market_symbol, interval)
         results = []
         for i in load_chart:
             new_row = i[0], float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), float(i[7])

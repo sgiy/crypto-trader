@@ -690,8 +690,8 @@ class Hotbit(Exchange):
         markets = self.get_markets()
         for market in markets:
             try:
-                market_name = market['name']
-                coins = market_name.split('/')
+                market_symbol = market['name']
+                coins = market_symbol.split('/')
                 self._currencies[coins[0]] = {
                     'Name': market['coin1Name'],
                     'Enabled': 1

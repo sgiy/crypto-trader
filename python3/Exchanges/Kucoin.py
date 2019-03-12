@@ -670,7 +670,7 @@ class Kucoin(Exchange):
                 self.log_request_error(str(market) + ". " + str(e))
         return self._active_markets
 
-    def load_ticks(self, market_name, interval = 'fiveMin', lookback = None):
+    def load_ticks(self, market_symbol, interval = 'fiveMin', lookback = None):
         pass
 
     def load_available_balances(self):

@@ -7,7 +7,7 @@ class CTOrderBookWithSelectors(QWidget):
     def __init__(self,
             CTMain = None,
             exchange = None,
-            market_name = None,
+            market_symbol = None,
             base_curr = None,
             curr_curr = None,
             depth = None):
@@ -15,7 +15,7 @@ class CTOrderBookWithSelectors(QWidget):
 
         self._CTMain = CTMain
         self._exchange = exchange
-        self._market_name = market_name
+        self._market_symbol = market_symbol
         self._base_curr = base_curr
         self._curr_curr = curr_curr
         self._depth = depth
@@ -23,7 +23,7 @@ class CTOrderBookWithSelectors(QWidget):
         self._order_book = CTOrderBook(
             self._CTMain,
             self._exchange,
-            self._market_name,
+            self._market_symbol,
             self._base_curr,
             self._curr_curr,
             self._depth
@@ -85,19 +85,19 @@ class CTOrderBookWithSelectors(QWidget):
 
     def dropdown_curr_changed(self, curr_curr):
         self._curr_curr = curr_curr
-        self._market_name = self._CTMain._Crypto_Trader.get_market_name(self._exchange, self._base_curr, self._curr_curr)
+        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(self._exchange, self._base_curr, self._curr_curr)
         self._order_book.refresh_order_book(
             self._exchange,
-            self._market_name,
+            self._market_symbol,
             self._base_curr,
             self._curr_curr,
             self._depth
             )
 
-    def refresh_order_book(self, exchange = None, market_name = None, base_curr = None, curr_curr = None, depth = None):
+    def refresh_order_book(self, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):
         self._order_book.refresh_order_book(
             exchange,
-            market_name,
+            market_symbol,
             base_curr,
             curr_curr,
             depth

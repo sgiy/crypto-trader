@@ -795,6 +795,6 @@ class Poloniex(Exchange):
 
         return results
 
-    def load_ticks(self, market_name, interval, lookback):
+    def load_ticks(self, market_symbol, interval, lookback):
         # TODO:
         pass

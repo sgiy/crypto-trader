@@ -1,3 +1,4 @@
+import threading
 from datetime import datetime
 
 from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel,
@@ -130,7 +131,7 @@ class CTViewPair(QWidget):
 
     def refresh_dropdown_curr_change(self, curr_curr):
         self._curr_curr = curr_curr
-        self._market_name = self._CTMain._Crypto_Trader.get_market_name(self._exchange, self._base_curr, curr_curr)
+        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(self._exchange, self._base_curr, curr_curr)
 
         self.refresh()
         self.draw_chart()
@@ -177,10 +178,10 @@ class CTViewPair(QWidget):
         self._chart_dropdown_interval = Dropdown(self._CTMain._Parameters.get_chart_intervals(), self._chart_interval)
         self._chart_dropdown_interval.currentTextChanged.connect(self.draw_chart)
 
-        self._market_name = self._CTMain._Crypto_Trader.get_market_name(self._exchange, self._base_curr, self._curr_curr)
-        self._trade_widget = CTTradeWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr)
-        self._open_orders_widget = CTOpenOrdersWidget(self._CTMain, self._exchange, self._market_name)
-        self._recent_trades_widget = CTRecentTradesWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr, self._market_name)
+        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(self._exchange, self._base_curr, self._curr_curr)
+        self._trade_widget = CTTradeWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr, self._market_symbol)
+        self._open_orders_widget = CTOpenOrdersWidget(self._CTMain, self._exchange, self._market_symbol)
+        self._recent_trades_widget = CTRecentTradesWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr, self._market_symbol)
         self.refresh_dropdown_exchange_change(self._exchange, self._base_curr, self._curr_curr)
 
 
@@ -239,9 +240,14 @@ class CTViewPair(QWidget):
         import ipdb; ipdb.set_trace()
 
     def refresh(self):
+        t = threading.Thread(target = self.refresh_widgets)
+        t.start()
+        t.join(1)
+
+    def refresh_widgets(self):
         self._order_book_widget.refresh_order_book(
             self._exchange,
-            self._market_name,
+            self._market_symbol,
             self._base_curr,
             self._curr_curr
             )
@@ -249,30 +255,30 @@ class CTViewPair(QWidget):
             self._exchange,
             self._base_curr,
             self._curr_curr,
-            self._market_name
+            self._market_symbol
             )
         self._open_orders_widget.update_market(
             self._exchange,
-            self._market_name
+            self._market_symbol
         )
         self._recent_trades_widget.update_market(
             self._exchange,
             self._base_curr,
             self._curr_curr,
-            self._market_name
+            self._market_symbol
         )
 
     def draw_chart(self):
         exchange = self._exchange
         code_base = self._base_curr
         code_curr = self._curr_curr
-        market_name = self._market_name
+        market_symbol = self._market_symbol
         interval_name = self._chart_dropdown_interval.currentText()
         lookback_name = self._chart_dropdown_lookback.currentText()
         interval = self._CTMain._Parameters.ChartInterval[interval_name]
         lookback = self._CTMain._Parameters.ChartLookbackWindow[lookback_name]
 
-        load_chart = self._CTMain._Crypto_Trader.trader[exchange].load_chart_data(market_name, interval, lookback)
+        load_chart = self._CTMain._Crypto_Trader.trader[exchange].load_chart_data(market_symbol, interval, lookback)
 
         self.CandlestickSeries.clear()
         self.VolumeBarSeries.clear()

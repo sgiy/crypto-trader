@@ -63,7 +63,7 @@ class CTTradeWidget(QWidget):
             self._local_base = self._CTMain._Crypto_Trader.trader[exchange].get_local_code(code_base)
             self._local_curr = self._CTMain._Crypto_Trader.trader[exchange].get_local_code(code_curr)
             if market_symbol is None:
-                self._market_symbol = self._CTMain._Crypto_Trader.get_market_name(exchange, code_base, code_curr)
+                self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(exchange, code_base, code_curr)
             else:
                 self._market_symbol = market_symbol
             self._price.setText("")

@@ -709,8 +709,8 @@ class Bittrex(Exchange):
                 self.log_request_error(str(entry) + ". " + str(e))
         return self._active_markets
 
-    def load_ticks(self, market_name, interval = 'fiveMin', lookback = None):
-        load_chart = self.get_ticks(market_name, interval)
+    def load_ticks(self, market_symbol, interval = 'fiveMin', lookback = None):
+        load_chart = self.get_ticks(market_symbol, interval)
         results = []
         for i in load_chart:
             new_row = datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp(), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']

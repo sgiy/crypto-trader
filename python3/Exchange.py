@@ -149,7 +149,7 @@ class Exchange:
         else:
             self._active_markets[code_base].pop(code_curr)
 
-    def get_market_name(self, code_base, code_curr):
+    def get_market_symbol(self, code_base, code_curr):
         return self._markets[code_base][code_curr]['MarketSymbol']
 
 
@@ -205,7 +205,7 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
-    def load_ticks(self, market_name, interval, lookback):
+    def load_ticks(self, market_symbol, interval, lookback):
         """
             interval is an exchange specific name, e.g. 'fiveMin'
             Returns a candlestick data: times, opens, closes, ...
@@ -224,7 +224,7 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
-    def load_chart_data(self, market_name, interval, lookback):
+    def load_chart_data(self, market_symbol, interval, lookback):
         """
             interval and lookback come in terms of number of minutes
         """
@@ -239,7 +239,7 @@ class Exchange:
                 take_i_name = i_name
 
         number_of_ticks_to_take = int(lookback / interval)
-        preliminary_ticks = self.load_ticks(market_name, take_i_name, lookback)
+        preliminary_ticks = self.load_ticks(market_symbol, take_i_name, lookback)
         if preliminary_ticks is None:
             return None
         else:
