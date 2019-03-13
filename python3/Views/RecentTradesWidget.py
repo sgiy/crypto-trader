@@ -8,6 +8,8 @@ class CTRecentTradesWidget(QWidget):
     def __init__(self, CTMain, exchange, code_base, code_curr, market_symbol):
         super().__init__()
         self._CTMain = CTMain
+        self._re_draw_frequency = 0.3
+        self._re_load_frequency = 1
         self.update_market(exchange, code_base, code_curr, market_symbol)
 
         self._table_widget = QTableWidget()
@@ -15,31 +17,37 @@ class CTRecentTradesWidget(QWidget):
         self._layout.addWidget(self._table_widget)
         self.setLayout(self._layout)
 
-        self._single_shot_timer = QTimer(self)
-        self._single_shot_timer.setSingleShot(True)
-        self._single_shot_timer.timeout.connect(self.reload_recent_trades)
+        self._timer_painter = QTimer(self)
+        self._timer_painter.start(self._re_draw_frequency * 1000)
+        self._timer_painter.timeout.connect(self.re_draw)
 
-        self._timer = QTimer(self)
-        self._timer.start(1500)
-        self._timer.timeout.connect(self.refresh_widget)
+        self._timer_loader = QTimer(self)
+        self._timer_loader.start(self._re_load_frequency * 1000)
+        self._timer_loader.timeout.connect(self.re_load_recent_trades)
 
     def update_market(self, exchange, code_base, code_curr, market_symbol):
+        print(exchange, code_base, code_curr, market_symbol)
         self._exchange = exchange
         self._code_base = code_base
         self._code_curr = code_curr
         self._market_symbol = market_symbol
+        self.re_load_recent_trades()
 
-    def reload_recent_trades(self):
-        self._CTMain._Crypto_Trader.trader[self._exchange].update_recent_market_trades_per_market(self._market_symbol)
+    def re_load_recent_trades_thread(self):
+        if self._exchange in self._CTMain._Crypto_Trader.trader:
+            self._CTMain._Crypto_Trader.trader[self._exchange].update_recent_market_trades_per_market(self._market_symbol)
 
-    def refresh_widget(self):
-        t = threading.Thread(target = self.refresh)
+    def re_load_recent_trades(self):
+        print("re_load_recent_trades")
+        t = threading.Thread(target = self.re_load_recent_trades_thread)
         t.start()
-        t.join(1)
+        t.join(self._re_load_frequency)
 
-    def refresh(self):
-        self._CTMain._Crypto_Trader.trader[self._exchange].update_recent_market_trades_per_market(self._market_symbol)
-        self._recent_trades = self._CTMain._Crypto_Trader.trader[self._exchange]._recent_market_trades.get(self._market_symbol, [])
+    def re_draw(self):
+        if self._exchange in self._CTMain._Crypto_Trader.trader:
+            self._recent_trades = self._CTMain._Crypto_Trader.trader[self._exchange]._recent_market_trades.get(self._market_symbol, [])
+        else:
+            self._recent_trades = []
 
         self._table_widget.setRowCount(min(10, len(self._recent_trades)))
         self._table_widget.setColumnCount(4)
