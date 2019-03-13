@@ -109,7 +109,7 @@ class CTViewPair(QWidget):
             default_base = self._dropdown_base_curr.currentText
         if default_curr is None:
             default_curr = self._dropdown_curr_curr.currentText
-        base_codes = list(self._CTMain._Crypto_Trader.trader[exchange]._active_markets)
+        base_codes = sorted(list(self._CTMain._Crypto_Trader.trader[exchange]._active_markets))
         self._dropdown_base_curr.clear()
         self._dropdown_base_curr.addItems(base_codes)
         if not default_base in base_codes:
@@ -121,7 +121,7 @@ class CTViewPair(QWidget):
         self._base_curr = base_curr
         if default_curr is None:
             default_curr = self._dropdown_curr_curr.currentText
-        curr_codes = list(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets[base_curr])
+        curr_codes = sorted(list(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets[base_curr]))
         self._dropdown_curr_curr.clear()
         self._dropdown_curr_curr.addItems(curr_codes)
         if not default_curr in curr_codes:
@@ -162,11 +162,11 @@ class CTViewPair(QWidget):
         self._dropdown_exchange = Dropdown(exchanges, self._exchange)
         self._dropdown_exchange.activated[str].connect(self.refresh_dropdown_exchange_change)
 
-        base_codes = self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets.keys()
+        base_codes = sorted(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets.keys())
         self._dropdown_base_curr = Dropdown(base_codes, self._base_curr)
         self._dropdown_base_curr.activated[str].connect(self.refresh_dropdown_base_change)
 
-        curr_codes = self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets[self._base_curr].keys()
+        curr_codes = sorted(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets[self._base_curr].keys())
         self._dropdown_curr_curr = Dropdown(curr_codes, self._curr_curr)
         self._dropdown_curr_curr.activated[str].connect(self.refresh_dropdown_curr_change)
 
