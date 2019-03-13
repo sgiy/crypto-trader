@@ -39,7 +39,7 @@ class CTOrderBook(QWidget):
 
             self._tableWidget.setHorizontalHeaderLabels([
                 'Price',
-                'Quantity',
+                self._curr_curr + ' amount',
                 self._curr_curr + ' sum',
                 self._base_curr + ' sum'
             ])
@@ -56,12 +56,12 @@ class CTOrderBook(QWidget):
             sum_bid_base = 0
 
             for bid in results['Bid']:
-                self._tableWidget.setItem(self._depth + bid, 0, QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Price'])))
-                self._tableWidget.setItem(self._depth + bid, 1, QTableWidgetItem("{0:.8f}".format(results['Bid'][bid]['Quantity'])))
+                self._tableWidget.setItem(self._depth + bid, 0, QTableWidgetItem("{0:,.8f}".format(results['Bid'][bid]['Price'])))
+                self._tableWidget.setItem(self._depth + bid, 1, QTableWidgetItem("{0:,.8f}".format(results['Bid'][bid]['Quantity'])))
                 sum_bid += results['Bid'][bid]['Quantity']
                 sum_bid_base += results['Bid'][bid]['Quantity'] * results['Bid'][bid]['Price']
-                self._tableWidget.setItem(self._depth + bid, 2, QTableWidgetItem("{0:.8f}".format(sum_bid)))
-                self._tableWidget.setItem(self._depth + bid, 3, QTableWidgetItem("{0:.8f}".format(sum_bid_base)))
+                self._tableWidget.setItem(self._depth + bid, 2, QTableWidgetItem("{0:,.4f}".format(sum_bid)))
+                self._tableWidget.setItem(self._depth + bid, 3, QTableWidgetItem("{0:,.4f}".format(sum_bid_base)))
                 for i in range(4):
                     if bid > 0:
                         self._tableWidget.item(self._depth + bid, i).setBackground(self._CTMain._Parameters.Color['green_light'])
@@ -72,12 +72,12 @@ class CTOrderBook(QWidget):
             sum_ask = 0
             sum_ask_base = 0
             for ask in results['Ask']:
-                self._tableWidget.setItem(self._depth - 1 - ask, 0, QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Price'])))
-                self._tableWidget.setItem(self._depth - 1 - ask, 1, QTableWidgetItem("{0:.8f}".format(results['Ask'][ask]['Quantity'])))
+                self._tableWidget.setItem(self._depth - 1 - ask, 0, QTableWidgetItem("{0:,.8f}".format(results['Ask'][ask]['Price'])))
+                self._tableWidget.setItem(self._depth - 1 - ask, 1, QTableWidgetItem("{0:,.8f}".format(results['Ask'][ask]['Quantity'])))
                 sum_ask += results['Ask'][ask]['Quantity']
                 sum_ask_base += results['Ask'][ask]['Quantity'] * results['Ask'][ask]['Price']
-                self._tableWidget.setItem(self._depth - 1 - ask, 2, QTableWidgetItem("{0:.8f}".format(sum_ask)))
-                self._tableWidget.setItem(self._depth - 1 - ask, 3, QTableWidgetItem("{0:.8f}".format(sum_ask_base)))
+                self._tableWidget.setItem(self._depth - 1 - ask, 2, QTableWidgetItem("{0:,.4f}".format(sum_ask)))
+                self._tableWidget.setItem(self._depth - 1 - ask, 3, QTableWidgetItem("{0:,.4f}".format(sum_ask_base)))
                 for i in range(4):
                     if ask > 0:
                         self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_light'])

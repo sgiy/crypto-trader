@@ -1,3 +1,4 @@
+import threading
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget,
     QTableWidgetItem, QPushButton)
 
@@ -32,7 +33,7 @@ class CTOpenOrdersWidget(QWidget):
 
         self._timer = QTimer(self)
         self._timer.start(1000)
-        self._timer.timeout.connect(self.refresh)
+        self._timer.timeout.connect(self.refresh_widget)
 
     def update_market(self, exchange, market_symbol):
         self._exchange = exchange
@@ -41,9 +42,14 @@ class CTOpenOrdersWidget(QWidget):
     def reload_open_orders(self):
         self._CTMain._Crypto_Trader.trader[self._exchange].update_user_open_orders_per_market(self._market_symbol)
 
+    def refresh_widget(self):
+        t = threading.Thread(target = self.refresh)
+        t.start()
+        t.join(1)
+
     def refresh(self):
         self._open_orders = self._CTMain._Crypto_Trader.trader[self._exchange]._open_orders.get(self._market_symbol, [])
-
+        
         self._table_widget.setRowCount(len(self._open_orders))
         self._table_widget.setColumnCount(7)
         self._table_widget.verticalHeader().hide()
@@ -67,5 +73,3 @@ class CTOpenOrdersWidget(QWidget):
             self._table_widget.setItem(row_index, 5, QTableWidgetItem("{0:,.8f}".format(order['AmountRemaining'])))
             self._table_widget.setCellWidget(row_index, 6, CTCancelOrderButton(self, order['OrderId']));
             row_index += 1
-
-        self.repaint()

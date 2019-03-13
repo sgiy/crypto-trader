@@ -133,8 +133,7 @@ class CTViewPair(QWidget):
         self._curr_curr = curr_curr
         self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(self._exchange, self._base_curr, curr_curr)
 
-        self.refresh()
-        self.draw_chart()
+        self.initiate_widgets()
 
     def draw_view(self):
         self._order_book_widget = CTOrderBook(
@@ -244,7 +243,7 @@ class CTViewPair(QWidget):
         t.start()
         t.join(1)
 
-    def refresh_widgets(self):
+    def initiate_widgets(self):
         self._order_book_widget.refresh_order_book(
             self._exchange,
             self._market_symbol,
@@ -267,6 +266,15 @@ class CTViewPair(QWidget):
             self._curr_curr,
             self._market_symbol
         )
+        self.draw_chart()
+
+    def refresh_widgets(self):
+        self._order_book_widget.refresh_order_book(
+            self._exchange,
+            self._market_symbol,
+            self._base_curr,
+            self._curr_curr
+            )
 
     def draw_chart(self):
         exchange = self._exchange

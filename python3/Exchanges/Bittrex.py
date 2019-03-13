@@ -45,8 +45,6 @@ class Bittrex(Exchange):
 
     def trading_api_request(self, command, extra=''):
         try:
-            if self._API_KEY == '':
-                return {}
             nonce = str(int(time.time()*1000))
             request_url = self._BASE_URL + command + '?' + 'apikey=' + self._API_KEY + "&nonce=" + nonce + extra
             result = requests.get(
@@ -281,7 +279,10 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        return self.trading_api_request('/market/getopenorders','&market='+market)
+        if self._API_KEY == '':
+            return []
+        else:
+            return self.trading_api_request('/market/getopenorders','&market='+market)
 
     def get_all_open_orders(self):
         """

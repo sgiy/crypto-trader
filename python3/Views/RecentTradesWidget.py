@@ -21,7 +21,7 @@ class CTRecentTradesWidget(QWidget):
 
         self._timer = QTimer(self)
         self._timer.start(1500)
-        self._timer.timeout.connect(self.refresh)
+        self._timer.timeout.connect(self.refresh_widget)
 
     def update_market(self, exchange, code_base, code_curr, market_symbol):
         self._exchange = exchange
@@ -32,10 +32,13 @@ class CTRecentTradesWidget(QWidget):
     def reload_recent_trades(self):
         self._CTMain._Crypto_Trader.trader[self._exchange].update_recent_market_trades_per_market(self._market_symbol)
 
-    def refresh(self):
-        t = threading.Thread(target = self.reload_recent_trades)
+    def refresh_widget(self):
+        t = threading.Thread(target = self.refresh)
         t.start()
         t.join(1)
+
+    def refresh(self):
+        self._CTMain._Crypto_Trader.trader[self._exchange].update_recent_market_trades_per_market(self._market_symbol)
         self._recent_trades = self._CTMain._Crypto_Trader.trader[self._exchange]._recent_market_trades.get(self._market_symbol, [])
 
         self._table_widget.setRowCount(min(10, len(self._recent_trades)))
@@ -51,10 +54,10 @@ class CTRecentTradesWidget(QWidget):
         row_index = 0
         for trade in sorted(self._recent_trades, key=lambda k_v: k_v['TradeTime'], reverse=True):
             if row_index < 10:
-                self._table_widget.setItem(row_index, 0, QTableWidgetItem("{}".format(trade['TradeTime'])))
+                self._table_widget.setItem(row_index, 0, QTableWidgetItem("{}".format(trade['TradeTime'].strftime("%H:%M:%S"))))
                 self._table_widget.setItem(row_index, 1, QTableWidgetItem("{0:,.8f}".format(trade['Price'])))
-                self._table_widget.setItem(row_index, 2, QTableWidgetItem("{0:,.8f}".format(trade['Amount'])))
-                self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.8f}".format(trade['Total'])))
+                self._table_widget.setItem(row_index, 2, QTableWidgetItem("{0:,.4f}".format(trade['Amount'])))
+                self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.4f}".format(trade['Total'])))
                 for col_index in range(4):
                     self._table_widget.item(row_index, col_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
                     if trade['TradeType'] == 'Buy':
@@ -62,5 +65,3 @@ class CTRecentTradesWidget(QWidget):
                     else:
                         self._table_widget.item(row_index, col_index).setBackground(self._CTMain._Parameters.Color['red_light'])
                 row_index += 1
-
-        self.repaint()
