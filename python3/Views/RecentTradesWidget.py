@@ -38,7 +38,6 @@ class CTRecentTradesWidget(QWidget):
             self._CTMain._Crypto_Trader.trader[self._exchange].update_recent_market_trades_per_market(self._market_symbol)
 
     def re_load_recent_trades(self):
-        print("re_load_recent_trades")
         t = threading.Thread(target = self.re_load_recent_trades_thread)
         t.start()
         t.join(self._re_load_frequency)
