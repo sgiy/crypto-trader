@@ -229,8 +229,8 @@ class CTViewPair(QWidget):
         self._splitter_top.setSizes([round(0.3*window_width), round(0.7 * window_width)])
         self._layout.addWidget(self._splitter_top, 1, 0, 9, 10)
 
-        self._CTMain._Timer.start(1000)
-        self._CTMain._Timer.timeout.connect(self.refresh)
+        # self._CTMain._Timer.start(1000)
+        # self._CTMain._Timer.timeout.connect(self.refresh)
 
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
@@ -238,10 +238,10 @@ class CTViewPair(QWidget):
     def debug(self):
         import ipdb; ipdb.set_trace()
 
-    def refresh(self):
-        t = threading.Thread(target = self.refresh_widgets)
-        t.start()
-        t.join(1)
+    # def refresh(self):
+    #     t = threading.Thread(target = self.refresh_widgets)
+    #     t.start()
+    #     t.join(1)
 
     def initiate_widgets(self):
         self._order_book_widget.refresh_order_book(
@@ -267,14 +267,6 @@ class CTViewPair(QWidget):
             self._market_symbol
         )
         self.draw_chart()
-
-    def refresh_widgets(self):
-        self._order_book_widget.refresh_order_book(
-            self._exchange,
-            self._market_symbol,
-            self._base_curr,
-            self._curr_curr
-            )
 
     def draw_chart(self):
         exchange = self._exchange

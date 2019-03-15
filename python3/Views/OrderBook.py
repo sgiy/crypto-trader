@@ -1,6 +1,8 @@
-import threading
-from PyQt5.QtCore import Qt
+import time
+from PyQt5.QtCore import Qt, QTimer, QThreadPool
 from PyQt5.QtWidgets import (QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout)
+
+from Worker import CTWorker
 
 class CTOrderBook(QWidget):
     def __init__(self, CTMain = None, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):
@@ -12,6 +14,7 @@ class CTOrderBook(QWidget):
         self._curr_curr = curr_curr
         self._depth = depth
 
+        self._order_book = {}
         self._tableWidget = QTableWidget()
         self._tableWidget.setRowCount(2 * self._depth)
         self._tableWidget.setColumnCount(4)
@@ -21,8 +24,21 @@ class CTOrderBook(QWidget):
         self._layout.addWidget(self._tableWidget)
         self.setLayout(self._layout)
 
-    def load_order_book(self):
-        self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_symbol, self._depth)
+        self._re_load_seconds = 1
+        self._re_draw_seconds = 0.3
+        self._thread_pool = QThreadPool()
+        order_book_reloader =  CTWorker(self.load_order_book_thread)
+        self._thread_pool.start(order_book_reloader)
+
+        self._timer_painter = QTimer(self)
+        self._timer_painter.start(self._re_draw_seconds * 1000)
+        self._timer_painter.timeout.connect(self.refresh_order_book)
+
+    def load_order_book_thread(self):
+        while True:
+            if self._exchange in self._CTMain._Crypto_Trader.trader:
+                self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_symbol, self._depth)
+            time.sleep(self._re_load_seconds)
 
     def refresh_order_book(self, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):
         try:
@@ -30,6 +46,9 @@ class CTOrderBook(QWidget):
                 self._exchange = exchange
             if market_symbol is not None:
                 self._market_symbol = market_symbol
+            if self._market_symbol is None:
+                return
+
             if base_curr is not None:
                 self._base_curr = base_curr
             if curr_curr is not None:
@@ -44,10 +63,6 @@ class CTOrderBook(QWidget):
                 self._base_curr + ' sum'
             ])
 
-            t = threading.Thread(target = self.load_order_book)
-            t.start()
-            t.join(1) # Keeps thread alive for only 1 second
-
             results = self._order_book
             for cell_index in range(2 * self._depth):
                 self._tableWidget.setItem(cell_index,0, QTableWidgetItem(""))
@@ -55,7 +70,7 @@ class CTOrderBook(QWidget):
             sum_bid = 0
             sum_bid_base = 0
 
-            for bid in results['Bid']:
+            for bid in results.get('Bid', []):
                 self._tableWidget.setItem(self._depth + bid, 0, QTableWidgetItem("{0:,.8f}".format(results['Bid'][bid]['Price'])))
                 self._tableWidget.setItem(self._depth + bid, 1, QTableWidgetItem("{0:,.8f}".format(results['Bid'][bid]['Quantity'])))
                 sum_bid += results['Bid'][bid]['Quantity']
@@ -71,7 +86,7 @@ class CTOrderBook(QWidget):
 
             sum_ask = 0
             sum_ask_base = 0
-            for ask in results['Ask']:
+            for ask in results.get('Ask', []):
                 self._tableWidget.setItem(self._depth - 1 - ask, 0, QTableWidgetItem("{0:,.8f}".format(results['Ask'][ask]['Price'])))
                 self._tableWidget.setItem(self._depth - 1 - ask, 1, QTableWidgetItem("{0:,.8f}".format(results['Ask'][ask]['Quantity'])))
                 sum_ask += results['Ask'][ask]['Quantity']
