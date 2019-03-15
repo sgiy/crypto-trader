@@ -1,15 +1,16 @@
-import threading
+import time
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget,
     QTableWidgetItem, QPushButton)
-
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QThreadPool
+from Worker import CTWorker
 
 class CTRecentTradesWidget(QWidget):
     def __init__(self, CTMain, exchange, code_base, code_curr, market_symbol):
         super().__init__()
         self._CTMain = CTMain
-        self._re_draw_frequency = 0.3
-        self._re_load_frequency = 1
+        self._re_draw_seconds = 0.3
+        self._re_load_seconds = 1
+        self._thread_pool = QThreadPool()
         self.update_market(exchange, code_base, code_curr, market_symbol)
 
         self._table_widget = QTableWidget()
@@ -18,29 +19,24 @@ class CTRecentTradesWidget(QWidget):
         self.setLayout(self._layout)
 
         self._timer_painter = QTimer(self)
-        self._timer_painter.start(self._re_draw_frequency * 1000)
+        self._timer_painter.start(self._re_draw_seconds * 1000)
         self._timer_painter.timeout.connect(self.re_draw)
 
-        self._timer_loader = QTimer(self)
-        self._timer_loader.start(self._re_load_frequency * 1000)
-        self._timer_loader.timeout.connect(self.re_load_recent_trades)
+        # generic thread using signal
+        trade_reloader =  CTWorker(self.re_load_recent_trades_thread)
+        self._thread_pool.start(trade_reloader)
 
     def update_market(self, exchange, code_base, code_curr, market_symbol):
-        print(exchange, code_base, code_curr, market_symbol)
         self._exchange = exchange
         self._code_base = code_base
         self._code_curr = code_curr
         self._market_symbol = market_symbol
-        self.re_load_recent_trades()
 
     def re_load_recent_trades_thread(self):
-        if self._exchange in self._CTMain._Crypto_Trader.trader:
-            self._CTMain._Crypto_Trader.trader[self._exchange].update_recent_market_trades_per_market(self._market_symbol)
-
-    def re_load_recent_trades(self):
-        t = threading.Thread(target = self.re_load_recent_trades_thread)
-        t.start()
-        t.join(self._re_load_frequency)
+        while True:
+            if self._exchange in self._CTMain._Crypto_Trader.trader:
+                self._CTMain._Crypto_Trader.trader[self._exchange].update_recent_market_trades_per_market(self._market_symbol)
+            time.sleep(self._re_load_seconds)
 
     def re_draw(self):
         if self._exchange in self._CTMain._Crypto_Trader.trader:
