@@ -26,6 +26,7 @@ already written and to submit your suggestions.
 ## If you like the project, please consider participating and/or donating:
 
 **BTC**: 39qHV6AVQMxynRx6kRQVD9R4PrkyQKxPhK
+
 **XMR**: 47ovgSMzsfQhhcTANJ6pPQfES2MrPG6btU4KY3fBo89q2qVkc1AGy8jFHUMxv9qjzPWkaWEywfgtWKV5katXJLapM5CHuhC
 
 ## Currently implemented views:
