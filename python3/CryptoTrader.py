@@ -13,7 +13,7 @@ class CryptoTrader:
         self._API_KEYS = API_KEYS
         self._SETTINGS = SETTINGS
         self.init_exchanges()
-        self.update_keys()
+        self.update_api_keys()
 
     def init_exchanges(self):
         for exchange in self._SETTINGS.get('Exchange Classes to Initialize', []):
@@ -25,10 +25,10 @@ class CryptoTrader:
         print('Loading Active Markets')
         self.init_markets()
 
-    def update_keys(self):
+    def update_api_keys(self):
         self._SETTINGS['Exchanges with API Keys'] =[]
         for exchange in self._API_KEYS.keys():
-            self.trader[exchange].update_keys(
+            self.trader[exchange].update_api_keys(
                 self._API_KEYS[exchange].get('APIKey',''),
                 self._API_KEYS[exchange].get('Secret',''),
                 self._API_KEYS[exchange].get('APIPassword','')

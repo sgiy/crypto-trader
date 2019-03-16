@@ -4,7 +4,7 @@ import time
 
 class Exchange:
     def __init__(self, APIKey='', Secret='', PassPhrase=''):
-        self.update_keys(APIKey, Secret, PassPhrase)
+        self.update_api_keys(APIKey, Secret, PassPhrase)
         self._BASE_URL = ''
         self._API_KEY = ''
         self._API_SECRET = ''
@@ -37,7 +37,7 @@ class Exchange:
             'result_timestamp': time.time()
         }
 
-    def update_keys(self, APIKey='', Secret='', PassPhrase=''):
+    def update_api_keys(self, APIKey='', Secret='', PassPhrase=''):
         self._API_KEY = APIKey
         self._API_SECRET = Secret
         self._API_PASSPHRASE = PassPhrase
@@ -152,6 +152,29 @@ class Exchange:
     def get_market_symbol(self, code_base, code_curr):
         return self._markets[code_base][code_curr]['MarketSymbol']
 
+    def update_market_quotes(self):
+        """
+            Updates _markets with current market definitions
+        """
+        self.raise_not_implemented_error()
+
+    def update_market_24hrs(self):
+        """
+            Updates _markets with current market definitions
+        """
+        self.raise_not_implemented_error()
+
+    def update_user_open_orders_per_market(self, market):
+        """
+            Updates _markets with current market definitions
+        """
+        self.raise_not_implemented_error()
+
+    def update_recent_market_trades_per_market(self, market):
+        """
+            Updates _markets with current market definitions
+        """
+        self.raise_not_implemented_error()
 
     def raise_not_implemented_error(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
