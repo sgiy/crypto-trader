@@ -41,7 +41,7 @@ class CryptoTrader:
         self._map_exchange_code_to_currency_code = {}
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading currencies for ' + exchange)
-            t = threading.Thread(target = self.trader[exchange].load_currencies)
+            t = threading.Thread(target = self.trader[exchange].update_currency_definitions)
             t.start()
             t.join(2)
 

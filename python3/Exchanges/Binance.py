@@ -32,16 +32,16 @@ class Binance(Exchange):
             '1w':   7*24*60,
             '1M':   30*24*60
         }
-        self._timestamp_correction = int(self.get_server_time()) - int(time.time()*1000)
-        self.load_exchangeInfo()
+        self._timestamp_correction = int(self.public_get_server_time()) - int(time.time()*1000)
+        self.public_update_exchangeInfo()
 
-    def get_request(self, url):
+    def public_get_request(self, url):
         try:
             results = requests.get(self._BASE_URL + url).json()
             if 'code' in results:
                 self.log_request_error(results['msg'])
                 if self.retry_count_not_exceeded():
-                    return self.get_request(url)
+                    return self.public_get_request(url)
                 else:
                     return {}
             else:
@@ -50,11 +50,11 @@ class Binance(Exchange):
         except Exception as e:
             self.log_request_error(self._BASE_URL + url)
             if self.retry_count_not_exceeded():
-                return self.get_request(url)
+                return self.public_get_request(url)
             else:
                 return {}
 
-    def trading_api_request(self, method, url, req={}):
+    def private_request(self, method, url, req={}):
         try:
             req['timestamp'] = int(time.time()*1000) + self._timestamp_correction
             query_string = '&'.join(["{}={}".format(k, v) for k, v in req.items()])
@@ -68,7 +68,7 @@ class Binance(Exchange):
             if 'code' in results:
                 self.log_request_error(results['msg'])
                 if self.retry_count_not_exceeded():
-                    return self.trading_api_request(method, url, req)
+                    return self.private_request(method, url, req)
                 else:
                     return {}
             else:
@@ -77,7 +77,7 @@ class Binance(Exchange):
         except Exception as e:
             self.log_request_error(str(e))
             if self.retry_count_not_exceeded():
-                return self.trading_api_request(method, url, req)
+                return self.private_request(method, url, req)
             else:
                 return {}
 
@@ -85,26 +85,26 @@ class Binance(Exchange):
     ### Exchange specific public methods ###
     ########################################
 
-    def get_ping(self):
+    def public_get_ping(self):
         """
             Test connectivity to the Rest API.
-            Debug: ct['Binance'].get_ping()
+            Debug: ct['Binance'].public_get_ping()
             {}
         """
-        return self.get_request('/api/v1/ping')
+        return self.public_get_request('/api/v1/ping')
 
-    def get_server_time(self):
+    def public_get_server_time(self):
         """
             Test connectivity to the Rest API and get the current server time.
-            Debug: ct['Binance'].get_server_time()
+            Debug: ct['Binance'].public_get_server_time()
             1500000000000
         """
-        return self.get_request('/api/v1/time').get('serverTime', None)
+        return self.public_get_request('/api/v1/time').get('serverTime', None)
 
-    def load_exchangeInfo(self):
+    def public_update_exchangeInfo(self):
         """
             Current exchange trading rules and symbol information
-            Debug: ct['Binance'].load_exchangeInfo()
+            Debug: ct['Binance'].public_update_exchangeInfo()
             {'exchangeFilters': [],
              'rateLimits': [{'interval': 'MINUTE',
                              'intervalNum': 1,
@@ -184,14 +184,14 @@ class Binance(Exchange):
                           'symbol': 'WAVESUSDC'}],
              'timezone': 'UTC'}
         """
-        self._exchangeInfo = self.get_request('/api/v1/exchangeInfo')
+        self._exchangeInfo = self.public_get_request('/api/v1/exchangeInfo')
         return self._exchangeInfo
 
-    def get_order_book(self, market, depth = '5'):
+    def public_get_order_book(self, market, depth = '5'):
         """
             Get order book for a given currency pair (market).
             Valid depth values: 5, 10, 20, 50, 100, 500, 1000
-            Debug: ct['Binance'].get_order_book('ETHBTC')
+            Debug: ct['Binance'].public_get_order_book('ETHBTC')
             {'asks': [['0.03299700', '1.00000000', []],
                       ['0.03299800', '1.00000000', []],
                       ...
@@ -203,12 +203,12 @@ class Binance(Exchange):
              'lastUpdateId': 400000000}
         """
         url = "/api/v1/depth?symbol={}&limit={}".format(market, depth)
-        return self.get_request(url)
+        return self.public_get_request(url)
 
-    def get_recent_trades(self, market, limit = '500'):
+    def public_get_market_history(self, market, limit = '500'):
         """
             Get recent trades.
-            Debug: ct['Binance'].get_recent_trades('ETHBTC')
+            Debug: ct['Binance'].public_get_market_history('ETHBTC')
             [{'id': 400000000,
               'isBestMatch': True,
               'isBuyerMaker': True,
@@ -219,7 +219,7 @@ class Binance(Exchange):
               ]
         """
         url = "/api/v1/trades?symbol={}&limit={}".format(market, limit)
-        return self.get_request(url)
+        return self.public_get_request(url)
 
     # def get_trade_history(self, market, limit = '500', fromId = None):
     #     """
@@ -233,9 +233,9 @@ class Binance(Exchange):
     #     else:
     #         fromIdStr = '&fromId={}'.format(fromId)
     #     url = "/api/v1/historicalTrades?symbol={}&limit={}{}".format(market, limit, fromIdStr)
-    #     return self.get_request(url)
+    #     return self.public_get_request(url)
 
-    def get_aggregated_trades(self, market, limit = '500', fromId = None, startTime = None, endTime = None):
+    def public_get_aggregated_trades(self, market, limit = '500', fromId = None, startTime = None, endTime = None):
         """
             Get compressed, aggregate trades. Trades that fill at the time, from
             the same order, with the same price will have the quantity aggregated.
@@ -246,7 +246,7 @@ class Binance(Exchange):
             endTime must be less than 1 hour.
             If fromId, startTime, and endTime are not sent, the most recent
             aggregate trades will be returned.
-            Debug: ct['Binance'].get_aggregated_trades('ETHBTC')
+            Debug: ct['Binance'].public_get_aggregated_trades('ETHBTC')
             [{'M': True,            // Was the trade the best price match?
               'T': 1500000000000,   // Timestamp
               'a': 90000000,        // Aggregate tradeId
@@ -266,13 +266,13 @@ class Binance(Exchange):
         if endTime is not None:
             addString += '&endTime={}'.format(endTime)
         url = "/api/v1/aggTrades?symbol={}&limit={}{}".format(market, limit, addString)
-        return self.get_request(url)
+        return self.public_get_request(url)
 
-    def get_candlesticks(self, market, interval = '5m', limit = 100, startTime = None, endTime = None):
+    def public_get_candlesticks(self, market, interval = '5m', limit = 100, startTime = None, endTime = None):
         """
             Kline/candlestick bars for a symbol. Klines are uniquely identified
             by their open time.
-            Debug: ct['Binance'].get_candlesticks('ETHBTC', '15m', 100)
+            Debug: ct['Binance'].public_get_candlesticks('ETHBTC', '15m', 100)
             [[1499040000000,      // Open time
               "0.01634790",       // Open
               "0.80000000",       // High
@@ -297,23 +297,23 @@ class Binance(Exchange):
         if endTime is not None:
             addString += '&endTime={}'.format(endTime)
         url = "/api/v1/klines?symbol={}&interval={}{}".format(market, interval, addString)
-        return self.get_request(url)
+        return self.public_get_request(url)
 
-    def get_avg_price(self, market):
+    def public_get_avg_price(self, market):
         """
             Current average price for a symbol.
-            Debug: ct['Binance'].get_avg_price('ETHBTC')
+            Debug: ct['Binance'].public_get_avg_price('ETHBTC')
             {'mins': 5, 'price': '0.03300000'}
         """
-        return self.get_request("/api/v3/avgPrice?symbol={}".format(market))
+        return self.public_get_request("/api/v3/avgPrice?symbol={}".format(market))
 
-    def get_24hour_statistics(self, market = None):
+    def public_get_24hour_statistics(self, market = None):
         """
             24 hour rolling window price change statistics. Careful when
             accessing this with no symbol.
             Weight: 1 for a single symbol; 40 when the symbol parameter is
             omitted
-            Debug: ct['Binance'].get_24hour_statistics('ETHBTC')
+            Debug: ct['Binance'].public_get_24hour_statistics('ETHBTC')
             {'askPrice': '0.03300000',
              'askQty': '1.00000000',
              'bidPrice': '0.03300000',
@@ -342,12 +342,12 @@ class Binance(Exchange):
         else:
             addString = '?symbol={}'.format(market)
         url = "/api/v1/ticker/24hr{}".format(addString)
-        return self.get_request(url)
+        return self.public_get_request(url)
 
-    def get_latest_prices(self, market = None):
+    def public_get_latest_prices(self, market = None):
         """
             Latest price for a symbol or symbols.
-            Debug: ct['Binance'].get_latest_prices('ETHBTC')
+            Debug: ct['Binance'].public_get_latest_prices('ETHBTC')
             {'price': '0.03300000', 'symbol': 'ETHBTC'}
         """
         if market is None:
@@ -355,12 +355,12 @@ class Binance(Exchange):
         else:
             addString = '?symbol={}'.format(market)
         url = "/api/v3/ticker/price{}".format(addString)
-        return self.get_request(url)
+        return self.public_get_request(url)
 
-    def get_book_ticker(self, market = None):
+    def public_get_ticker(self, market = None):
         """
             Best price/qty on the order book for a symbol or symbols.
-            Debug: ct['Binance'].get_book_ticker('ETHBTC')
+            Debug: ct['Binance'].public_get_ticker('ETHBTC')
             {'askPrice': '0.03310000',
              'askQty': '1.00000000',
              'bidPrice': '0.03300000',
@@ -372,13 +372,13 @@ class Binance(Exchange):
         else:
             addString = '?symbol={}'.format(market)
         url = "/api/v3/ticker/bookTicker{}".format(addString)
-        return self.get_request(url)
+        return self.public_get_request(url)
 
     ########################################
     ### Exchange specific private methods ##
     ########################################
 
-    def submit_new_order(self, symbol, side, type, quantity,
+    def private_submit_new_order(self, symbol, side, type, quantity,
         timeInForce = 'GTC', price = None, newClientOrderId = None,
         stopPrice = None, icebergQty = None, newOrderRespType = 'RESULT',
         recvWindow = None):
@@ -393,7 +393,7 @@ class Binance(Exchange):
             newOrderRespType: Set the response JSON. ACK, RESULT, or FULL;
                 MARKET and LIMIT order types default to FULL, all other orders
                 default to ACK.
-            Debug: ct['Binance'].submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
+            Debug: ct['Binance'].private_submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
             {'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
              'cummulativeQuoteQty': '0.00000000',
              'executedQty': '0.00000000',
@@ -425,17 +425,17 @@ class Binance(Exchange):
             request['icebergQty'] = "{0:.8f}".format(icebergQty)
         if recvWindow is not None:
             request['recvWindow'] = "{}".format(recvWindow)
-        return self.trading_api_request('post', '/api/v3/order', request)
+        return self.private_request('post', '/api/v3/order', request)
 
-    def test_submit_new_order(self, symbol, side, type, quantity,
+    def private_test_submit_new_order(self, symbol, side, type, quantity,
         timeInForce = 'GTC', price = None, newClientOrderId = None,
         stopPrice = None, icebergQty = None, newOrderRespType = 'RESULT',
         recvWindow = None):
         """
             Test new order creation and signature/recvWindow long. Creates and
             validates a new order but does not send it into the matching engine.
-            Parameters same as submit_new_order()
-            Debug: ct['Binance'].test_submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
+            Parameters same as private_submit_new_order()
+            Debug: ct['Binance'].private_test_submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
             {}
         """
         request = {
@@ -456,14 +456,14 @@ class Binance(Exchange):
             request['icebergQty'] = "{0:.8f}".format(icebergQty)
         if recvWindow is not None:
             request['recvWindow'] = "{}".format(recvWindow)
-        return self.trading_api_request('post', '/api/v3/order/test', request)
+        return self.private_request('post', '/api/v3/order/test', request)
 
-    def get_order_status(self, market, orderId = None, origClientOrderId = None,
+    def private_get_order_status(self, market, orderId = None, origClientOrderId = None,
             recvWindow = None):
         """
             Check an order's status.
             Either orderId or origClientOrderId must be sent.
-            Debug: ct['Binance'].get_order_status('INSBTC',None, 'XWvrCHRVgsWjwOCrm5Ddwd')
+            Debug: ct['Binance'].private_get_order_status('INSBTC',None, 'XWvrCHRVgsWjwOCrm5Ddwd')
             {'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
              'cummulativeQuoteQty': '0.00000000',
              'executedQty': '0.00000000',
@@ -490,14 +490,14 @@ class Binance(Exchange):
             request['origClientOrderId'] = origClientOrderId
         if recvWindow is not None:
             request['recvWindow'] = recvWindow
-        return self.trading_api_request('get', '/api/v3/order', request)
+        return self.private_request('get', '/api/v3/order', request)
 
-    def cancel_order(self, market, orderId = None, origClientOrderId = None,
+    def private_cancel_order(self, market, orderId = None, origClientOrderId = None,
             newClientOrderId = None, recvWindow = None):
         """
             Cancel an active order.
             Either orderId or origClientOrderId must be sent.
-            Debug: ct['Binance'].cancel_order('INSBTC', None, 'XWvrCHRVgsWjwOCrm5Ddwd')
+            Debug: ct['Binance'].private_cancel_order('INSBTC', None, 'XWvrCHRVgsWjwOCrm5Ddwd')
             {'clientOrderId': 'NeW_BiNanCeG3N3RaT3DaLpHaNuMeRiC',
              'cummulativeQuoteQty': '0.00000000',
              'executedQty': '0.00000000',
@@ -522,14 +522,14 @@ class Binance(Exchange):
             request['newClientOrderId'] = newClientOrderId
         if recvWindow is not None:
             request['recvWindow'] = recvWindow
-        return self.trading_api_request('delete', '/api/v3/order', request)
+        return self.private_request('delete', '/api/v3/order', request)
 
-    def get_open_orders(self, market = None, recvWindow = None):
+    def private_get_open_orders(self, market = None, recvWindow = None):
         """
             Get all open orders on a symbol. Careful when accessing this with no
             symbol. Weight: 1 for a single symbol; 40 when the symbol parameter
             is omitted.
-            Debug: ct['Binance'].get_open_orders('INSBTC')
+            Debug: ct['Binance'].private_get_open_orders('INSBTC')
             [{'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
               'cummulativeQuoteQty': '0.00000000',
               'executedQty': '0.00000000',
@@ -554,14 +554,14 @@ class Binance(Exchange):
             request['symbol'] = market
         if recvWindow is not None:
             request['recvWindow'] = recvWindow
-        return self.trading_api_request('get', '/api/v3/openOrders', request)
+        return self.private_request('get', '/api/v3/openOrders', request)
 
-    def get_all_orders(self, market, fromOrderId = None, startTime = None,
+    def private_get_all_orders(self, market, fromOrderId = None, startTime = None,
             endTime = None, limit = '500', recvWindow = None):
         """
             Get all account orders; active, canceled, or filled.
             Weight: 5 with symbol
-            Debug: ct['Binance'].get_all_orders('INSBTC')
+            Debug: ct['Binance'].private_get_all_orders('INSBTC')
             [{'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
               'cummulativeQuoteQty': '0.00000000',
               'executedQty': '0.00000000',
@@ -593,13 +593,13 @@ class Binance(Exchange):
             request['endTime'] = endTime
         if recvWindow is not None:
             request['recvWindow'] = recvWindow
-        return self.trading_api_request('get', '/api/v3/allOrders', request)
+        return self.private_request('get', '/api/v3/allOrders', request)
 
-    def get_account_info(self, recvWindow = None):
+    def private_get_account_info(self, recvWindow = None):
         """
             Get current account information.
             Weight: 5
-            Debug: ct['Binance'].get_account_info()
+            Debug: ct['Binance'].private_get_account_info()
             {'balances': [{'asset': 'BTC', 'free': '0.00000000', 'locked': '0.00000000'},
                           {'asset': 'LTC', 'free': '0.00000000', 'locked': '0.00000000'},
                           ...
@@ -617,9 +617,9 @@ class Binance(Exchange):
         request = {}
         if recvWindow is not None:
             request['recvWindow'] = recvWindow
-        return self.trading_api_request('get', '/api/v3/account', request)
+        return self.private_request('get', '/api/v3/account', request)
 
-    def get_account_trades(self, market, fromOrderId = None, startTime = None,
+    def private_get_account_trades(self, market, fromOrderId = None, startTime = None,
             endTime = None, limit = '500', recvWindow = None):
         """
             Get trades for a specific account and symbol. If fromId is set, it
@@ -640,7 +640,7 @@ class Binance(Exchange):
             request['endTime'] = endTime
         if recvWindow is not None:
             request['recvWindow'] = recvWindow
-        return self.trading_api_request('get', '/api/v3/myTrades', request)
+        return self.private_request('get', '/api/v3/myTrades', request)
 
     # def start_user_data_stream(self):
     #     """
@@ -649,7 +649,7 @@ class Binance(Exchange):
     #         ct['Binance'].start_user_data_stream()
     #         {'code': -1101, 'msg': "Too many parameters; expected '0' and received '2'."}
     #     """
-    #     return self.trading_api_request('post', '/api/v1/userDataStream')
+    #     return self.private_request('post', '/api/v1/userDataStream')
     #
     # def keepalive_user_data_stream(self, listenKey):
     #     """
@@ -660,7 +660,7 @@ class Binance(Exchange):
     #     request = {
     #             'listenKey': listenKey
     #         }
-    #     return self.trading_api_request('put', '/api/v1/userDataStream', request)
+    #     return self.private_request('put', '/api/v1/userDataStream', request)
     #
     # def close_user_data_stream(self, listenKey):
     #     """
@@ -669,7 +669,7 @@ class Binance(Exchange):
     #     request = {
     #             'listenKey': listenKey
     #         }
-    #     return self.trading_api_request('delete', '/api/v1/userDataStream', request)
+    #     return self.private_request('delete', '/api/v1/userDataStream', request)
 
     #################################
     ### Exchange specific methods ###
@@ -677,8 +677,8 @@ class Binance(Exchange):
 
 
 
-    def get_formatted_best_books(self):
-        book_ticker = self.get_book_ticker()
+    def public_get_formatted_best_books(self):
+        book_ticker = self.public_get_ticker()
         results = {}
         for ticker in book_ticker:
             results[ticker["symbol"]] = {
@@ -689,8 +689,8 @@ class Binance(Exchange):
             }
         return results
 
-    def get_balances(self):
-        return self.get_account_info().get('balances', [])
+    def private_get_balances(self):
+        return self.private_get_account_info().get('balances', [])
 
 
 
@@ -701,10 +701,10 @@ class Binance(Exchange):
     #######################
     ### Generic methods ###
     #######################
-    def get_formatted_currencies(self):
+    def get_consolidated_currency_definitions(self):
         """
             Loading currencies
-            Debug: ct['Binance'].get_formatted_currencies()
+            Debug: ct['Binance'].get_consolidated_currency_definitions()
             Example:
                 {
                     'BTC': {
@@ -803,7 +803,7 @@ class Binance(Exchange):
             Used to get the market quotes
             Debug: ct['Binance'].update_market_quotes()
         """
-        book_ticker = self.get_book_ticker()
+        book_ticker = self.public_get_ticker()
         if isinstance(book_ticker, list):
             for ticker in book_ticker:
                 try:
@@ -826,7 +826,7 @@ class Binance(Exchange):
             Used to update 24-hour statistics
             Debug: ct['Binance'].update_market_24hr()
         """
-        statistics = self.get_24hour_statistics()
+        statistics = self.public_get_24hour_statistics()
         if isinstance(statistics, list):
             for market in statistics:
                 try:
@@ -855,7 +855,7 @@ class Binance(Exchange):
     def load_markets(self):
         self._markets = {}
         self._active_markets = {}
-        best_books = self.get_formatted_best_books()
+        best_books = self.public_get_formatted_best_books()
 
         for symbol in self._exchangeInfo['symbols']:
             try:
@@ -896,7 +896,7 @@ class Binance(Exchange):
               ]
             ]
         """
-        load_chart = self.get_candlesticks(market_symbol, interval)
+        load_chart = self.public_get_candlesticks(market_symbol, interval)
         results = []
         for i in load_chart:
             new_row = i[0], float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), float(i[7])
@@ -904,7 +904,7 @@ class Binance(Exchange):
         return results
 
     def load_available_balances(self):
-        available_balances = self.get_balances()
+        available_balances = self.private_get_balances()
         self._available_balances = {}
         for balance in available_balances:
             currency = balance['asset']
@@ -912,7 +912,7 @@ class Binance(Exchange):
         return self._available_balances
 
     def load_balances_btc(self):
-        balances = self.get_balances()
+        balances = self.private_get_balances()
         self._complete_balances_btc = {}
         for balance in balances:
             currency = balance['asset']
@@ -924,7 +924,7 @@ class Binance(Exchange):
         return self._complete_balances_btc
 
     def load_order_book(self, market, depth = 5):
-        raw_results = self.get_order_book(market, str(depth))
+        raw_results = self.public_get_order_book(market, str(depth))
         take_bid = min(depth, len(raw_results['bids']))
         take_ask = min(depth, len(raw_results['asks']))
 
@@ -952,7 +952,7 @@ class Binance(Exchange):
         if trade_type == 'ImmediateOrCancel':
             timeInForce = 'IOC'
 
-        results = self.submit_new_order(market, side, 'LIMIT', amount,
+        results = self.private_submit_new_order(market, side, 'LIMIT', amount,
             timeInForce, price, 'RESULT')
 
         return {

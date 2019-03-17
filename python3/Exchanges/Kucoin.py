@@ -17,19 +17,19 @@ class Kucoin(Exchange):
         self._BASE_URL = 'https://openapi-v2.kucoin.com'
         self._exchangeInfo = None
 
-    def get_request(self, url):
+    def public_get_request(self, url):
         try:
             result = requests.get(self._BASE_URL + url).json()
             if result.get('code', None) == '200000':
                 return result['data']
             else:
                 print(self._BASE_URL + url + ". " + str(result.get('msg')))
-                #return self.get_request(url)
+                #return self.public_get_request(url)
         except Exception as e:
             print(self._BASE_URL + url + ". " + str(e))
-            #return self.get_request(url)
+            #return self.public_get_request(url)
 
-    def trading_api_sign(self, method, endpoint, body, nonce):
+    def private_sign_request(self, method, endpoint, body, nonce):
         """
             curl -H "Content-Type:application/json"
                  -H "KC-API-KEY:5c2db93503aa674c74a31734"
@@ -50,7 +50,7 @@ class Kucoin(Exchange):
         strForSign = nonce + method.upper() + endpoint + body
         return base64.b64encode(hmac.new(self._API_SECRET.encode(), strForSign.encode(), hashlib.sha256).digest()).decode()
 
-    def trading_api_request(self, method, endpoint, body={}):
+    def private_request(self, method, endpoint, body={}):
         """
             endpoint = '/v1/KCS-BTC/order',
             command = 'amount=10&price=1.1&type=BUY'
@@ -68,7 +68,7 @@ class Kucoin(Exchange):
             if any(body):
                 body_str = json.dumps(body, sort_keys=True, separators=(',',':'))
 
-            signature = self.trading_api_sign(method, endpoint, body_str, nonce)
+            signature = self.private_sign_request(method, endpoint, body_str, nonce)
 
             request = {}
             if method == 'get':
@@ -88,7 +88,7 @@ class Kucoin(Exchange):
                 return result['data']
             else:
                 print(request_url + ". " + str(result))
-                #return self.trading_api_request(method,endpoint,body)
+                #return self.private_request(method,endpoint,body)
 
         except Exception as e:
             print(str(e))
@@ -98,20 +98,20 @@ class Kucoin(Exchange):
     ### Exchange specific public methods ###
     ########################################
 
-    def get_market_list(self):
+    def public_get_base_currencies(self):
         """
             Get base currencies.
             GET /api/v1/markets
-            ct['Kucoin'].get_market_list()
+            ct['Kucoin'].public_get_base_currencies()
             [
                 "BTC",
                 "ETH",
                 "USDT"
             ]
         """
-        return self.get_request('/api/v1/markets')
+        return self.public_get_request('/api/v1/markets')
 
-    def get_symbols(self):
+    def public_get_market_definitions(self):
         """
             Get a list of available currency pairs for trading.
             GET /api/v1/symbols
@@ -140,9 +140,9 @@ class Kucoin(Exchange):
               'baseMaxSize': '1000000000',
               'baseCurrency': 'ETH'}]
         """
-        return self.get_request('/api/v1/symbols')
+        return self.public_get_request('/api/v1/symbols')
 
-    def get_ticker(self, symbol):
+    def public_get_ticker(self, symbol):
         """
             Ticker include only the inside (i.e. best) bid and ask data , last
             price and last trade size.
@@ -155,9 +155,9 @@ class Kucoin(Exchange):
              'bestBid': '0.00012',
              'bestAskSize': '2.05255'}
         """
-        return self.get_request('/api/v1/market/orderbook/level1?symbol=' + symbol)
+        return self.public_get_request('/api/v1/market/orderbook/level1?symbol=' + symbol)
 
-    def get_part_order_book_agg(self, symbol):
+    def public_get_part_order_book_agg(self, symbol):
         """
             Get a list of open orders for a symbol.
             Level-2 order book includes all bids and asks (aggregated by price),
@@ -180,9 +180,9 @@ class Kucoin(Exchange):
               ['0.000107', '0.00999'],
               ['0.000106', '0.00999']]}
         """
-        return self.get_request('/api/v1/market/orderbook/level2_100?symbol=' + symbol)
+        return self.public_get_request('/api/v1/market/orderbook/level2_100?symbol=' + symbol)
 
-    def get_full_order_book_agg(self, symbol):
+    def public_get_full_order_book_agg(self, symbol):
         """
             Get a list of open orders for a symbol.
             Level-2 order book includes all bids and asks (aggregated by price),
@@ -203,9 +203,9 @@ class Kucoin(Exchange):
               ['0.00012', '0.47062']],
              'bids': [['0.00011', '16.60746'], ['0.000107', '0.00999']]}
         """
-        return self.get_request('/api/v1/market/orderbook/level2?symbol=' + symbol)
+        return self.public_get_request('/api/v1/market/orderbook/level2?symbol=' + symbol)
 
-    def get_full_order_book_atomic(self, symbol):
+    def public_get_full_order_book_atomic(self, symbol):
         """
             Get a list of open orders for a symbol. Level-3 order book includes
             all bids and asks (non-aggregated, each item in Level-3 means a
@@ -230,9 +230,9 @@ class Kucoin(Exchange):
               ['5c436c7cef83c766e43002be', '0.00011', '0.3837'],
               ['5c43275fef83c766e42729cf', '0.000107', '0.00999']]}
         """
-        return self.get_request('/api/v1/market/orderbook/level3?symbol=' + symbol)
+        return self.public_get_request('/api/v1/market/orderbook/level3?symbol=' + symbol)
 
-    def get_trade_histories(self, symbol):
+    def public_get_trade_histories(self, symbol):
         """
             List the latest trades for a symbol.
             GET /api/v1/market/histories?symbol=<symbol>
@@ -262,9 +262,9 @@ class Kucoin(Exchange):
               'price': '0.00013',
               'time': 1547923497366885430}]]
         """
-        return self.get_request('/api/v1/market/histories?symbol=' + symbol)
+        return self.public_get_request('/api/v1/market/histories?symbol=' + symbol)
 
-    def get_historic_rates(self, symbol, startAt, endAt, pattern_type='5min'):
+    def public_get_historic_rates(self, symbol, startAt, endAt, pattern_type='5min'):
         """
             Historic rates for a symbol. Rates are returned in grouped buckets
             based on requested type.
@@ -317,9 +317,9 @@ class Kucoin(Exchange):
             GET /api/v1/market/candles?symbol=<symbol>
 
         """
-        return self.get_request('/api/v1/market/candles?symbol={0}&begin={1}&end={2}&type={3}'.format(symbol, startAt, endAt, pattern_type))
+        return self.public_get_request('/api/v1/market/candles?symbol={0}&begin={1}&end={2}&type={3}'.format(symbol, startAt, endAt, pattern_type))
 
-    def get_24hr_stats(self, symbol):
+    def public_get_24hr_stats(self, symbol):
         """
             Get 24 hr stats for the symbol. volume is in base currency units.
             open, high, low are in quote currency units.
@@ -332,9 +332,9 @@ class Kucoin(Exchange):
              'changeRate': '-0.0769',
              'volValue': '2.95767623942'}
         """
-        return self.get_request('/api/v1/market/stats/' + symbol)
+        return self.public_get_request('/api/v1/market/stats/' + symbol)
 
-    def get_currencies(self):
+    def public_get_currencies(self):
         """
             List known currencies.
             GET /api/v1/currencies
@@ -343,9 +343,9 @@ class Kucoin(Exchange):
              {'precision': 10, 'name': 'KCS', 'fullName': 'KCS shares', 'currency': 'KCS'},
              {'precision': 8, 'name': 'USDT', 'fullName': 'USDT', 'currency': 'USDT'}]
         """
-        return self.get_request('/api/v1/currencies')
+        return self.public_get_request('/api/v1/currencies')
 
-    def get_currency_detail(self, currency):
+    def public_get_currency_detail(self, currency):
         """
             Get single currency detail
             GET /api/v1/currencies/{currency}
@@ -358,28 +358,28 @@ class Kucoin(Exchange):
              'isWithdrawEnabled': False,
              'isDepositEnabled': False}
         """
-        return self.get_request('/api/v1/currencies/' + currency)
+        return self.public_get_request('/api/v1/currencies/' + currency)
 
-    def get_time(self):
+    def public_get_server_time(self):
         """
             Get the API server time.
             GET /api/v1/timestamp
             1547924920579
         """
-        return self.get_request('/api/v1/timestamp')
+        return self.public_get_request('/api/v1/timestamp')
 
-    def get_all_tickers(self):
+    def public_get_all_tickers(self):
         """
             Get all tickers
-            Debug: ct['Kucoin'].get_all_tickers()
+            Debug: ct['Kucoin'].public_get_all_tickers()
         """
-        return self.get_request('/api/v1/market/allTickers')
+        return self.public_get_request('/api/v1/market/allTickers')
 
     #########################################
     ### Exchange specific private methods ###
     #########################################
 
-    def get_accounts(self, currency = None, account_type = None):
+    def private_get_accounts(self, currency = None, account_type = None):
         """
             Get a list of accounts.
             GET /api/v1/accounts?currency=<currency>&type=<type>
@@ -409,9 +409,9 @@ class Kucoin(Exchange):
             request += 'type=' + account_type
         if request != '':
             request = '?' + request
-        return self.trading_api_request('get', '/api/v1/accounts' + request)
+        return self.private_request('get', '/api/v1/accounts' + request)
 
-    def get_account(self, accountId):
+    def private_get_account(self, accountId):
         """
             Information for a single account. Use this endpoint when you know the accountId.
             GET /api/v1/accounts/<accountId>
@@ -420,20 +420,20 @@ class Kucoin(Exchange):
              'holds': '0',
              'currency': 'BTC'}
         """
-        return self.trading_api_request('get', '/api/v1/accounts/' + accountId)
+        return self.private_request('get', '/api/v1/accounts/' + accountId)
 
-    def create_account(self, account_type, currency):
+    def private_create_account(self, account_type, currency):
         """
             Create an Account.
             POST /api/v1/accounts
             'Internal Server Error!'
         """
-        return self.trading_api_request('post', '/api/v1/accounts', {
+        return self.private_request('post', '/api/v1/accounts', {
                     'type': account_type,
                     'currency': currency
                 })
 
-    def get_account_history(self, accountId, startAt, endAt, pageSize= 100, currentPage = 1):
+    def private_get_account_history(self, accountId, startAt, endAt, pageSize= 100, currentPage = 1):
         """
             List account activity. Account activity either increases or decreases
             your account balance. Items are paginated and sorted latest first.
@@ -452,12 +452,12 @@ class Kucoin(Exchange):
                        'currency': 'BTC',
                        'direction': 'in'}]}
         """
-        return self.trading_api_request('get',
+        return self.private_request('get',
                                         '/api/v1/accounts/{}/ledgers?startAt={}&endAt={}&pageSize={}&currentPage={}'.format(
                                                 accountId, startAt, endAt, pageSize, currentPage
                                             ))
 
-    def get_account_holds(self, accountId):
+    def private_get_account_holds(self, accountId):
         """
             Holds are placed on an account for any active orders or pending
             withdraw requests. As an order is filled, the hold amount is updated.
@@ -465,9 +465,9 @@ class Kucoin(Exchange):
             once it is completed, the hold is removed.
             GET /api/v1/accounts/<accountId>/holds
         """
-        return self.trading_api_request('get', '/api/v1/accounts/' + accountId + '/holds')
+        return self.private_request('get', '/api/v1/accounts/' + accountId + '/holds')
 
-    def post_inner_transfer(self, clientOid, payAccountId, recAccountId, amount):
+    def private_post_inner_transfer(self, clientOid, payAccountId, recAccountId, amount):
         """
             The inner transfer interface is used for assets transfer among the
             accounts of a user and is free of charges on the platform. For example,
@@ -475,14 +475,14 @@ class Kucoin(Exchange):
             trading account on the platform.
             POST /api/v1/accounts/inner-transfer
         """
-        return self.trading_api_request('post', '/api/v1/accounts/inner-transfer', {
+        return self.private_request('post', '/api/v1/accounts/inner-transfer', {
                     'clientOid': clientOid,
                     'payAccountId': payAccountId,
                     'recAccountId': recAccountId,
                     'amount': amount,
                 })
 
-    def post_new_order(self, side, symbol, price, size, timeInForce, order_type = 'limit'):
+    def private_submit_new_order(self, side, symbol, price, size, timeInForce, order_type = 'limit'):
         """
             You can place two types of orders: limit and market. Orders can only
             be placed if your account has sufficient funds. Once an order is placed,
@@ -528,15 +528,15 @@ class Kucoin(Exchange):
             request['size'] = size
         if timeInForce is not None:
             request['timeInForce'] = timeInForce
-        return self.trading_api_request('post', '/api/v1/orders', request)
+        return self.private_request('post', '/api/v1/orders', request)
 
     #######################
     ### Generic methods ###
     #######################
-    def get_formatted_currencies(self):
+    def get_consolidated_currency_definitions(self):
         """
             Loading currencies
-            Debug: ct['Kucoin'].get_formatted_currencies()
+            Debug: ct['Kucoin'].get_consolidated_currency_definitions()
             Example:
                 {
                     'BTC': {
@@ -553,7 +553,7 @@ class Kucoin(Exchange):
                     ...
                 }
         """
-        currencies = self.get_currencies()
+        currencies = self.public_get_currencies()
         results = {}
         if isinstance(currencies, list):
             for currency in currencies:
@@ -582,7 +582,7 @@ class Kucoin(Exchange):
             in recently enough
             Debug: ct['Kucoin'].update_market_definitions()
         """
-        symbols = self.get_symbols()
+        symbols = self.public_get_market_definitions()
         if isinstance(symbols, list):
             for market in symbols:
                 try:
@@ -612,7 +612,7 @@ class Kucoin(Exchange):
             Used to get the market quotes
             Debug: ct['Kucoin'].update_market_quotes()
         """
-        all_markets = self.get_all_tickers()['ticker']
+        all_markets = self.public_get_all_tickers()['ticker']
         if isinstance(all_markets, list):
             for ticker in all_markets:
                 try:
@@ -651,7 +651,7 @@ class Kucoin(Exchange):
     def load_markets(self):
         self._markets = {}
         self._active_markets = {}
-        all_markets = self.get_all_tickers()['ticker']
+        all_markets = self.public_get_all_tickers()['ticker']
 
         for market in all_markets:
             try:
@@ -677,7 +677,7 @@ class Kucoin(Exchange):
         """
             ct['Kucoin'].load_available_balances()
         """
-        available_balances = self.get_accounts()
+        available_balances = self.private_get_accounts()
         self._available_balances = {}
         for balance in available_balances:
             currency = balance['currency']
@@ -690,7 +690,7 @@ class Kucoin(Exchange):
         """
             ct['Kucoin'].load_balances_btc()
         """
-        available_balances = self.get_accounts()
+        available_balances = self.private_get_accounts()
         self._complete_balances_btc = {}
         for balance in available_balances:
             currency = balance['currency']
@@ -706,7 +706,7 @@ class Kucoin(Exchange):
         return self._complete_balances_btc
 
     def load_order_book(self, market, depth = 5):
-        raw_results = self.get_part_order_book_agg(market)
+        raw_results = self.public_get_part_order_book_agg(market)
         take_bid = min(depth, len(raw_results['bids']))
         take_ask = min(depth, len(raw_results['asks']))
 

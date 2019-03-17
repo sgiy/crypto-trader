@@ -42,9 +42,32 @@ class Exchange:
         self._API_SECRET = Secret
         self._API_PASSPHRASE = PassPhrase
 
-    def load_currencies(self):
+    ### Error handling ###
+    def raise_not_implemented_error(self):
+        raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
+
+    def log_request_success(self):
+        self._error ={
+            'count': 0,
+            'message': '',
+            'result_timestamp': time.time()
+        }
+
+    def log_request_error(self, message):
+        error_message = 'Exception in class {} method {}: {}'.format(self.__class__.__name__, traceback.extract_stack(None, 2)[0][2], message)
+        print(error_message)
+        self._error ={
+            'count': self._error['count'] + 1,
+            'message': error_message
+        }
+
+    def retry_count_not_exceeded(self):
+        return self._error['count'] < self._max_error_count
+
+    ### Generic methods ###
+    def update_currency_definitions(self):
         """
-            get_formatted_currencies() needs to return a dictionary:
+            get_consolidated_currency_definitions() needs to return a dictionary:
             exchange currency code to a dictionary
             Example:
                 {
@@ -62,13 +85,13 @@ class Exchange:
                     ...
                 }
         """
-        currencies = self.get_formatted_currencies()
+        currencies = self.get_consolidated_currency_definitions()
         for currency in currencies.keys():
             if currency in self._currencies:
                 self._currencies[currency].update(currencies[currency])
             else:
                 self._currencies[currency] = currencies[currency]
-        self._timestamps['load_currencies'] = time.time()
+        self._timestamps['update_currency_definitions'] = time.time()
 
     def update_market_definitions(self):
         """
@@ -175,27 +198,6 @@ class Exchange:
             Updates _markets with current market definitions
         """
         self.raise_not_implemented_error()
-
-    def raise_not_implemented_error(self):
-        raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
-
-    def log_request_success(self):
-        self._error ={
-            'count': 0,
-            'message': '',
-            'result_timestamp': time.time()
-        }
-
-    def log_request_error(self, message):
-        error_message = 'Exception in class {} method {}: {}'.format(self.__class__.__name__, traceback.extract_stack(None, 2)[0][2], message)
-        print(error_message)
-        self._error ={
-            'count': self._error['count'] + 1,
-            'message': error_message
-        }
-
-    def retry_count_not_exceeded(self):
-        return self._error['count'] < self._max_error_count
 
     def load_available_balances(self):
         """
