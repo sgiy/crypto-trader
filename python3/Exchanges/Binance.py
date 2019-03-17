@@ -1,5 +1,5 @@
 import time
-import datetime
+from datetime import datetime
 import hmac
 import hashlib
 import requests
@@ -549,12 +549,15 @@ class Binance(Exchange):
              ...
              ]
         """
-        request = {}
-        if market is not None:
-            request['symbol'] = market
-        if recvWindow is not None:
-            request['recvWindow'] = recvWindow
-        return self.private_request('get', '/api/v3/openOrders', request)
+        if self.has_api_keys():
+            request = {}
+            if market is not None:
+                request['symbol'] = market
+            if recvWindow is not None:
+                request['recvWindow'] = recvWindow
+            return self.private_request('get', '/api/v3/openOrders', request)
+        else:
+            return []
 
     def private_get_all_orders(self, market, fromOrderId = None, startTime = None,
             endTime = None, limit = '500', recvWindow = None):
@@ -581,19 +584,22 @@ class Binance(Exchange):
              ...
              ]
         """
-        request = {
-                'symbol': market,
-                'limit': limit
-            }
-        if fromOrderId is not None:
-            request['orderId'] = fromOrderId
-        if startTime is not None:
-            request['startTime'] = startTime
-        if endTime is not None:
-            request['endTime'] = endTime
-        if recvWindow is not None:
-            request['recvWindow'] = recvWindow
-        return self.private_request('get', '/api/v3/allOrders', request)
+        if self.has_api_keys():
+            request = {
+                    'symbol': market,
+                    'limit': limit
+                }
+            if fromOrderId is not None:
+                request['orderId'] = fromOrderId
+            if startTime is not None:
+                request['startTime'] = startTime
+            if endTime is not None:
+                request['endTime'] = endTime
+            if recvWindow is not None:
+                request['recvWindow'] = recvWindow
+            return self.private_request('get', '/api/v3/allOrders', request)
+        else:
+            return []
 
     def private_get_account_info(self, recvWindow = None):
         """
@@ -614,10 +620,13 @@ class Binance(Exchange):
              'takerCommission': 10,
              'updateTime': 1540000000000}
         """
-        request = {}
-        if recvWindow is not None:
-            request['recvWindow'] = recvWindow
-        return self.private_request('get', '/api/v3/account', request)
+        if self.has_api_keys():
+            request = {}
+            if recvWindow is not None:
+                request['recvWindow'] = recvWindow
+            return self.private_request('get', '/api/v3/account', request)
+        else:
+            return {}
 
     def private_get_account_trades(self, market, fromOrderId = None, startTime = None,
             endTime = None, limit = '500', recvWindow = None):
@@ -844,11 +853,88 @@ class Binance(Exchange):
                             '24HrLow':          float(market['lowPrice']),
                             '24HrPercentMove':  float(market['priceChangePercent']),
                             'LastTradedPrice':  float(market['lastPrice']),
-                            'TimeStamp':        datetime.datetime.fromtimestamp(market['closeTime'] / 1000),
+                            'TimeStamp':        datetime.fromtimestamp(market['closeTime'] / 1000),
                         }
                     )
                 except Exception as e:
                     self.log_request_error(str(e))
+
+    def get_consolidated_open_user_orders_in_market(self, market):
+        """
+            Used to retrieve outstanding orders
+            Debug: ct['Binance'].get_consolidated_open_user_orders_in_market('LTCBTC')
+        """
+        open_orders = self.private_get_open_orders(market)
+        results = []
+        for order in open_orders:
+            if order['side'] == 'BUY':
+                order_type = 'Buy'
+            else:
+                order_type = 'Sell'
+
+            results.append({
+                'OrderId': order['orderId'],
+                'OrderType': order_type,
+                'OpderOpenedAt': datetime.fromtimestamp(market['time'] / 1000),
+                'Price': float(order['price']),
+                'Amount': float(order['origQty']),
+                'Total': float(order['price']) * float(order['origQty']),
+                'AmountRemaining': float(order['price']) * (float(order['origQty']) - float(order['executedQty'])),
+            })
+        return results
+
+    def get_consolidated_recent_market_trades_per_market(self, market):
+        """
+            Used to update recent market trades at a given market
+            Debug: ct['Binance'].update_recent_market_trades_per_market('LTCBTC')
+        """
+        trades = self.public_get_market_history(market)
+        results = []
+        for trade in trades:
+            if trade['isBuyerMaker']:
+                order_type = 'Buy'
+            else:
+                order_type = 'Sell'
+
+            if float(trade['price']) > 0 and float(trade['qty']) > 0:
+                results.append({
+                    'TradeId': trade['id'],
+                    'TradeType': order_type,
+                    'TradeTime': datetime.fromtimestamp(trade['time'] / 1000),
+                    'Price': float(trade['price']),
+                    'Amount': float(trade['qty']),
+                    'Total': float(trade['price']) * float(trade['qty'])
+                })
+        return results
+
+    def get_consolidated_klines(self, market_symbol, interval = '5m', lookback = None):
+        """
+            https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
+            [
+              [
+                1499040000000,      // Open time
+                "0.01634790",       // Open
+                "0.80000000",       // High
+                "0.01575800",       // Low
+                "0.01577100",       // Close
+                "148976.11427815",  // Volume
+                1499644799999,      // Close time
+                "2434.19055334",    // Quote asset volume
+                308,                // Number of trades
+                "1756.87402397",    // Taker buy base asset volume
+                "28.46694368",      // Taker buy quote asset volume
+                "17928899.62484339" // Ignore.
+              ]
+            ]
+        """
+        load_chart = self.public_get_candlesticks(market_symbol, interval)
+        results = []
+        for i in load_chart:
+            new_row = int(i[0] / 1000), float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), float(i[7])
+            results.append(new_row)
+        return results
+
+
 
 
 
@@ -875,33 +961,6 @@ class Binance(Exchange):
             except Exception as e:
                 self.log_request_error(str(market_symbol) + ". " + str(e))
         return self._active_markets
-
-    def load_ticks(self, market_symbol, interval = '5m', lookback = None):
-        """
-            https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
-            [
-              [
-                1499040000000,      // Open time
-                "0.01634790",       // Open
-                "0.80000000",       // High
-                "0.01575800",       // Low
-                "0.01577100",       // Close
-                "148976.11427815",  // Volume
-                1499644799999,      // Close time
-                "2434.19055334",    // Quote asset volume
-                308,                // Number of trades
-                "1756.87402397",    // Taker buy base asset volume
-                "28.46694368",      // Taker buy quote asset volume
-                "17928899.62484339" // Ignore.
-              ]
-            ]
-        """
-        load_chart = self.public_get_candlesticks(market_symbol, interval)
-        results = []
-        for i in load_chart:
-            new_row = i[0], float(i[1]), float(i[2]), float(i[3]), float(i[4]), float(i[5]), float(i[7])
-            results.append(new_row)
-        return results
 
     def load_available_balances(self):
         available_balances = self.private_get_balances()

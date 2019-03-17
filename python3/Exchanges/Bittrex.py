@@ -284,10 +284,10 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        if self._API_KEY == '':
-            return []
-        else:
+        if self.has_api_keys():
             return self.private_request('/market/getopenorders','&market='+market)
+        else:
+            return []
 
     def private_get_all_open_orders(self):
         """
@@ -315,7 +315,10 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        return self.private_request('/market/getopenorders')
+        if self.has_api_keys():
+            return self.private_request('/market/getopenorders')
+        else:
+            return []
 
     def private_get_balances(self):
         """
@@ -331,7 +334,10 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        return self.private_request('/account/getbalances')
+        if self.has_api_keys():
+            return self.private_request('/account/getbalances')
+        else:
+            return []
 
     def private_get_balance(self, currency):
         """
@@ -348,7 +354,10 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        return self.private_request('/account/getbalance', '&currency='+currency)
+        if self.has_api_keys():
+            return self.private_request('/account/getbalance', '&currency='+currency)
+        else:
+            return []
 
     def private_get_deposit_address(self, currency):
         """
@@ -363,7 +372,10 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        return self.private_request('/account/getdepositaddress', '&currency='+currency)
+        if self.has_api_keys():
+            return self.private_request('/account/getdepositaddress', '&currency='+currency)
+        else:
+            return []
 
     def private_submit_withdrawal_request(self, currency, quantity, address, paymentid = None):
         """
@@ -405,7 +417,10 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        return self.private_request('/account/getorder', '&uuid='+orderId)
+        if self.has_api_keys():
+            return self.private_request('/account/getorder', '&uuid='+orderId)
+        else:
+            return []
 
     def private_get_order_history(self, market = None):
         """
@@ -433,10 +448,13 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        request = ''
-        if market is not None:
-            request += '&market='+market
-        return self.private_request('/account/getorderhistory', request)
+        if self.has_api_keys():
+            request = ''
+            if market is not None:
+                request += '&market='+market
+            return self.private_request('/account/getorderhistory', request)
+        else:
+            return []
 
     def private_get_withdrawal_history(self, currency = None):
         """
@@ -460,10 +478,13 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        request = ''
-        if currency is not None:
-            request += '&currency='+currency
-        return self.private_request('/account/getwithdrawalhistory', request)
+        if self.has_api_keys():
+            request = ''
+            if currency is not None:
+                request += '&currency='+currency
+            return self.private_request('/account/getwithdrawalhistory', request)
+        else:
+            return []
 
     def private_get_deposit_history(self, currency = None):
         """
@@ -483,10 +504,13 @@ class Bittrex(Exchange):
                 }
               ]
         """
-        request = ''
-        if currency is not None:
-            request += '&currency='+currency
-        return self.private_request('/account/getdeposithistory', request)
+        if self.has_api_keys():
+            request = ''
+            if currency is not None:
+                request += '&currency='+currency
+            return self.private_request('/account/getdeposithistory', request)
+        else:
+            return []
 
     ############################################
     ### Additional exchange specific methods ###
@@ -632,10 +656,10 @@ class Bittrex(Exchange):
     def update_market_24hrs(self):
         self.update_market_quotes()
 
-    def update_user_open_orders_per_market(self, market):
+    def get_consolidated_open_user_orders_in_market(self, market):
         """
-            Used to update outstanding orders
-            Debug: ct['Bittrex'].update_user_market_open_orders('BTC-LTC')
+            Used to retrieve outstanding orders
+            Debug: ct['Bittrex'].get_consolidated_open_user_orders_in_market('BTC-LTC')
         """
         open_orders = self.private_get_open_orders_in_market(market)
         results = []
@@ -654,10 +678,9 @@ class Bittrex(Exchange):
                 'Total': order.get('Price',0),
                 'AmountRemaining': order.get('QuantityRemaining',0),
             })
+        return results
 
-        self._open_orders[market] = results
-
-    def update_recent_market_trades_per_market(self, market):
+    def get_consolidated_recent_market_trades_per_market(self, market):
         """
             Used to update recent market trades at a given market
             Debug: ct['Bittrex'].update_recent_market_trades_per_market('BTC-LTC')
@@ -679,8 +702,17 @@ class Bittrex(Exchange):
                     'Amount': trade['Quantity'],
                     'Total': trade['Total']
                 })
+        return results
 
-        self._recent_market_trades[market] = results
+    def get_consolidated_klines(self, market_symbol, interval = 'fiveMin', lookback = None):
+        load_chart = self.public_get_ticks(market_symbol, interval)
+        results = []
+        for i in load_chart:
+            new_row = datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp(), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
+            results.append(new_row)
+        return results
+
+
 
 
 
@@ -700,13 +732,7 @@ class Bittrex(Exchange):
                 self.log_request_error(str(entry) + ". " + str(e))
         return self._active_markets
 
-    def load_ticks(self, market_symbol, interval = 'fiveMin', lookback = None):
-        load_chart = self.public_get_ticks(market_symbol, interval)
-        results = []
-        for i in load_chart:
-            new_row = datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp(), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
-            results.append(new_row)
-        return results
+
 
     def load_available_balances(self):
         available_balances = self.private_get_balances()

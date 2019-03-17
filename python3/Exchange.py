@@ -42,6 +42,9 @@ class Exchange:
         self._API_SECRET = Secret
         self._API_PASSPHRASE = PassPhrase
 
+    def has_api_keys(self):
+        return self._API_KEY != ''
+
     ### Error handling ###
     def raise_not_implemented_error(self):
         raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
@@ -187,17 +190,44 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
-    def update_user_open_orders_per_market(self, market):
+    def update_open_user_orders_in_market(self, market):
         """
-            Updates _markets with current market definitions
+            get_consolidated_open_user_orders_in_market() needs to return a list
+            Example:
+            [
+                {
+                    'OrderId': exchangeOrderId,
+                    'OrderType': order_type, # Buy / Sell
+                    'OpderOpenedAt': datetime.datetime,
+                    'Price': double,
+                    'Amount': double,
+                    'Total': double,
+                    'AmountRemaining': double
+                },
+                ...
+            ]
         """
-        self.raise_not_implemented_error()
+        self._open_orders[market] = self.get_consolidated_open_user_orders_in_market(market)
+        self._timestamps['update_open_user_orders_in_market'] = time.time()
 
     def update_recent_market_trades_per_market(self, market):
         """
-            Updates _markets with current market definitions
+            get_consolidated_recent_market_trades_per_market() needs to return a list
+            Example:
+            [
+                {
+                    'TradeId': string,
+                    'TradeType': order_type,  # Buy / Sell
+                    'TradeTime': datetime.datetime,
+                    'Price': double,
+                    'Amount': double,
+                    'Total': double
+                },
+                ...
+            ]
         """
-        self.raise_not_implemented_error()
+        self._recent_market_trades[market] = self.get_consolidated_recent_market_trades_per_market(market)
+        self._timestamps['update_recent_market_trades_per_market'] = time.time()
 
     def load_available_balances(self):
         """
@@ -230,7 +260,7 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
-    def load_ticks(self, market_symbol, interval, lookback):
+    def get_consolidated_klines(self, market_symbol, interval, lookback):
         """
             interval is an exchange specific name, e.g. 'fiveMin'
             Returns a candlestick data: times, opens, closes, ...
@@ -264,7 +294,7 @@ class Exchange:
                 take_i_name = i_name
 
         number_of_ticks_to_take = int(lookback / interval)
-        preliminary_ticks = self.load_ticks(market_symbol, take_i_name, lookback)
+        preliminary_ticks = self.get_consolidated_klines(market_symbol, take_i_name, lookback)
         if preliminary_ticks is None:
             return None
         else:

@@ -1,5 +1,6 @@
 import base64
 import time
+from datetime import datetime
 import hmac
 import hashlib
 import requests
@@ -16,6 +17,21 @@ class Kucoin(Exchange):
         """
         self._BASE_URL = 'https://openapi-v2.kucoin.com'
         self._exchangeInfo = None
+        self._tick_intervals = {
+            '1min':      1,
+            '3min':      3,
+            '5min':      5,
+            '15min':     15,
+            '30min':     30,
+            '1hour':     60,
+            '2hour':     2 * 60,
+            '4hour':     4 * 60,
+            '6hour':     6 * 60,
+            '8hour':     8 * 60,
+            '12hour':    12 * 60,
+            '1day':      24 * 60,
+            '1week':     7 * 24 * 60
+        }
 
     def public_get_request(self, url):
         try:
@@ -264,7 +280,7 @@ class Kucoin(Exchange):
         """
         return self.public_get_request('/api/v1/market/histories?symbol=' + symbol)
 
-    def public_get_historic_rates(self, symbol, startAt, endAt, pattern_type='5min'):
+    def public_get_klines(self, symbol, startAt, endAt, type='5min'):
         """
             Historic rates for a symbol. Rates are returned in grouped buckets
             based on requested type.
@@ -317,7 +333,7 @@ class Kucoin(Exchange):
             GET /api/v1/market/candles?symbol=<symbol>
 
         """
-        return self.public_get_request('/api/v1/market/candles?symbol={0}&begin={1}&end={2}&type={3}'.format(symbol, startAt, endAt, pattern_type))
+        return self.public_get_request('/api/v1/market/candles?symbol={0}&startAt={1}&endAt={2}&type={3}'.format(symbol, startAt, endAt, type))
 
     def public_get_24hr_stats(self, symbol):
         """
@@ -530,6 +546,83 @@ class Kucoin(Exchange):
             request['timeInForce'] = timeInForce
         return self.private_request('post', '/api/v1/orders', request)
 
+    def private_cancel_order(self, clientOid):
+        """
+            Cancel a previously placed order.
+
+            You would receive the request return once the system has received
+            the cancellation request. The cancellation request will be processed
+            by matching engine in sequence. To know if the request is processed
+            (success or not), you may check the order status or update message
+            from the pushes.
+        """
+        request = {
+                    'clientOid': clientOid
+                }
+        return self.private_request('delete', '/api/v1/orders', request)
+
+    def private_cancel_all_orders(self):
+        """
+            With best effort, cancel all open orders. The response is a list of
+            ids of the canceled orders.
+        """
+        return self.private_request('delete', '/api/v1/orders')
+
+    def private_get_orders(self, request = {}):
+        """
+            List your current orders.
+
+            Param	Type	Description
+            status	string	[optional] active or done, done as default, Only
+                list orders for a specific status .
+            symbol	string	[optional] Only list orders for a specific symbol.
+            side	string	[optional] buy or sell
+            type	string	[optional] limit, market, limit_stop or market_stop
+            startAt	long	[optional] Start time. Unix timestamp calculated in
+                milliseconds, the creation time queried shall posterior to the
+                start time.
+            endAt	long	[optional] End time. Unix timestamp calculated in
+                milliseconds, the creation time queried shall prior to the end
+                time.
+             [
+                  {
+                    "id": "5c35c02703aa673ceec2a168",   //orderid
+                    "symbol": "BTC-USDT",   //symbol
+                    "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
+                    "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
+                    "side": "buy",         // transaction direction,include buy and sell
+                    "price": "10",         // order price
+                    "size": "2",           // order quantity
+                    "funds": "0",          // order funds
+                    "dealFunds": "0.166",  // deal funds
+                    "dealSize": "2",       // deal quantity
+                    "fee": "0",            // fee
+                    "feeCurrency": "USDT", // charge fee currency
+                    "stp": "",             // self trade prevention,include CN,CO,DC,CB
+                    "stop": "",            // stop type
+                    "stopTriggered": false,  // stop order is triggered
+                    "stopPrice": "0",      // stop price
+                    "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
+                    "postOnly": false,     // postOnly
+                    "hidden": false,       // hidden order
+                    "iceberg": false,      // iceberg order
+                    "visibleSize": "0",    // display quantity for iceberg order
+                    "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
+                    "channel": "IOS",      // order source
+                    "clientOid": "",       // user-entered order unique mark
+                    "remark": "",          // remark
+                    "tags": "",            // tag order source
+                    "isActive": false,     // status before unfilled or uncancelled
+                    "cancelExist": false,   // order cancellation transaction record
+                    "createdAt": 1547026471000  // time
+                  }
+                ]
+        """
+        if self.has_api_keys():
+            return self.private_request('get', '/api/v1/orders', request)
+        else:
+            return []
+
     #######################
     ### Generic methods ###
     #######################
@@ -640,9 +733,92 @@ class Kucoin(Exchange):
         """
         self.update_market_quotes()
 
+    def get_consolidated_open_user_orders_in_market(self, market):
+        """
+            Used to retrieve outstanding orders
+            Debug: ct['Kucoin'].get_consolidated_open_user_orders_in_market('LTCBTC')
+        """
+        open_orders = self.private_get_orders({
+            'symbol': market,
+            'status': 'active'
+        })
+        results = []
+        for order in open_orders:
+            if order['side'] == 'buy':
+                order_type = 'Buy'
+            else:
+                order_type = 'Sell'
 
+            results.append({
+                'OrderId': order['id'],
+                'OrderType': order_type,
+                'OpderOpenedAt': datetime.fromtimestamp(market['createdAt'] / 1000),
+                'Price': float(order['price']),
+                'Amount': float(order['size']),
+                'Total': float(order['dealSize']),
+                'AmountRemaining': float(order['dealFunds']),
+            })
+        return results
 
+    def get_consolidated_recent_market_trades_per_market(self, market):
+        """
+            Used to update recent market trades at a given market
+            Debug: ct['Kucoin'].update_recent_market_trades_per_market('LTCBTC')
+        """
+        trades = self.public_get_trade_histories(market)
+        results = []
+        for trade in trades:
+            if trade['side'] == 'buy':
+                order_type = 'Buy'
+            else:
+                order_type = 'Sell'
 
+            if float(trade['price']) > 0 and float(trade['size']) > 0:
+                results.append({
+                    'TradeId': trade['sequence'],
+                    'TradeType': order_type,
+                    'TradeTime': datetime.fromtimestamp(trade['time'] / 1000000000),
+                    'Price': float(trade['price']),
+                    'Amount': float(trade['size']),
+                    'Total': float(trade['price']) * float(trade['size'])
+                })
+        return results
+
+    def get_consolidated_klines(self, market_symbol, interval = '5m', lookback = None, startAt = None, endAt = None):
+        """
+            Klines for a symbol. Data are returned in grouped buckets based on
+            requested type.
+            Param	Description
+            startAt	Start time. Unix timestamp calculated in seconds not
+                millisecond
+            endAt	End time. Unix timestamp calculated in seconds not
+                millisecond
+            type	Type of candlestick patterns: 1min, 3min, 5min, 15min,
+                30min, 1hour, 2hour, 4hour, 6hour, 8hour, 12hour, 1day, 1week
+            [
+              [
+                  "1545904980",             //Start time of the candle cycle
+                  "0.058",                  //opening price
+                  "0.049",                  //closing price
+                  "0.058",                  //highest price
+                  "0.049",                  //lowest price
+                  "0.018",                  //Transaction amount
+                  "0.000945"                //Transaction volume
+              ],
+            ]
+        """
+        if lookback is None:
+            lookback = 24 * 60
+        if startAt is None:
+            endAt = int(datetime.now().timestamp())
+            startAt = endAt - lookback * 60
+
+        load_chart = self.public_get_klines(market_symbol, startAt, endAt, interval)
+        results = []
+        for i in load_chart:
+            new_row = int(i[0]), float(i[1]), float(i[3]), float(i[4]), float(i[2]), float(i[5]), float(i[6])
+            results.append(new_row)
+        return results
 
 
 
@@ -669,9 +845,6 @@ class Kucoin(Exchange):
             except Exception as e:
                 self.log_request_error(str(market) + ". " + str(e))
         return self._active_markets
-
-    def load_ticks(self, market_symbol, interval = 'fiveMin', lookback = None):
-        pass
 
     def load_available_balances(self):
         """

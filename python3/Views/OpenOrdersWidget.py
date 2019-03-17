@@ -29,7 +29,7 @@ class CTOpenOrdersWidget(QWidget):
 
         self._single_shot_timer = QTimer(self)
         self._single_shot_timer.setSingleShot(True)
-        self._single_shot_timer.timeout.connect(self.reload_open_orders)
+        self._single_shot_timer.timeout.connect(self.update_open_orders)
 
         self._timer = QTimer(self)
         self._timer.start(1000)
@@ -39,8 +39,8 @@ class CTOpenOrdersWidget(QWidget):
         self._exchange = exchange
         self._market_symbol = market_symbol
 
-    def reload_open_orders(self):
-        self._CTMain._Crypto_Trader.trader[self._exchange].update_user_open_orders_per_market(self._market_symbol)
+    def update_open_orders(self):
+        self._CTMain._Crypto_Trader.trader[self._exchange].update_open_user_orders_in_market(self._market_symbol)
 
     def refresh_widget(self):
         t = threading.Thread(target = self.refresh)
@@ -49,7 +49,7 @@ class CTOpenOrdersWidget(QWidget):
 
     def refresh(self):
         self._open_orders = self._CTMain._Crypto_Trader.trader[self._exchange]._open_orders.get(self._market_symbol, [])
-        
+
         self._table_widget.setRowCount(len(self._open_orders))
         self._table_widget.setColumnCount(7)
         self._table_widget.verticalHeader().hide()

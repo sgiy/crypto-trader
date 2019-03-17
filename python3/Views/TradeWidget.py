@@ -102,7 +102,7 @@ class CTTradeWidget(QWidget):
 
     def update_after_trade(self):
         self.update_available_balances()
-        self._CTMain._Crypto_Trader.trader[self._exchange].update_user_open_orders_per_market(self._market_symbol)
+        self._CTMain._Crypto_Trader.trader[self._exchange].update_open_user_orders_in_market(self._market_symbol)
 
     def set_price(self, price):
         self._price.setText("{:.8f}".format(price))

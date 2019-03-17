@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 import hmac
 import hashlib
 import urllib
@@ -14,6 +15,14 @@ class Poloniex(Exchange):
         """
         self._BASE_URL = 'https://poloniex.com/'
         self._precision = 8
+        self._tick_intervals = {
+            '300':     300 / 60,
+            '900':     900 / 60,
+            '1800':    1800 / 60,
+            '7200':    7200 / 60,
+            '14400':   14400 / 60,
+            '86400':   86400 / 60,
+        }
 
     def public_get_request(self, url):
         try:
@@ -144,7 +153,7 @@ class Poloniex(Exchange):
         """
         return self.public_get_order_book('all',depth)
 
-    def public_get_market_history(self, market, start, end):
+    def public_get_market_history(self, market, start = None, end = None):
         """
             Returns the past 200 trades for a given market, or up to 50,000
             trades between a range specified in UNIX timestamps by the "start"
@@ -168,7 +177,10 @@ class Poloniex(Exchange):
               'tradeID': 123456789,
               'type': 'buy'}]
         """
-        url = "public?command=returnTradeHistory&currencyPair={}&start={}&end={}".format(market, start, end)
+        if start is None:
+            url = "public?command=returnTradeHistory&currencyPair={}".format(market)
+        else:
+            url = "public?command=returnTradeHistory&currencyPair={}&start={}&end={}".format(market, start, end)
         return self.public_get_request(url)
 
     def public_get_chart_data(self, market, start, end, period):
@@ -383,7 +395,10 @@ class Poloniex(Exchange):
               'total': '200.00000000',
               'type': 'buy'}]
         """
-        return self.private_request("returnOpenOrders",{'currencyPair':market})
+        if self.has_api_keys():
+            return self.private_request("returnOpenOrders",{'currencyPair':market})
+        else:
+            return []
 
     def get_all_open_orders(self):
         """
@@ -693,9 +708,9 @@ class Poloniex(Exchange):
                     entry = markets[market_symbol]
                     local_base = market_symbol[0:market_symbol.find('_')]
                     local_curr = market_symbol[market_symbol.find('_')+1:]
-                    is_frozen = entry.get('isFrozen', 1)
-                    is_active = is_frozen == 0
-                    is_restricted = is_frozen == 1
+                    is_frozen = entry.get('isFrozen', '1')
+                    is_active = is_frozen == '0'
+                    is_restricted = is_frozen == '1'
                     self.update_market(
                         market_symbol,
                         {
@@ -727,6 +742,91 @@ class Poloniex(Exchange):
 
     def update_market_24hrs(self):
         self.update_market_definitions()
+
+    def get_consolidated_open_user_orders_in_market(self, market):
+        """
+            Used to retrieve outstanding orders
+            Debug: ct['Poloniex'].get_consolidated_open_user_orders_in_market('LTCBTC')
+        """
+        open_orders = self.private_get_open_orders_in_market(market)
+        results = []
+        for order in open_orders:
+            if order['type'] == 'buy':
+                order_type = 'Buy'
+            else:
+                order_type = 'Sell'
+
+            results.append({
+                'OrderId': order['orderNumber'],
+                'OrderType': order_type,
+                'OpderOpenedAt': datetime.strptime(order['date'], "%Y-%m-%d %H:%M:%S"),
+                'Price': float(order['rate']),
+                'Amount': float(order['startingAmount']),
+                'Total': float(order['total']),
+                'AmountRemaining': float(order['amount']),
+            })
+        return results
+
+    def get_consolidated_recent_market_trades_per_market(self, market):
+        """
+            Used to update recent market trades at a given market
+            Debug: ct['Poloniex'].update_recent_market_trades_per_market('LTCBTC')
+        """
+        trades = self.public_get_market_history(market)
+        results = []
+        for trade in trades:
+            if trade['type'] == 'buy':
+                order_type = 'Buy'
+            else:
+                order_type = 'Sell'
+
+            if float(trade['rate']) > 0 and float(trade['amount']) > 0:
+                results.append({
+                    'TradeId': trade['globalTradeID'],
+                    'TradeType': order_type,
+                    'TradeTime': datetime.strptime(trade['date'], "%Y-%m-%d %H:%M:%S"),
+                    'Price': float(trade['rate']),
+                    'Amount': float(trade['amount']),
+                    'Total': float(trade['total'])
+                })
+        return results
+
+    def get_consolidated_klines(self, market_symbol, interval = '300', lookback = None, startAt = None, endAt = None):
+        """
+            Returns candlestick chart data. Required GET parameters are
+            "currencyPair", "period" (candlestick period in seconds; valid
+            values are 300, 900, 1800, 7200, 14400, and 86400), "start", and
+            "end". "Start" and "end" are given in UNIX timestamp format and used
+            to specify the date range for the data returned. Fields include:
+            Field	Description
+            currencyPair	The currency pair of the market being requested.
+            period	Candlestick period in seconds. Valid values are 300, 900,
+                1800, 7200, 14400, and 86400.
+            start	The start of the window in seconds since the unix epoch.
+            end	The end of the window in seconds since the unix epoch.
+            [ { date: 1539864000,
+                high: 0.03149999,
+                low: 0.031,
+                open: 0.03144307,
+                close: 0.03124064,
+                volume: 64.36480422,
+                quoteVolume: 2055.56810329,
+                weightedAverage: 0.03131241 },
+            ]
+        """
+        if lookback is None:
+            lookback = 24 * 60
+        if startAt is None:
+            endAt = int(datetime.now().timestamp())
+            startAt = endAt - lookback * 60
+
+        load_chart = self. public_get_chart_data(market_symbol, startAt, endAt, interval)
+        results = []
+        for i in load_chart:
+            new_row = i['date'], i['open'], i['high'], i['low'], i['close'], i['quoteVolume'], i['weightedAverage'] * i['quoteVolume']
+            results.append(new_row)
+        return results
+
 
 
 
@@ -794,7 +894,3 @@ class Poloniex(Exchange):
             }
 
         return results
-
-    def load_ticks(self, market_symbol, interval, lookback):
-        # TODO:
-        pass
