@@ -820,7 +820,27 @@ class Kucoin(Exchange):
             results.append(new_row)
         return results
 
+    def get_consolidated_order_book(self, market, depth = 5):
+        raw_results = self.public_get_part_order_book_agg(market)
+        take_bid = min(depth, len(raw_results['bids']))
+        take_ask = min(depth, len(raw_results['asks']))
 
+        if take_bid == 0 and take_ask == 0:
+            results = { 'Tradeable': 0, 'Bid': {}, 'Ask': {} }
+        else:
+            results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
+        for i in range(take_bid):
+            results['Bid'][i] = {
+                'Price': float(raw_results['bids'][i][0]),
+                'Quantity': float(raw_results['bids'][i][1]),
+            }
+        for i in range(take_ask):
+            results['Ask'][i] = {
+                'Price': float(raw_results['asks'][i][0]),
+                'Quantity': float(raw_results['asks'][i][1]),
+            }
+
+        return results
 
 
 
@@ -857,28 +877,6 @@ class Kucoin(Exchange):
             self._complete_balances_btc[currency]['OnOrders'] += float(balance['balance']) - float(balance['available'])
             self._complete_balances_btc[currency]['Total'] += float(balance['balance'])
         return self._complete_balances_btc
-
-    def load_order_book(self, market, depth = 5):
-        raw_results = self.public_get_part_order_book_agg(market)
-        take_bid = min(depth, len(raw_results['bids']))
-        take_ask = min(depth, len(raw_results['asks']))
-
-        if take_bid == 0 and take_ask == 0:
-            results = { 'Tradeable': 0, 'Bid': {}, 'Ask': {} }
-        else:
-            results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
-        for i in range(take_bid):
-            results['Bid'][i] = {
-                'Price': float(raw_results['bids'][i][0]),
-                'Quantity': float(raw_results['bids'][i][1]),
-            }
-        for i in range(take_ask):
-            results['Ask'][i] = {
-                'Price': float(raw_results['asks'][i][0]),
-                'Quantity': float(raw_results['asks'][i][1]),
-            }
-
-        return results
 
     def submit_trade(self, direction, market, price, amount, trade_type):
         pass

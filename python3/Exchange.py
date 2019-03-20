@@ -243,7 +243,7 @@ class Exchange:
         self.raise_not_implemented_error()
 
 
-    def load_order_book(self, market, depth):
+    def get_consolidated_order_book(self, market, depth):
         """
             Returns a short order book around best quotes in the following format:
             {'Ask': {0: {'Price': 0.00876449, 'Quantity': 13.0407078},

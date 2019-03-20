@@ -37,7 +37,7 @@ class CTOrderBook(QWidget):
     def load_order_book_thread(self):
         while True:
             if self._exchange in self._CTMain._Crypto_Trader.trader:
-                self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].load_order_book(self._market_symbol, self._depth)
+                self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].get_consolidated_order_book(self._market_symbol, self._depth)
             time.sleep(self._re_load_seconds)
 
     def refresh_order_book(self, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):

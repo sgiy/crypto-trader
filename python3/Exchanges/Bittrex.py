@@ -712,7 +712,27 @@ class Bittrex(Exchange):
             results.append(new_row)
         return results
 
+    def get_consolidated_order_book(self, market, depth = 5):
+        raw_results = self.public_get_order_book(market,'both')
+        take_bid = min(depth, len(raw_results['buy']))
+        take_ask = min(depth, len(raw_results['sell']))
 
+        if take_bid == 0 and take_ask == 0:
+            results = { 'Tradeable': 0, 'Bid': {}, 'Ask': {} }
+        else:
+            results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
+        for i in range(take_bid):
+            results['Bid'][i] = {
+                'Price': raw_results['buy'][i]['Rate'],
+                'Quantity': raw_results['buy'][i]['Quantity'],
+            }
+        for i in range(take_ask):
+            results['Ask'][i] = {
+                'Price': raw_results['sell'][i]['Rate'],
+                'Quantity': raw_results['sell'][i]['Quantity'],
+            }
+
+        return results
 
 
 
@@ -744,28 +764,6 @@ class Bittrex(Exchange):
             except Exception as e:
                 self.log_request_error(str(e))
         return self._complete_balances_btc
-
-    def load_order_book(self, market, depth = 5):
-        raw_results = self.public_get_order_book(market,'both')
-        take_bid = min(depth, len(raw_results['buy']))
-        take_ask = min(depth, len(raw_results['sell']))
-
-        if take_bid == 0 and take_ask == 0:
-            results = { 'Tradeable': 0, 'Bid': {}, 'Ask': {} }
-        else:
-            results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
-        for i in range(take_bid):
-            results['Bid'][i] = {
-                'Price': raw_results['buy'][i]['Rate'],
-                'Quantity': raw_results['buy'][i]['Quantity'],
-            }
-        for i in range(take_ask):
-            results['Ask'][i] = {
-                'Price': raw_results['sell'][i]['Rate'],
-                'Quantity': raw_results['sell'][i]['Quantity'],
-            }
-
-        return results
 
     def submit_trade(self, direction, market, price, amount, trade_type):
         if direction == 'buy':

@@ -934,7 +934,24 @@ class Binance(Exchange):
             results.append(new_row)
         return results
 
+    def get_consolidated_order_book(self, market, depth = 5):
+        raw_results = self.public_get_order_book(market, str(depth))
+        take_bid = min(depth, len(raw_results['bids']))
+        take_ask = min(depth, len(raw_results['asks']))
 
+        results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
+        for i in range(take_bid):
+            results['Bid'][i] = {
+                'Price': float(raw_results['bids'][i][0]),
+                'Quantity': float(raw_results['bids'][i][1]),
+            }
+        for i in range(take_ask):
+            results['Ask'][i] = {
+                'Price': float(raw_results['asks'][i][0]),
+                'Quantity': float(raw_results['asks'][i][1]),
+            }
+
+        return results
 
 
 
@@ -959,25 +976,6 @@ class Binance(Exchange):
                 'Total': float(balance["free"]) + float(balance["locked"])
             }
         return self._complete_balances_btc
-
-    def load_order_book(self, market, depth = 5):
-        raw_results = self.public_get_order_book(market, str(depth))
-        take_bid = min(depth, len(raw_results['bids']))
-        take_ask = min(depth, len(raw_results['asks']))
-
-        results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
-        for i in range(take_bid):
-            results['Bid'][i] = {
-                'Price': float(raw_results['bids'][i][0]),
-                'Quantity': float(raw_results['bids'][i][1]),
-            }
-        for i in range(take_ask):
-            results['Ask'][i] = {
-                'Price': float(raw_results['asks'][i][0]),
-                'Quantity': float(raw_results['asks'][i][1]),
-            }
-
-        return results
 
     def submit_trade(self, direction, market, price, amount, trade_type):
         if direction == 'buy':
