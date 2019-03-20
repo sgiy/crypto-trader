@@ -938,29 +938,7 @@ class Binance(Exchange):
 
 
 
-    def load_markets(self):
-        self._markets = {}
-        self._active_markets = {}
-        best_books = self.public_get_formatted_best_books()
 
-        for symbol in self._exchangeInfo['symbols']:
-            try:
-                market_symbol = symbol['symbol']
-                local_base = symbol['quoteAsset']
-                local_curr = symbol['baseAsset']
-
-                self.update_market( market_symbol,
-                                    local_base,
-                                    local_curr,
-                                    float(best_books[market_symbol]['Bid']),
-                                    float(best_books[market_symbol]['Ask']),
-                                    symbol['status'] == 'TRADING',
-                                    float(best_books[market_symbol]['BidQty']),
-                                    float(best_books[market_symbol]['AskQty'])
-                                    )
-            except Exception as e:
-                self.log_request_error(str(market_symbol) + ". " + str(e))
-        return self._active_markets
 
     def load_available_balances(self):
         available_balances = self.private_get_balances()

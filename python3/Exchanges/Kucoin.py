@@ -824,27 +824,7 @@ class Kucoin(Exchange):
 
 
 
-    def load_markets(self):
-        self._markets = {}
-        self._active_markets = {}
-        all_markets = self.public_get_all_tickers()['ticker']
 
-        for market in all_markets:
-            try:
-                symbol = market['symbol']
-                local_curr = symbol[0:symbol.find('-')]
-                local_base = symbol[symbol.find('-')+1:]
-
-                self.update_market(
-                    symbol,
-                    local_base,
-                    local_curr,
-                    float(market['buy']),
-                    float(market['sell'])
-                )
-            except Exception as e:
-                self.log_request_error(str(market) + ". " + str(e))
-        return self._active_markets
 
     def load_available_balances(self):
         """

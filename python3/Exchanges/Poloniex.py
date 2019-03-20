@@ -831,27 +831,7 @@ class Poloniex(Exchange):
 
 
 
-    def load_markets(self):
-        self._markets = {}
-        self._active_markets = {}
-        all_markets = self.public_get_all_markets()
 
-        for entry in all_markets:
-            try:
-                local_base = entry[0:entry.find('_')]
-                local_curr = entry[entry.find('_')+1:]
-
-                self.update_market(
-                        entry,
-                        local_base,
-                        local_curr,
-                        float(all_markets[entry]['highestBid']),
-                        float(all_markets[entry]['lowestAsk']),
-                        all_markets[entry]['isFrozen'] == '0'
-                    )
-            except Exception as e:
-                self.log_request_error(str(entry) + ". " + str(e))
-        return self._active_markets
 
     def load_available_balances(self):
         available_balances = self.private_get_balances()

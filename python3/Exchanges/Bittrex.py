@@ -31,7 +31,7 @@ class Bittrex(Exchange):
                 self.log_request_success()
                 return result['result']
             else:
-                self.log_request_error(results['message'])
+                self.log_request_error(result['message'])
                 if self.retry_count_not_exceeded():
                     return self.public_get_request(url, base_url_override)
                 else:
@@ -716,21 +716,7 @@ class Bittrex(Exchange):
 
 
 
-    def load_markets(self):
-        self._markets = {}
-        self._active_markets = {}
-        all_markets = self.public_get_market_summaries()
 
-        for entry in all_markets:
-            try:
-                market_symbol = entry['MarketName']
-                local_base = market_symbol[0:market_symbol.find('-')]
-                local_curr = market_symbol[market_symbol.find('-')+1:]
-
-                self.update_market(market_symbol, local_base, local_curr, entry['Bid'], entry['Ask'], True)
-            except Exception as e:
-                self.log_request_error(str(entry) + ". " + str(e))
-        return self._active_markets
 
 
 
