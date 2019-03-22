@@ -24,6 +24,8 @@ class Exchange:
         self._recent_market_trades = {}
         self._recent_user_trades = {}
 
+        self._order_book = {}
+
         self._market_prices = {}
         self._available_balances = {}
         self._complete_balances_btc = {}

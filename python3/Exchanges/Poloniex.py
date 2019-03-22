@@ -1097,7 +1097,7 @@ class Poloniex(Exchange):
             on_close = self.ws_on_close
         )
         self._ws.run_forever()
-        # self.ws_subscribe(1002)
+        self.ws_subscribe(1002)
 
     def ws_subscribe(self, channel):
         """
@@ -1110,7 +1110,7 @@ class Poloniex(Exchange):
             1003	Public	24 Hour Exchange Volume
             1010	Public	Heartbeat
             <currency pair>	Public	Price Aggregated Book
-            Debug: ct['Poloniex'].ws_subscribe(1002)
+            Debug: ct['Poloniex'].ws_subscribe("BTC_XMR")
         """
         self._ws.send(json.dumps({"command": "subscribe", "channel": channel }))
 
@@ -1173,6 +1173,57 @@ class Poloniex(Exchange):
                         }
                     )
                 return
+            if msg_code in self._ws_currency_pair_map:
+                market_symbol = self._ws_currency_pair_map[msg_code]
+                payload = parsed_message[2]
+                if payload[0][0] == 'i':
+                    self._order_book[market_symbol] = {
+                        'Bids': {},
+                        'Asks': {},
+                    }
+                    for book_update in payload[0][1]['orderBook'][1]:
+                        self._order_book[market_symbol]['Bids'][float(book_update[0])] = float(book_update[1])
+                    for book_update in payload[0][1]['orderBook'][0]:
+                        self._order_book[market_symbol]['Asks'][float(book_update[0])] = float(book_update[1])
+                    return
+                for book_update in payload:
+                    if book_update[0] == 'o':
+                        if book_update[1] == 0:
+                            if float(book_update[3]) == 0:
+                                self._order_book[market_symbol]['Asks'].pop(float(book_update[2]), None)
+                            else:
+                                self._order_book[market_symbol]['Asks'][float(book_update[2])] = float(book_update[3])
+                        if book_update[1] == 1:
+                            if float(book_update[3]) == 0:
+                                self._order_book[market_symbol]['Bids'].pop(float(book_update[2]), None)
+                            else:
+                                self._order_book[market_symbol]['Bids'][float(book_update[2])] = float(book_update[3])
+                        # best_bid = max(self._order_book[market_symbol]['Bids'].keys())
+                        # best_ask = min(self._order_book[market_symbol]['Asks'].keys())
+                        # if best_bid == float(book_update[2]):
+                        #     print("Best Bid: {0:.8f}, {1:.8f}; Best Ask: {2:.8f}, {3:.8f}".format(
+                        #         best_bid,
+                        #         self._order_book[market_symbol]['Bids'][best_bid],
+                        #         best_ask,
+                        #         self._order_book[market_symbol]['Asks'][best_ask]
+                        #     ))
+                    if book_update[0] == 't':
+                        if book_update[2] == 1:
+                            order_type = 'Buy'
+                        else:
+                            order_type = 'Sell'
+                        self._recent_market_trades[market_symbol].append(
+                            {
+                                'TradeId': book_update[1],
+                                'TradeType': order_type,
+                                'TradeTime': datetime.fromtimestamp(book_update[5]),
+                                'Price': float(book_update[3]),
+                                'Amount': float(book_update[4]),
+                                'Total': float(book_update[3] * book_update[4])
+                            }
+                        )
+                        print("Latest trade: ", self._recent_market_trades[market_symbol][-1])
+                    return
         print(message)
 
     def ws_on_error(ws, error):
