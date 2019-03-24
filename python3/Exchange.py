@@ -10,6 +10,8 @@ class Exchange:
         self._API_SECRET = ''
         self._API_PASSPHRASE = ''
 
+        self._implements = {}
+
         self._currencies = {}
         self._markets = {}
         self._active_markets = {}
@@ -46,6 +48,9 @@ class Exchange:
 
     def has_api_keys(self):
         return self._API_KEY != ''
+
+    def has_implementation(self, name):
+        return name in self._implements
 
     ### Error handling ###
     def raise_not_implemented_error(self):

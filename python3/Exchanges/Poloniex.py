@@ -31,6 +31,10 @@ class Poloniex(Exchange):
         self._thread_pool = QThreadPool()
         self._thread_pool.start(CTWorker(self.ws_init))
 
+        self._implements = {
+            'ws_order_book'
+        }
+
         self._ws_currency_id_map = {
             1:'1CR',
             2:'ABY',
@@ -1184,41 +1188,43 @@ class Poloniex(Exchange):
                         'Asks': {},
                         'Sequence_Id': sequence_id
                     }
-                    for book_update in payload[0][1]['orderBook'][1]:
-                        self._order_book[market_symbol]['Bids'][float(book_update[0])] = float(book_update[1])
-                    for book_update in payload[0][1]['orderBook'][0]:
-                        self._order_book[market_symbol]['Asks'][float(book_update[0])] = float(book_update[1])
+                    for price, amount in payload[0][1]['orderBook'][1].items():
+                        self._order_book[market_symbol]['Bids'][float(price)] = float(amount)
+                    for price, amount in payload[0][1]['orderBook'][0].items():
+                        self._order_book[market_symbol]['Asks'][float(price)] = float(amount)
                     return
-                if sequence_id > self._order_book[market_symbol]['Sequence_Id']:
-                    for book_update in payload:
-                        if book_update[0] == 'o':
-                            if book_update[1] == 0:
-                                if float(book_update[3]) == 0:
-                                    self._order_book[market_symbol]['Asks'].pop(float(book_update[2]), None)
-                                else:
-                                    self._order_book[market_symbol]['Asks'][float(book_update[2])] = float(book_update[3])
-                            if book_update[1] == 1:
-                                if float(book_update[3]) == 0:
-                                    self._order_book[market_symbol]['Bids'].pop(float(book_update[2]), None)
-                                else:
-                                    self._order_book[market_symbol]['Bids'][float(book_update[2])] = float(book_update[3])
-                        if book_update[0] == 't':
-                            if book_update[2] == 1:
-                                order_type = 'Buy'
+                if sequence_id < self._order_book[market_symbol]['Sequence_Id']:
+                    print("Wrong ws message order: ", sequence_id, self._order_book[market_symbol]['Sequence_Id'])
+                self._order_book[market_symbol]['Sequence_Id'] = max(sequence_id, self._order_book[market_symbol]['Sequence_Id'])
+                for book_update in payload:
+                    if book_update[0] == 'o':
+                        if book_update[1] == 0:
+                            if float(book_update[3]) == 0:
+                                self._order_book[market_symbol]['Asks'].pop(float(book_update[2]), None)
                             else:
-                                order_type = 'Sell'
-                            self._recent_market_trades[market_symbol].append(
-                                {
-                                    'TradeId': book_update[1],
-                                    'TradeType': order_type,
-                                    'TradeTime': datetime.fromtimestamp(book_update[5]),
-                                    'Price': float(book_update[3]),
-                                    'Amount': float(book_update[4]),
-                                    'Total': float(book_update[3] * book_update[4])
-                                }
-                            )
-                            print("Latest trade: ", self._recent_market_trades[market_symbol][-1])
-                        return
+                                self._order_book[market_symbol]['Asks'][float(book_update[2])] = float(book_update[3])
+                        if book_update[1] == 1:
+                            if float(book_update[3]) == 0:
+                                self._order_book[market_symbol]['Bids'].pop(float(book_update[2]), None)
+                            else:
+                                self._order_book[market_symbol]['Bids'][float(book_update[2])] = float(book_update[3])
+                    if book_update[0] == 't':
+                        if book_update[2] == 1:
+                            order_type = 'Buy'
+                        else:
+                            order_type = 'Sell'
+                        self._recent_market_trades[market_symbol].append(
+                            {
+                                'TradeId': book_update[1],
+                                'TradeType': order_type,
+                                'TradeTime': datetime.fromtimestamp(book_update[5]),
+                                'Price': float(book_update[3]),
+                                'Amount': float(book_update[4]),
+                                'Total': float(book_update[3] * book_update[4])
+                            }
+                        )
+                print(payload)
+                return
         print(message)
 
     def ws_on_error(ws, error):
