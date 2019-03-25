@@ -378,7 +378,7 @@ class Binance(Exchange):
     ### Exchange specific private methods ##
     ########################################
 
-    def private_submit_new_order(self, symbol, side, type, quantity,
+    def private_submit_trade(self, symbol, side, type, quantity,
         timeInForce = 'GTC', price = None, newClientOrderId = None,
         stopPrice = None, icebergQty = None, newOrderRespType = 'RESULT',
         recvWindow = None):
@@ -393,7 +393,7 @@ class Binance(Exchange):
             newOrderRespType: Set the response JSON. ACK, RESULT, or FULL;
                 MARKET and LIMIT order types default to FULL, all other orders
                 default to ACK.
-            Debug: ct['Binance'].private_submit_new_order('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
+            Debug: ct['Binance'].private_submit_trade('INSBTC', 'BUY', 'LIMIT', 100, 'GTC', 0.0001)
             {'clientOrderId': 'BiNanCeG3N3RaT3DaLpHaNuMeRiC',
              'cummulativeQuoteQty': '0.00000000',
              'executedQty': '0.00000000',
@@ -977,18 +977,24 @@ class Binance(Exchange):
             }
         return self._complete_balances_btc
 
-    def submit_trade(self, direction, market, price, amount, trade_type):
-        if direction == 'buy':
-            side = 'BUY'
+    def private_submit_new_order(self, direction, market, price, amount, trade_type):
+        side = 'BUY'
         if direction == 'sell':
             side = 'SELL'
 
-        timeInForce = 'GTC'
+        time_in_force = 'GTC'
         if trade_type == 'ImmediateOrCancel':
-            timeInForce = 'IOC'
+            time_in_force = 'IOC'
 
-        results = self.private_submit_new_order(market, side, 'LIMIT', amount,
-            timeInForce, price, 'RESULT')
+        results = self.private_submit_trade(
+            market,
+            side,
+            'LIMIT',
+            amount,
+            time_in_force,
+            price,
+            'RESULT'
+        )
 
         return {
                 'Amount': float(results['executedQty']),

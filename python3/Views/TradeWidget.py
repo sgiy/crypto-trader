@@ -122,26 +122,24 @@ class CTTradeWidget(QWidget):
             self.set_quantity(float(self._base_amount.text()) / float(self._price.text()))
 
     def submit_buy(self):
-        self._trade_side = 'buy'
-        self.submit_trade()
+        self.submit_trade('buy')
 
     def submit_sell(self):
-        self._trade_side = 'sell'
-        self.submit_trade()
+        self.submit_trade('sell')
 
-    def submit_trade(self):
+    def submit_trade(self, order_type):
         trade_price = float(self._price.text())
         trade_quantity = float(self._quantity.text())
         trade_base_amount = float(self._base_amount.text())
-        self._CTMain._Crypto_Trader.trader[self._exchange].submit_trade(
-            self._trade_side,
+        self._CTMain._Crypto_Trader.trader[self._exchange].private_submit_new_order(
+            order_type,
             self._market_symbol,
             trade_price,
             trade_quantity,
             'Limit'
         )
         print("{}ing on {} at {} {} with {} price {} quantity {} for total {} of {}".format(
-            self._trade_side,
+            order_type,
             self._exchange,
             self._market_symbol,
             self._local_curr,
@@ -153,6 +151,7 @@ class CTTradeWidget(QWidget):
         ))
         # Give 0.5 seconds for submitted order to propagate through the exchange
         # so that the following balances update has new values
-        self._single_shot_timer.start(500)
-        self._single_shot_timer.timeout.connect(self.update_after_trade)
-        self.repaint()
+        if not self._CTMain._Crypto_Trader.trader[self._exchange].has_implementation('ws_account_balances'):
+            self._single_shot_timer.start(500)
+            self._single_shot_timer.timeout.connect(self.update_after_trade)
+            self.repaint()

@@ -1,8 +1,7 @@
-import time, threading
-from datetime import datetime
-from pprint import pprint
+import threading
 
 from pydoc import locate
+
 
 class CryptoTrader:
     def __init__(self, API_KEYS = {}, SETTINGS = {}):

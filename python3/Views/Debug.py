@@ -16,7 +16,7 @@ class CTDebug(QWidget):
         self._text_field_code.setPlaceholderText("Code to Run (e.g. ct['Poloniex'].get_all_markets())")
 
         self._button = QPushButton()
-        self._button.setText("Run Code");
+        self._button.setText("Run Code")
         self._button.clicked.connect(self.run_code)
 
         self._text_field_output = QTextEdit()

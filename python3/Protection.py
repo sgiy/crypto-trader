@@ -1,7 +1,8 @@
 import os, base64, json, hashlib
 from cryptography.fernet import Fernet
 
-class Protector():
+
+class Protector:
     def __init__(self, password=''):
         self._password = password.encode('utf8')
         self._salt_length = 16

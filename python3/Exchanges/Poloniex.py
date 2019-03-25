@@ -32,445 +32,12 @@ class Poloniex(Exchange):
         self._thread_pool.start(CTWorker(self.ws_init))
 
         self._implements = {
-            'ws_order_book'
+            'ws_order_book',
+            'ws_account_balances'
         }
 
-        self._ws_currency_id_map = {
-            1:'1CR',
-            2:'ABY',
-            3:'AC',
-            4:'ACH',
-            5:'ADN',
-            6:'AEON',
-            7:'AERO',
-            8:'AIR',
-            275:'AMP',
-            9:'APH',
-            258:'ARCH',
-            285:'ARDR',
-            10:'AUR',
-            11:'AXIS',
-            12:'BALLS',
-            13:'BANK',
-            302:'BAT',
-            14:'BBL',
-            15:'BBR',
-            16:'BCC',
-            292:'BCH',
-            308:'BCHABC',
-            309:'BCHSV',
-            17:'BCN',
-            269:'BCY',
-            18:'BDC',
-            19:'BDG',
-            20:'BELA',
-            273:'BITCNY',
-            21:'BITS',
-            272:'BITUSD',
-            22:'BLK',
-            23:'BLOCK',
-            24:'BLU',
-            25:'BNS',
-            305:'BNT',
-            26:'BONES',
-            27:'BOST',
-            28:'BTC',
-            29:'BTCD',
-            30:'BTCS',
-            31:'BTM',
-            32:'BTS',
-            33:'BURN',
-            34:'BURST',
-            35:'C2',
-            36:'CACH',
-            37:'CAI',
-            38:'CC',
-            39:'CCN',
-            40:'CGA',
-            41:'CHA',
-            42:'CINNI',
-            43:'CLAM',
-            44:'CNL',
-            45:'CNMT',
-            46:'CNOTE',
-            47:'COMM',
-            48:'CON',
-            49:'CORG',
-            50:'CRYPT',
-            51:'CURE',
-            294:'CVC',
-            52:'CYC',
-            279:'DAO',
-            60:'DASH',
-            277:'DCR',
-            53:'DGB',
-            54:'DICE',
-            55:'DIEM',
-            56:'DIME',
-            57:'DIS',
-            58:'DNS',
-            59:'DOGE',
-            61:'DRKC',
-            62:'DRM',
-            63:'DSH',
-            64:'DVK',
-            65:'EAC',
-            66:'EBT',
-            67:'ECC',
-            68:'EFL',
-            69:'EMC2',
-            70:'EMO',
-            71:'ENC',
-            298:'EOS',
-            283:'ETC',
-            267:'ETH',
-            72:'eTOK',
-            73:'EXE',
-            270:'EXP',
-            74:'FAC',
-            75:'FCN',
-            271:'FCT',
-            76:'FIBRE',
-            77:'FLAP',
-            78:'FLDC',
-            254:'FLO',
-            79:'FLT',
-            307:'FOAM',
-            80:'FOX',
-            81:'FRAC',
-            82:'FRK',
-            83:'FRQ',
-            84:'FVZ',
-            85:'FZ',
-            86:'FZN',
-            93:'GAME',
-            87:'GAP',
-            296:'GAS',
-            88:'GDN',
-            89:'GEMZ',
-            90:'GEO',
-            91:'GIAR',
-            92:'GLB',
-            94:'GML',
-            291:'GNO',
-            95:'GNS',
-            290:'GNT',
-            96:'GOLD',
-            97:'GPC',
-            98:'GPUC',
-            261:'GRC',
-            99:'GRCX',
-            314:'GRIN',
-            100:'GRS',
-            101:'GUE',
-            102:'H2O',
-            103:'HIRO',
-            104:'HOT',
-            105:'HUC',
-            260:'HUGE',
-            106:'HVC',
-            107:'HYP',
-            108:'HZ',
-            109:'IFC',
-            265:'INDEX',
-            263:'IOC',
-            110:'ITC',
-            111:'IXC',
-            112:'JLH',
-            113:'JPC',
-            114:'JUG',
-            115:'KDC',
-            116:'KEY',
-            301:'KNC',
-            280:'LBC',
-            117:'LC',
-            118:'LCL',
-            119:'LEAF',
-            120:'LGC',
-            121:'LOL',
-            303:'LOOM',
-            122:'LOVE',
-            312:'LPT',
-            123:'LQD',
-            278:'LSK',
-            124:'LTBC',
-            125:'LTC',
-            126:'LTCX',
-            127:'MAID',
-            306:'MANA',
-            128:'MAST',
-            129:'MAX',
-            130:'MCN',
-            131:'MEC',
-            132:'METH',
-            133:'MIL',
-            134:'MIN',
-            135:'MINT',
-            136:'MMC',
-            137:'MMNXT',
-            138:'MMXIV',
-            139:'MNTA',
-            140:'MON',
-            141:'MRC',
-            142:'MRS',
-            144:'MTS',
-            145:'MUN',
-            146:'MYR',
-            147:'MZC',
-            148:'N5X',
-            149:'NAS',
-            150:'NAUT',
-            151:'NAV',
-            152:'NBT',
-            153:'NEOS',
-            154:'NL',
-            155:'NMC',
-            310:'NMR',
-            156:'NOBL',
-            157:'NOTE',
-            158:'NOXT',
-            159:'NRS',
-            160:'NSR',
-            161:'NTX',
-            288:'NXC',
-            162:'NXT',
-            163:'NXTI',
-            295:'OMG',
-            143:'OMNI',
-            164:'OPAL',
-            165:'PAND',
-            289:'PASC',
-            166:'PAWN',
-            167:'PIGGY',
-            168:'PINK',
-            169:'PLX',
-            170:'PMC',
-            311:'POLY',
-            171:'POT',
-            172:'PPC',
-            173:'PRC',
-            174:'PRT',
-            175:'PTS',
-            176:'Q2C',
-            177:'QBK',
-            178:'QCN',
-            179:'QORA',
-            180:'QTL',
-            304:'QTUM',
-            274:'RADS',
-            181:'RBY',
-            182:'RDD',
-            284:'REP',
-            183:'RIC',
-            184:'RZR',
-            282:'SBD',
-            268:'SC',
-            185:'SDC',
-            186:'SHIBE',
-            187:'SHOPX',
-            188:'SILK',
-            189:'SJCX',
-            190:'SLR',
-            191:'SMC',
-            300:'SNT',
-            192:'SOC',
-            193:'SPA',
-            194:'SQL',
-            195:'SRCC',
-            196:'SRG',
-            197:'SSD',
-            281:'STEEM',
-            297:'STORJ',
-            198:'STR',
-            287:'STRAT',
-            199:'SUM',
-            200:'SUN',
-            201:'SWARM',
-            202:'SXC',
-            203:'SYNC',
-            204:'SYS',
-            205:'TAC',
-            206:'TOR',
-            207:'TRUST',
-            208:'TWE',
-            209:'UIS',
-            210:'ULTC',
-            211:'UNITY',
-            212:'URO',
-            299:'USDC',
-            213:'USDE',
-            214:'USDT',
-            215:'UTC',
-            216:'UTIL',
-            217:'UVC',
-            218:'VIA',
-            219:'VOOT',
-            276:'VOX',
-            220:'VRC',
-            221:'VTC',
-            222:'WC',
-            223:'WDC',
-            224:'WIKI',
-            225:'WOLF',
-            226:'X13',
-            227:'XAI',
-            228:'XAP',
-            229:'XBC',
-            230:'XC',
-            231:'XCH',
-            232:'XCN',
-            233:'XCP',
-            234:'XCR',
-            235:'XDN',
-            236:'XDP',
-            256:'XEM',
-            237:'XHC',
-            238:'XLB',
-            239:'XMG',
-            240:'XMR',
-            241:'XPB',
-            242:'XPM',
-            243:'XRP',
-            244:'XSI',
-            245:'XST',
-            246:'XSV',
-            247:'XUSD',
-            253:'XVC',
-            248:'XXC',
-            249:'YACC',
-            250:'YANG',
-            251:'YC',
-            252:'YIN',
-            286:'ZEC',
-            293:'ZRX',
-        }
-        self._ws_currency_pair_map = {
-            7:'BTC_BCN',
-            14:'BTC_BTS',
-            15:'BTC_BURST',
-            20:'BTC_CLAM',
-            24:'BTC_DASH',
-            25:'BTC_DGB',
-            27:'BTC_DOGE',
-            38:'BTC_GAME',
-            43:'BTC_HUC',
-            50:'BTC_LTC',
-            51:'BTC_MAID',
-            58:'BTC_OMNI',
-            61:'BTC_NAV',
-            64:'BTC_NMC',
-            69:'BTC_NXT',
-            75:'BTC_PPC',
-            89:'BTC_STR',
-            92:'BTC_SYS',
-            97:'BTC_VIA',
-            100:'BTC_VTC',
-            108:'BTC_XCP',
-            112:'BTC_XEM',
-            114:'BTC_XMR',
-            116:'BTC_XPM',
-            117:'BTC_XRP',
-            121:'USDT_BTC',
-            122:'USDT_DASH',
-            123:'USDT_LTC',
-            124:'USDT_NXT',
-            125:'USDT_STR',
-            126:'USDT_XMR',
-            127:'USDT_XRP',
-            129:'XMR_BCN',
-            132:'XMR_DASH',
-            137:'XMR_LTC',
-            138:'XMR_MAID',
-            140:'XMR_NXT',
-            148:'BTC_ETH',
-            149:'USDT_ETH',
-            150:'BTC_SC',
-            155:'BTC_FCT',
-            162:'BTC_DCR',
-            163:'BTC_LSK',
-            166:'ETH_LSK',
-            167:'BTC_LBC',
-            168:'BTC_STEEM',
-            169:'ETH_STEEM',
-            170:'BTC_SBD',
-            171:'BTC_ETC',
-            172:'ETH_ETC',
-            173:'USDT_ETC',
-            174:'BTC_REP',
-            175:'USDT_REP',
-            176:'ETH_REP',
-            177:'BTC_ARDR',
-            178:'BTC_ZEC',
-            179:'ETH_ZEC',
-            180:'USDT_ZEC',
-            181:'XMR_ZEC',
-            182:'BTC_STRAT',
-            184:'BTC_PASC',
-            185:'BTC_GNT',
-            186:'ETH_GNT',
-            189:'BTC_BCH',
-            190:'ETH_BCH',
-            191:'USDT_BCH',
-            192:'BTC_ZRX',
-            193:'ETH_ZRX',
-            194:'BTC_CVC',
-            195:'ETH_CVC',
-            196:'BTC_OMG',
-            197:'ETH_OMG',
-            198:'BTC_GAS',
-            199:'ETH_GAS',
-            200:'BTC_STORJ',
-            201:'BTC_EOS',
-            202:'ETH_EOS',
-            203:'USDT_EOS',
-            204:'BTC_SNT',
-            205:'ETH_SNT',
-            206:'USDT_SNT',
-            207:'BTC_KNC',
-            208:'ETH_KNC',
-            209:'USDT_KNC',
-            210:'BTC_BAT',
-            211:'ETH_BAT',
-            212:'USDT_BAT',
-            213:'BTC_LOOM',
-            214:'ETH_LOOM',
-            215:'USDT_LOOM',
-            216:'USDT_DOGE',
-            217:'USDT_GNT',
-            218:'USDT_LSK',
-            219:'USDT_SC',
-            220:'USDT_ZRX',
-            221:'BTC_QTUM',
-            222:'ETH_QTUM',
-            223:'USDT_QTUM',
-            224:'USDC_BTC',
-            225:'USDC_ETH',
-            226:'USDC_USDT',
-            229:'BTC_MANA',
-            230:'ETH_MANA',
-            231:'USDT_MANA',
-            232:'BTC_BNT',
-            233:'ETH_BNT',
-            234:'USDT_BNT',
-            235:'USDC_BCH',
-            236:'BTC_BCHABC',
-            237:'USDC_BCHABC',
-            238:'BTC_BCHSV',
-            239:'USDC_BCHSV',
-            240:'USDC_XRP',
-            241:'USDC_XMR',
-            242:'USDC_STR',
-            243:'USDC_DOGE',
-            244:'USDC_LTC',
-            245:'USDC_ZEC',
-            246:'BTC_FOAM',
-            247:'USDC_FOAM',
-            248:'BTC_NMR',
-            249:'BTC_POLY',
-            250:'BTC_LPT',
-            251:'BTC_GRIN',
-            252:'USDC_GRIN',
-        }
+        self._currency_id_map = {}
+        self._currency_pair_map = {}
 
     def public_get_request(self, url):
         try:
@@ -491,12 +58,15 @@ class Poloniex(Exchange):
             else:
                 return {}
 
+    def private_sign_request(self, string_to_sign):
+        return hmac.new(self._API_SECRET.encode(), string_to_sign.encode(), hashlib.sha512).hexdigest()
+
     def private_request(self, command, req={}):
         try:
             req['command'] = command
             req['nonce'] = int(time.time()*1000000)
             post_data = urllib.parse.urlencode(req)
-            sign = hmac.new(self._API_SECRET.encode(), post_data.encode(), hashlib.sha512).hexdigest()
+            sign = self.private_sign_request(post_data)
 
             headers = {
                 'Sign': sign,
@@ -1036,7 +606,7 @@ class Poloniex(Exchange):
              'message': 'Order #12345678910 canceled.',
              'success': 1}
         """
-        return self.private_request("cancelOrder",{'orderNumber':orderNumber})
+        return self.private_request("cancelOrder", {'orderNumber': orderNumber})
 
     def private_move_order(self, orderNumber, rate, amount = None):
         """
@@ -1103,6 +673,7 @@ class Poloniex(Exchange):
                                           )
         self._ws.run_forever()
         self.ws_subscribe(1002)
+        self.ws_subscribe(1000)
 
     def ws_subscribe(self, channel):
         """
@@ -1115,9 +686,19 @@ class Poloniex(Exchange):
             1003	Public	24 Hour Exchange Volume
             1010	Public	Heartbeat
             <currency pair>	Public	Price Aggregated Book
-            Debug: ct['Poloniex'].ws_subscribe("BTC_XMR")
+            Debug: ct['Poloniex'].ws_subscribe(1000)
         """
-        self._ws.send(json.dumps({"command": "subscribe", "channel": channel}))
+        if channel == 1000:
+            nonce = int(time.time()*1000000)
+            self._ws.send(json.dumps({
+                "command": "subscribe",
+                "channel": 1000,
+                "key": self._API_KEY,
+                "payload": "nonce={}".format(nonce),
+                "sign": self.private_sign_request("nonce={}".format(nonce))
+            }))
+        else:
+            self._ws.send(json.dumps({"command": "subscribe", "channel": channel}))
 
     def ws_unsubscribe(self, channel):
         """
@@ -1161,7 +742,7 @@ class Poloniex(Exchange):
                 """
                 if len(parsed_message) > 1:
                     payload = parsed_message[2]
-                    market_symbol = self._ws_currency_pair_map[payload[0]]
+                    market_symbol = self._currency_pair_map[payload[0]]
                     self.update_market(
                         market_symbol,
                         {
@@ -1178,8 +759,53 @@ class Poloniex(Exchange):
                         }
                     )
                 return
-            if msg_code in self._ws_currency_pair_map:
-                market_symbol = self._ws_currency_pair_map[msg_code]
+            if msg_code == 1000:
+                """
+                    Account notification
+                """
+                for account_update in parsed_message[2]:
+                    print(account_update)
+                    if account_update[0] == 'b':
+                        currency = self._currency_id_map.get(account_update[1], None)
+                        if currency is not None:
+                            self._available_balances[currency] = self._available_balances.get(currency, 0) + \
+                                                                 float(account_update[3])
+                    if account_update[0] == 'n':
+                        market_symbol = self._currency_pair_map[account_update[1]]
+                        if market_symbol not in self._open_orders:
+                            self._open_orders[market_symbol] = []
+                        if account_update[3] == 1:
+                            order_type = 'Buy'
+                        else:
+                            order_type = 'Sell'
+                        self._open_orders[market_symbol].append(
+                            {
+                                'OrderId': account_update[2],
+                                'OrderType': order_type,
+                                'OpderOpenedAt': datetime.strptime(account_update[6], "%Y-%m-%d %H:%M:%S"),
+                                'Price': float(account_update[4]),
+                                'Amount': float(account_update[5]),
+                                'Total': float(account_update[4]) * float(account_update[5]),
+                                'AmountRemaining': float(account_update[5]),
+                            }
+                        )
+                    if account_update[0] == 'o':
+                        order_id = account_update[1]
+                        for market_symbol in self._open_orders:
+                            for order_ix in range(self._open_orders[market_symbol]):
+                                if order_id == self._open_orders[market_symbol][order_ix]['OrderId']:
+                                    if float(account_update[2]) == 0:
+                                        self._open_orders[market_symbol].pop(order_ix)
+                                    else:
+                                        self._open_orders[market_symbol][order_ix]['AmountRemaining'] = float(account_update[2])
+                    if account_update[0] == 't':
+                        print('Trade:', account_update)
+                return
+            if msg_code in self._currency_pair_map:
+                """
+                    Public market order book update
+                """
+                market_symbol = self._currency_pair_map[msg_code]
                 sequence_id = parsed_message[1]
                 payload = parsed_message[2]
                 if payload[0][0] == 'i':
@@ -1195,7 +821,8 @@ class Poloniex(Exchange):
                     return
                 if sequence_id < self._order_book[market_symbol]['Sequence_Id']:
                     print("Wrong ws message order: ", sequence_id, self._order_book[market_symbol]['Sequence_Id'])
-                self._order_book[market_symbol]['Sequence_Id'] = max(sequence_id, self._order_book[market_symbol]['Sequence_Id'])
+                self._order_book[market_symbol]['Sequence_Id'] = max(sequence_id,
+                                                                     self._order_book[market_symbol]['Sequence_Id'])
                 for book_update in payload:
                     if book_update[0] == 'o':
                         if book_update[1] == 0:
@@ -1223,7 +850,6 @@ class Poloniex(Exchange):
                                 'Total': float(book_update[3] * book_update[4])
                             }
                         )
-                print(payload)
                 return
         print(message)
 
@@ -1279,6 +905,7 @@ class Poloniex(Exchange):
                             'WithdrawalMinAmount': 0,
                             'Precision': 0.00000001
                         }
+                    self._currency_id_map[currency['id']] = currency_key
                 except Exception as e:
                     self.log_request_error(str(e))
 
@@ -1324,6 +951,7 @@ class Poloniex(Exchange):
                             'LastTradedPrice':  float(entry['last']),
                         }
                     )
+                    self._currency_pair_map[entry['id']] = market_symbol
                 except Exception as e:
                     self.log_request_error(str(e))
 
@@ -1461,4 +1089,5 @@ class Poloniex(Exchange):
                 'Total': float(balances[currency]['available']) + float(balances[currency]['onOrders']),
                 'BtcValue': float(balances[currency]['btcValue'])
             }
+            self._available_balances[currency] = float(balances[currency]['available'])
         return self._complete_balances_btc

@@ -765,7 +765,7 @@ class Bittrex(Exchange):
                 self.log_request_error(str(e))
         return self._complete_balances_btc
 
-    def submit_trade(self, direction, market, price, amount, trade_type):
+    def private_submit_new_order(self, direction, market, price, amount, trade_type):
         if direction == 'buy':
             trade = self.private_submit_buylimit_order(market, amount, price)
         if direction == 'sell':

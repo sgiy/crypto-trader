@@ -192,7 +192,7 @@ class CTViewPair(QWidget):
         label_curr_curr.setBuddy(self._dropdown_curr_curr)
 
         self._debug_button = QPushButton()
-        self._debug_button.setText("Debug");
+        self._debug_button.setText("Debug")
         self._debug_button.clicked.connect(self.debug)
 
         topLayout = QHBoxLayout()
