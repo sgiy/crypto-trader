@@ -3,9 +3,9 @@ from datetime import datetime
 import hmac
 import hashlib
 import requests
-import pandas as pd
 
 from Exchange import Exchange
+
 
 class Bittrex(Exchange):
     def __init__(self, APIKey='', Secret=''):
@@ -51,7 +51,7 @@ class Bittrex(Exchange):
                 request_url,
                 headers={"apisign": hmac.new(self._API_SECRET.encode(), request_url.encode(), hashlib.sha512).hexdigest()}
             ).json()
-            if result.get('success', None) == True:
+            if result.get('success', None):
                 self.log_request_success()
                 return result['result']
             else:

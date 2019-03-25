@@ -1,7 +1,5 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget,
-    QTableWidgetItem)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem)
 
-from Views.OrderBookWithSelectors import CTOrderBookWithSelectors
 
 class CTActiveMarkets(QWidget):
     def __init__(self, CTMain = None):
@@ -17,12 +15,12 @@ class CTActiveMarkets(QWidget):
 
     def show_markets(self):
         exchanges = sorted(self._CTMain._Crypto_Trader._map_exchange_code_to_currency_code.keys())
-        column_names = ['BaseCode','CurrencyCode'] + exchanges
+        column_names = ['BaseCode', 'CurrencyCode'] + exchanges
         markets = self._CTMain._Crypto_Trader.load_active_markets()
+        markets.pop(None)
         row_count = 0
         for code_base in markets:
-            for code_curr in markets[code_base]:
-                row_count += 1
+            row_count += len(markets[code_base])
 
         self._tableWidget.setRowCount(row_count)
         self._tableWidget.setColumnCount(len(column_names))

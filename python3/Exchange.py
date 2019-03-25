@@ -296,11 +296,10 @@ class Exchange:
         for i_name in self._tick_intervals:
             i_mins = self._tick_intervals[i_name]
             self._map_tick_intervals[i_mins] = i_name
-            if take_i_mins is None or (i_mins <= interval and i_mins > take_i_mins):
+            if take_i_mins is None or (interval >= i_mins > take_i_mins):
                 take_i_mins = i_mins
                 take_i_name = i_name
 
-        number_of_ticks_to_take = int(lookback / interval)
         preliminary_ticks = self.get_consolidated_klines(market_symbol, take_i_name, lookback)
         if preliminary_ticks is None:
             return None

@@ -1,5 +1,6 @@
 import requests
 
+
 class Coinbase:
     def __init__(self):
         pass

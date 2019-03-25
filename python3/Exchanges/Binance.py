@@ -6,6 +6,7 @@ import requests
 
 from Exchange import Exchange
 
+
 class Binance(Exchange):
     def __init__(self, APIKey='', Secret=''):
         super().__init__(APIKey, Secret)

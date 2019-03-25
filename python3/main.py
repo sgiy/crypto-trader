@@ -1,4 +1,4 @@
-import sys, os, json
+import sys, os
 from datetime import datetime
 
 from PyQt5.QtCore import Qt, QTimer
@@ -12,11 +12,8 @@ from CryptoTraderParameters import CryptoTraderParameters
 
 from Views.Login import CTLogin
 from Views.EncryptedSettings import CTEncryptedSettings
-from Views.Dropdown import Dropdown
 from Views.ExchangeArb import CTExchangeArb
 from Views.ExchangeArbCircle import CTExchangeArbCircle
-from Views.OrderBook import CTOrderBook
-from Views.TwoOrderBooks import CTTwoOrderBooks
 from Views.ViewPair import CTViewPair
 from Views.Debug import CTDebug
 from Views.Balances import CTBalances
@@ -24,10 +21,12 @@ from Views.Currencies import CTCurrencies
 from Views.ActiveMarkets import CTActiveMarkets
 from Views.TwentyFourHours import CTTwentyFourHours
 
+
 def read_settings():
     with open(os.path.join(sys.path[0], 'settings'), 'rb') as myfile:
         msg=myfile.read()
     return eval(msg)
+
 
 class CTMainWindow(QMainWindow):
     def __init__(self):
