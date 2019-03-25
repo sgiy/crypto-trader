@@ -1,8 +1,11 @@
-import os, sys, shutil
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QGroupBox, QFormLayout,
-    QLabel, QLineEdit, QPushButton)
+import os
+import shutil
+import sys
+
+from PyQt5.QtWidgets import (QWidget, QGridLayout, QGroupBox, QLabel, QLineEdit, QPushButton)
 
 from Protection import Protector
+
 
 class CTEncryptedSettings(QWidget):
     def __init__(self, CTMain = None):

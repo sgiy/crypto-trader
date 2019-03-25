@@ -1,5 +1,6 @@
 from PyQt5.QtGui import QColor
 
+
 class CryptoTraderParameters:
     def __init__(self):
         self.Color = {

@@ -1,8 +1,8 @@
 import time
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget,
-    QTableWidgetItem, QLineEdit, QLabel, QCheckBox, QHBoxLayout)
+from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget, QTableWidgetItem, QLineEdit, QLabel, QCheckBox,
+                             QHBoxLayout)
+
 
 class CTExchangeArbCircle(QWidget):
     def __init__(self, CTMain = None):

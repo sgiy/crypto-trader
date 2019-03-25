@@ -1,15 +1,16 @@
-import time
-import json
-from datetime import datetime
-import hmac
 import hashlib
+import hmac
+import json
+import time
 import urllib
+from datetime import datetime
+
 import requests
 import websocket
 from PyQt5.QtCore import QThreadPool
-from Worker import CTWorker
 
 from Exchange import Exchange
+from Worker import CTWorker
 
 
 class Poloniex(Exchange):

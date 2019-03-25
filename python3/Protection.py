@@ -1,4 +1,8 @@
-import os, base64, json, hashlib
+import base64
+import hashlib
+import json
+import os
+
 from cryptography.fernet import Fernet
 
 
@@ -7,17 +11,17 @@ class Protector:
         self._password = password.encode('utf8')
         self._salt_length = 16
 
-    def generate_key_from_password(self, password, salt = None):
+    def generate_key_from_password(self, password, salt=None):
         if salt is None:
             salt = os.urandom(self._salt_length)
-        key =   base64.urlsafe_b64encode(
-                    hashlib.pbkdf2_hmac(
-                        'sha256',
-                        password,
-                        salt,
-                        1000000
-                    )
+        key = base64.urlsafe_b64encode(
+                hashlib.pbkdf2_hmac(
+                    'sha256',
+                    password,
+                    salt,
+                    1000000
                 )
+            )
         return salt, key
 
     def save_encrypted_file(self, dictionary, full_file_path):
@@ -30,8 +34,8 @@ class Protector:
         file.close()
 
     def decrypt_file(self, full_file_path):
-        with open(full_file_path, 'rb') as myfile:
-            msg=myfile.read()
+        with open(full_file_path, 'rb') as file_contents:
+            msg = file_contents.read()
         salt = msg[:self._salt_length]
         salt, key = self.generate_key_from_password(self._password, salt)
         f = Fernet(key)

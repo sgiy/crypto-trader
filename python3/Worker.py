@@ -1,5 +1,6 @@
 from PyQt5.QtCore import QRunnable
 
+
 class CTWorker(QRunnable):
     """
         Worker thread
@@ -19,4 +20,4 @@ class CTWorker(QRunnable):
         self._kwargs = kwargs
 
     def run(self):
-        self._function(*self._args,**self._kwargs)
+        self._function(*self._args, **self._kwargs)

@@ -1,13 +1,15 @@
 import base64
-import time
-from datetime import datetime
-import hmac
 import hashlib
-import requests
-import uuid
+import hmac
 import json
+import time
+import uuid
+from datetime import datetime
+
+import requests
 
 from Exchange import Exchange
+
 
 class Kucoin(Exchange):
     def __init__(self, APIKey='', Secret='', PassPhrase=''):

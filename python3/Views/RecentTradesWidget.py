@@ -1,8 +1,10 @@
 import time
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget,
-    QTableWidgetItem, QPushButton)
+
 from PyQt5.QtCore import Qt, QTimer, QThreadPool
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem)
+
 from Worker import CTWorker
+
 
 class CTRecentTradesWidget(QWidget):
     def __init__(self, CTMain, exchange, code_base, code_curr, market_symbol):

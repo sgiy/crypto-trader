@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QWidget, QHBoxLayout)
 
 from Views.OrderBookWithSelectors import CTOrderBookWithSelectors
 
+
 class CTTwoOrderBooks(QWidget):
     def __init__(self,
             CTMain = None,

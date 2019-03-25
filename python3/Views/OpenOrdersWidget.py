@@ -1,8 +1,8 @@
 import threading
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget,
-    QTableWidgetItem, QPushButton)
 
 from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QPushButton)
+
 
 class CTCancelOrderButton(QPushButton):
     def __init__(self, parent=None, orderId=None):
@@ -15,6 +15,7 @@ class CTCancelOrderButton(QPushButton):
     def cancel(self):
         self._parent._CTMain._Crypto_Trader.trader[self._parent._exchange].cancel_order(self._orderId)
         self._parent._single_shot_timer.start(500)
+
 
 class CTOpenOrdersWidget(QWidget):
     def __init__(self, CTMain, exchange, market_symbol):
@@ -71,5 +72,5 @@ class CTOpenOrdersWidget(QWidget):
             self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.8f}".format(order['Amount'])))
             self._table_widget.setItem(row_index, 4, QTableWidgetItem("{0:,.8f}".format(order['Total'])))
             self._table_widget.setItem(row_index, 5, QTableWidgetItem("{0:,.8f}".format(order['AmountRemaining'])))
-            self._table_widget.setCellWidget(row_index, 6, CTCancelOrderButton(self, order['OrderId']));
+            self._table_widget.setCellWidget(row_index, 6, CTCancelOrderButton(self, order['OrderId']))
             row_index += 1

@@ -1,7 +1,8 @@
+import hashlib
+import hmac
 import time
 from datetime import datetime
-import hmac
-import hashlib
+
 import requests
 
 from Exchange import Exchange

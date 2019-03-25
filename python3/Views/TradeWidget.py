@@ -1,7 +1,6 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLineEdit, QPushButton, QLabel)
-
 from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QLineEdit, QPushButton, QLabel)
+
 
 class CTTradeWidget(QWidget):
     def __init__(self, CTMain, exchange, code_base, code_curr, market_symbol = None):

@@ -1,25 +1,24 @@
-import sys, os
+import os
+import sys
 from datetime import datetime
 
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction)
-
 import qtawesome as qta
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QAction)
 
 from CryptoTrader import CryptoTrader
 from CryptoTraderParameters import CryptoTraderParameters
-
-from Views.Login import CTLogin
+from Views.ActiveMarkets import CTActiveMarkets
+from Views.Balances import CTBalances
+from Views.Currencies import CTCurrencies
+from Views.Debug import CTDebug
 from Views.EncryptedSettings import CTEncryptedSettings
 from Views.ExchangeArb import CTExchangeArb
 from Views.ExchangeArbCircle import CTExchangeArbCircle
-from Views.ViewPair import CTViewPair
-from Views.Debug import CTDebug
-from Views.Balances import CTBalances
-from Views.Currencies import CTCurrencies
-from Views.ActiveMarkets import CTActiveMarkets
+from Views.Login import CTLogin
 from Views.TwentyFourHours import CTTwentyFourHours
+from Views.ViewPair import CTViewPair
 
 
 def read_settings():
@@ -221,6 +220,7 @@ class CTMainWindow(QMainWindow):
         self._selected_view = view_name
         self.Views[view_name].show()
 
+
 if __name__ == '__main__':
     print('Starting...')
     font = QFont("Helvetica")
@@ -228,7 +228,7 @@ if __name__ == '__main__':
     settings = read_settings()
     font.setPointSize(settings.get('Font Size', 12))
 
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling);
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setFont(font)
     app = QApplication([])
     win = CTMainWindow()

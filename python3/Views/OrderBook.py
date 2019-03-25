@@ -1,8 +1,10 @@
 import time
+
 from PyQt5.QtCore import Qt, QTimer, QThreadPool
 from PyQt5.QtWidgets import (QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout)
 
 from Worker import CTWorker
+
 
 class CTOrderBook(QWidget):
     def __init__(self, CTMain = None, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):

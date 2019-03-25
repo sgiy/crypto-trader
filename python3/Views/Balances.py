@@ -1,9 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTabWidget, QTableWidget,
-    QTableWidgetItem, QLabel, QSizePolicy)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTabWidget, QTableWidget, QTableWidgetItem, QLabel)
 
-from Views.OrderBookWithSelectors import CTOrderBookWithSelectors
 
 class CTBalances(QWidget):
     def __init__(self, CTMain = None):

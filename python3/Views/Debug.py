@@ -1,6 +1,8 @@
 import time
 from pprint import pformat
+
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QTextEdit, QPushButton)
+
 
 class CTDebug(QWidget):
     def __init__(self, CTMain = None):

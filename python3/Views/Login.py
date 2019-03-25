@@ -1,9 +1,11 @@
-import os, sys
+import os
+import sys
+
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QGroupBox, QFormLayout,
-    QLabel, QLineEdit, QTextEdit, QPushButton)
+from PyQt5.QtWidgets import (QWidget, QGridLayout, QGroupBox, QFormLayout, QLabel, QLineEdit, QTextEdit, QPushButton)
 
 from Protection import Protector
+
 
 class CTLogin(QWidget):
     def __init__(self, CTMain = None):
@@ -62,7 +64,7 @@ class CTLogin(QWidget):
         self._enter_button.clicked.connect(self.enter_password)
 
         self._skip_button = QPushButton()
-        self._skip_button.setText("Proceed without unlocking encrypted settings");
+        self._skip_button.setText("Proceed without unlocking encrypted settings")
         self._skip_button.clicked.connect(self.skip_password)
 
         self._layout.addWidget(self._label_top, 1, 1, 1, 2)

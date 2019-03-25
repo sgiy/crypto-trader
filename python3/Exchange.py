@@ -1,6 +1,7 @@
 # Abstract Exchange class. Each exchange implementation should inherit from it.
-import traceback
 import time
+import traceback
+
 
 class Exchange:
     def __init__(self, APIKey='', Secret='', PassPhrase=''):

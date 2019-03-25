@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel)
 
-from Views.OrderBook import CTOrderBook
 from Views.Dropdown import Dropdown
+from Views.OrderBook import CTOrderBook
+
 
 class CTOrderBookWithSelectors(QWidget):
     def __init__(self,

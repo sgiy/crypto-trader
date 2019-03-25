@@ -1,7 +1,5 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget,
-    QTableWidgetItem)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem)
 
-from Views.OrderBookWithSelectors import CTOrderBookWithSelectors
 
 class CTCurrencies(QWidget):
     def __init__(self, CTMain = None):
@@ -33,6 +31,7 @@ class CTCurrencies(QWidget):
                     self._tableWidget.setItem(
                         cell_index,
                         exchange_i + 1,
-                        QTableWidgetItem('{0}: {1}'.format(code_map[code][exchanges[exchange_i]], code_map[code][exchange_name_column]))
+                        QTableWidgetItem('{0}: {1}'.format(code_map[code][exchanges[exchange_i]],
+                                                           code_map[code][exchange_name_column]))
                     )
             cell_index += 1

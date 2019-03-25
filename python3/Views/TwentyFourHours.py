@@ -1,8 +1,7 @@
 from operator import itemgetter
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget,
-    QTableWidgetItem)
 
-from Views.OrderBookWithSelectors import CTOrderBookWithSelectors
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem)
+
 
 class CTTwentyFourHours(QWidget):
     def __init__(self, CTMain = None):

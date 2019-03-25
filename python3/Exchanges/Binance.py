@@ -1,7 +1,8 @@
+import hashlib
+import hmac
 import time
 from datetime import datetime
-import hmac
-import hashlib
+
 import requests
 
 from Exchange import Exchange
@@ -188,7 +189,7 @@ class Binance(Exchange):
         self._exchangeInfo = self.public_get_request('/api/v1/exchangeInfo')
         return self._exchangeInfo
 
-    def public_get_order_book(self, market, depth = '5'):
+    def public_get_order_book(self, market, depth='5'):
         """
             Get order book for a given currency pair (market).
             Valid depth values: 5, 10, 20, 50, 100, 500, 1000
@@ -206,7 +207,7 @@ class Binance(Exchange):
         url = "/api/v1/depth?symbol={}&limit={}".format(market, depth)
         return self.public_get_request(url)
 
-    def public_get_market_history(self, market, limit = '500'):
+    def public_get_market_history(self, market, limit='500'):
         """
             Get recent trades.
             Debug: ct['Binance'].public_get_market_history('ETHBTC')
@@ -236,7 +237,7 @@ class Binance(Exchange):
     #     url = "/api/v1/historicalTrades?symbol={}&limit={}{}".format(market, limit, fromIdStr)
     #     return self.public_get_request(url)
 
-    def public_get_aggregated_trades(self, market, limit = '500', fromId = None, startTime = None, endTime = None):
+    def public_get_aggregated_trades(self, market, limit='500', fromId=None, startTime=None, endTime=None):
         """
             Get compressed, aggregate trades. Trades that fill at the time, from
             the same order, with the same price will have the quantity aggregated.
@@ -308,7 +309,7 @@ class Binance(Exchange):
         """
         return self.public_get_request("/api/v3/avgPrice?symbol={}".format(market))
 
-    def public_get_24hour_statistics(self, market = None):
+    def public_get_24hour_statistics(self, market=None):
         """
             24 hour rolling window price change statistics. Careful when
             accessing this with no symbol.
@@ -345,7 +346,7 @@ class Binance(Exchange):
         url = "/api/v1/ticker/24hr{}".format(addString)
         return self.public_get_request(url)
 
-    def public_get_latest_prices(self, market = None):
+    def public_get_latest_prices(self, market=None):
         """
             Latest price for a symbol or symbols.
             Debug: ct['Binance'].public_get_latest_prices('ETHBTC')

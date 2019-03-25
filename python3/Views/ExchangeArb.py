@@ -1,9 +1,10 @@
 import time
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget,
-    QTableWidgetItem, QLineEdit, QLabel, QCheckBox, QHBoxLayout, QPushButton)
+                             QTableWidgetItem, QLineEdit, QLabel, QCheckBox, QHBoxLayout, QPushButton)
+
 from Views.TwoOrderBooks import CTTwoOrderBooks
+
 
 class CTSelectArbButton(QPushButton):
     def __init__(self, parent=None, row=None):
@@ -130,7 +131,7 @@ class CTExchangeArb(QWidget):
             self._tableWidget.setItem(row_index, 6, bid_item)
             self._tableWidget.setItem(row_index, 7, QTableWidgetItem('{:.8f}'.format(row['exchangeBidAsk'])))
             self._tableWidget.setItem(row_index, 8, QTableWidgetItem('{:.2f}%'.format(row['return'])))
-            self._tableWidget.setCellWidget(row_index, 9, CTSelectArbButton(self, row));
+            self._tableWidget.setCellWidget(row_index, 9, CTSelectArbButton(self, row))
 
             row_index += 1
         self._CTMain.log(' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))

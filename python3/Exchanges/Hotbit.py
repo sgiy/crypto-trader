@@ -1,11 +1,9 @@
-import base64
-import time
-import hmac
 import hashlib
-import urllib
+
 import requests
 
 from Exchange import Exchange
+
 
 class Hotbit(Exchange):
     def __init__(self, APIKey='', Secret=''):

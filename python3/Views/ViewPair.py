@@ -1,20 +1,17 @@
-import threading
 from datetime import datetime
 
-from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel,
-    QHBoxLayout, QVBoxLayout, QApplication, QSizePolicy, QSplitter, QPushButton,
-    QGraphicsLineItem, QGraphicsTextItem)
-
-from PyQt5.QtChart import (QChart, QChartView, QCandlestickSet,
-    QCandlestickSeries, QLineSeries, QDateTimeAxis, QValueAxis)
-from PyQt5.QtGui import QPainter, QPen, QColor
-from PyQt5.QtCore import Qt, QDateTime,  QPointF, QMargins
+from PyQt5.QtChart import (QChartView, QCandlestickSet, QCandlestickSeries, QDateTimeAxis, QValueAxis)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPainter
+from PyQt5.QtWidgets import (QWidget, QStyleFactory, QGridLayout, QLabel, QHBoxLayout, QApplication, QSplitter,
+                             QPushButton, QGraphicsLineItem, QGraphicsTextItem)
 
 from Views.Dropdown import Dropdown
-from Views.OrderBook import CTOrderBook
-from Views.TradeWidget import CTTradeWidget
 from Views.OpenOrdersWidget import CTOpenOrdersWidget
+from Views.OrderBook import CTOrderBook
 from Views.RecentTradesWidget import CTRecentTradesWidget
+from Views.TradeWidget import CTTradeWidget
+
 
 class CTChartView(QChartView):
     def __init__(self, parent):
@@ -58,6 +55,7 @@ class CTChartView(QChartView):
 
         return QChartView.mouseMoveEvent(self, event)
 
+
 class CTCandlestickSet(QCandlestickSet):
     def __init__(self, timestamp, open, high, low, close, volume, base_volume, parent):
         super().__init__(open, high, low, close, timestamp, parent)
@@ -81,6 +79,7 @@ class CTCandlestickSet(QCandlestickSet):
                     self._base_curr,
                     self._base_volume
             ))
+
 
 class CTViewPair(QWidget):
     def __init__(self, CTMain = None, exchange = '', base_code = '', curr_code = '',
