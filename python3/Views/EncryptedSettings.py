@@ -1,5 +1,4 @@
-import os, sys, copy
-from PyQt5.QtCore import Qt
+import os, sys, shutil
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QGroupBox, QFormLayout,
     QLabel, QLineEdit, QPushButton)
 
@@ -70,7 +69,7 @@ class CTEncryptedSettings(QWidget):
         self._textbox_password.returnPressed.connect(self.save_changes)
         save_layout.addWidget(self._textbox_password, 0, 1)
         self._save_button = QPushButton()
-        self._save_button.setText("Save");
+        self._save_button.setText("Save")
         self._save_button.clicked.connect(self.save_changes)
         save_layout.addWidget(self._save_button, 1, 0, 1, 2)
         self._form_save.setLayout(save_layout)
@@ -92,6 +91,7 @@ class CTEncryptedSettings(QWidget):
             settings_to_save['API Keys'][exchange]['APIKey'] = self._api_key_inputs[exchange]['APIKey'].text()
             settings_to_save['API Keys'][exchange]['Secret'] = self._api_key_inputs[exchange]['Secret'].text()
             settings_to_save['API Keys'][exchange]['APIPassword'] = self._api_key_inputs[exchange]['APIPassword'].text()
+        shutil.copy2(self._full_file_path, self._full_file_path + '_backup')
         protector.save_encrypted_file(settings_to_save, self._full_file_path)
         self._CTMain._API_KEYS = settings_to_save['API Keys']
         self._CTMain.initCryptoTrader()
