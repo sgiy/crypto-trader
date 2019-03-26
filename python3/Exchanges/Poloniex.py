@@ -33,8 +33,10 @@ class Poloniex(Exchange):
         self._thread_pool.start(CTWorker(self.ws_init))
 
         self._implements = {
+            'ws_24hour_market_moves',
+            'ws_account_balances',
+            'ws_all_markets_best_bid_ask',
             'ws_order_book',
-            'ws_account_balances'
         }
 
         self._currency_id_map = {}
@@ -854,8 +856,8 @@ class Poloniex(Exchange):
                 return
         print(message)
 
-    def ws_on_error(ws, error):
-        print("*** Poloniex ERROR: ", error)
+    def ws_on_error(self, error):
+        print("*** Poloniex websocket ERROR: ", error)
 
     def ws_on_close(self):
         print("### Poloniex websocket is closed ###")
