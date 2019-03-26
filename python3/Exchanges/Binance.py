@@ -4,8 +4,11 @@ import time
 from datetime import datetime
 
 import requests
+import websocket
+from PyQt5.QtCore import QThreadPool
 
 from Exchange import Exchange
+from Worker import CTWorker
 
 
 class Binance(Exchange):
@@ -36,6 +39,13 @@ class Binance(Exchange):
         }
         self._timestamp_correction = int(self.public_get_server_time()) - int(time.time()*1000)
         self.public_update_exchangeInfo()
+        self._thread_pool = QThreadPool()
+        self._thread_pool.start(CTWorker(self.ws_init))
+
+        self._implements = {
+            'ws_24hour_market_moves',
+            'ws_all_markets_best_bid_ask',
+        }
 
     def public_get_request(self, url):
         try:
@@ -703,8 +713,68 @@ class Binance(Exchange):
     def private_get_balances(self):
         return self.private_get_account_info().get('balances', [])
 
+    ########################################
+    ### Exchange specific websockets API ###
+    ########################################
 
+    def ws_init(self):
+        self.ws_subscribe('!ticker@arr', self.ws_on_24hour_ticker_message)
+        self._ws.run_forever()
 
+    def ws_subscribe(self, channel, message_parser):
+        """
+            Subscibe to a channel
+            The following <channel> values are supported:
+            <symbol>@aggTrade - Aggregate Trade Streams
+            <symbol>@trade - Trade Streams
+            <symbol>@kline_<interval> - Kline/Candlestick Streams
+            <symbol>@miniTicker - Individual Symbol Mini Ticker Stream
+            !miniTicker@arr - All Market Mini Tickers Stream
+            <symbol>@ticker - Individual Symbol Ticker Streams
+            !ticker@arr - All Market Tickers Stream
+            <symbol>@depth<levels> - Partial Book Depth Streams
+            <symbol>@depth - Diff. Depth Stream
+            Debug: ct['Poloniex'].ws_subscribe(1000)
+        """
+        self._ws = websocket.WebSocketApp("wss://stream.binance.com:9443/ws/" + channel,
+                                          on_message=message_parser,
+                                          on_error=self.ws_on_error,
+                                          on_close=self.ws_on_close,
+                                          on_ping=self.ws_pong
+                                          )
+
+    def ws_pong(self, message):
+        self._ws.send(message)
+
+    def ws_on_24hour_ticker_message(self, message):
+        if isinstance(message, list):
+            for market in message:
+                try:
+                    market_symbol = market['s']
+                    self.update_market(
+                        market_symbol,
+                        {
+                            'BaseVolume': float(market.get('q', 0)),
+                            'CurrVolume': float(market.get('v', 0)),
+                            'BestBid': float(market['b']),
+                            'BestAsk': float(market['a']),
+                            'BestBidSize': float(market['B']),
+                            'BestAskSize': float(market['A']),
+                            '24HrHigh': float(market['h']),
+                            '24HrLow': float(market['l']),
+                            '24HrPercentMove': float(market['P']),
+                            'LastTradedPrice': float(market['c']),
+                            'TimeStamp': datetime.fromtimestamp(market['C'] / 1000),
+                        }
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
+
+    def ws_on_error(self, error):
+        print("*** Binance websocket ERROR: ", error)
+
+    def ws_on_close(self):
+        print("### Binance websocket is closed ###")
 
 
 
