@@ -17,7 +17,7 @@ class CTTwentyFourHours(QWidget):
 
     def show_moves(self):
         exchanges = sorted(self._CTMain._Crypto_Trader._map_exchange_code_to_currency_code.keys())
-        column_names = ['BaseCode','CurrencyCode'] + exchanges + ['Average 24-Hour Move']
+        column_names = ['BaseCode', 'CurrencyCode'] + exchanges + ['Average 24-Hour Move']
         markets = self._CTMain._Crypto_Trader.load_24hour_moves()
 
         moves = []
@@ -30,11 +30,13 @@ class CTTwentyFourHours(QWidget):
                     'CurrencyCode': code_curr
                 }
                 for exchange in markets[code_base][code_curr].keys():
-                    total_move += markets[code_base][code_curr][exchange]['24HrPercentMove']
+                    entry[exchange] = markets[code_base][code_curr][exchange].get('24HrPercentMove', 0)
+                    total_move += entry[exchange]
                     exchange_counter += 1
-                    entry[exchange] = markets[code_base][code_curr][exchange]['24HrPercentMove']
-                entry['Avg_24HrPercentMove'] = total_move / exchange_counter
-                moves.append(entry)
+
+                if exchange_counter > 0:
+                    entry['Avg_24HrPercentMove'] = total_move / exchange_counter
+                    moves.append(entry)
 
         ordered_market_moves = sorted(moves, key=itemgetter('Avg_24HrPercentMove'), reverse=True)
         n_columns = len(column_names)

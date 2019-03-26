@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import json
 import time
 from datetime import datetime
 
@@ -747,8 +748,9 @@ class Binance(Exchange):
         self._ws.send(message)
 
     def ws_on_24hour_ticker_message(self, message):
-        if isinstance(message, list):
-            for market in message:
+        parsed_message = json.loads(message)
+        if isinstance(parsed_message, list):
+            for market in parsed_message:
                 try:
                     market_symbol = market['s']
                     self.update_market(
@@ -756,7 +758,7 @@ class Binance(Exchange):
                         {
                             'BaseVolume': float(market.get('q', 0)),
                             'CurrVolume': float(market.get('v', 0)),
-                            'BestBid': float(market['b']),
+                            'BestBid': float(market.get('b', 0)),
                             'BestAsk': float(market['a']),
                             'BestBidSize': float(market['B']),
                             'BestAskSize': float(market['A']),

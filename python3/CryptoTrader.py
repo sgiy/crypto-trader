@@ -28,11 +28,11 @@ class CryptoTrader:
         self._SETTINGS['Exchanges with API Keys'] =[]
         for exchange in self._API_KEYS.keys():
             self.trader[exchange].update_api_keys(
-                self._API_KEYS[exchange].get('APIKey',''),
-                self._API_KEYS[exchange].get('Secret',''),
-                self._API_KEYS[exchange].get('APIPassword','')
+                self._API_KEYS[exchange].get('APIKey', ''),
+                self._API_KEYS[exchange].get('Secret', ''),
+                self._API_KEYS[exchange].get('APIPassword', '')
             )
-            if self._API_KEYS[exchange].get('APIKey','') != '':
+            if self._API_KEYS[exchange].get('APIKey', '') != '':
                 self._SETTINGS['Exchanges with API Keys'].append(exchange)
 
     def init_currencies(self):
@@ -40,7 +40,7 @@ class CryptoTrader:
         self._map_exchange_code_to_currency_code = {}
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading currencies for ' + exchange)
-            t = threading.Thread(target = self.trader[exchange].update_currency_definitions)
+            t = threading.Thread(target=self.trader[exchange].update_currency_definitions)
             t.start()
             t.join(2)
 
@@ -51,7 +51,7 @@ class CryptoTrader:
             for currency in currencies:
                 try:
                     code = currency
-                    if exchange in self._SETTINGS.get('Exchange Currency Rename Map',{}):
+                    if exchange in self._SETTINGS.get('Exchange Currency Rename Map', {}):
                         if currency in self._SETTINGS['Exchange Currency Rename Map'][exchange]:
                             code = self._SETTINGS['Exchange Currency Rename Map'][exchange][currency]
 
@@ -81,26 +81,27 @@ class CryptoTrader:
     def init_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading market definitions for ' + exchange)
-            t = threading.Thread(target = self.trader[exchange].update_market_definitions)
+            t = threading.Thread(target=self.trader[exchange].update_market_definitions)
             t.start()
             t.join(5)
 
     def refresh_agg_active_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             for code_base in self.trader[exchange]._active_markets:
-                if not code_base in self._active_markets:
+                if code_base not in self._active_markets:
                     self._active_markets[code_base] = {}
                 for code_curr in self.trader[exchange]._active_markets[code_base]:
-                    if not code_curr in self._active_markets[code_base]:
+                    if code_curr not in self._active_markets[code_base]:
                         self._active_markets[code_base][code_curr] = {}
                     self._active_markets[code_base][code_curr][exchange] = self.trader[exchange]._active_markets[code_base][code_curr]
 
     def load_active_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
-            print('Loading active markets for ' + exchange)
-            t = threading.Thread(target = self.trader[exchange].update_market_quotes)
-            t.start()
-            t.join(5)
+            if not self.trader[exchange].has_implementation('ws_all_markets_best_bid_ask'):
+                print('Loading active markets for ' + exchange)
+                t = threading.Thread(target=self.trader[exchange].update_market_quotes)
+                t.start()
+                t.join(5)
 
         self.refresh_agg_active_markets()
 
@@ -108,10 +109,11 @@ class CryptoTrader:
 
     def load_24hour_moves(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
-            print('Loading active markets for ' + exchange)
-            t = threading.Thread(target = self.trader[exchange].update_market_24hrs)
-            t.start()
-            t.join(5)
+            if not self.trader[exchange].has_implementation('ws_24hour_market_moves'):
+                print('Loading active markets for ' + exchange)
+                t = threading.Thread(target=self.trader[exchange].update_market_24hrs)
+                t.start()
+                t.join(5)
 
         self.refresh_agg_active_markets()
 
@@ -137,15 +139,14 @@ class CryptoTrader:
                 best_ask = None
                 if len(markets) > 1:
                     for exchange in markets:
-                        exchange_code = self._map_currency_code_to_exchange_code[code_curr][exchange]
                         if not markets[exchange]['BestBid'] is None:
                             if best_bid is None or best_bid < markets[exchange]['BestBid']:
                                 best_bid = markets[exchange]['BestBid']
                         if not markets[exchange]['BestAsk'] is None:
                             if best_ask is None or best_ask > markets[exchange]['BestAsk']:
                                 best_ask = markets[exchange]['BestAsk']
-                    if not best_bid is None and not best_ask is None and best_bid > best_ask * required_rate_of_return:
-                        if not code_base in self._arbitrage_possibilities:
+                    if best_bid is not None and best_ask is not None and best_bid > best_ask * required_rate_of_return:
+                        if code_base not in self._arbitrage_possibilities:
                             self._arbitrage_possibilities[code_base] = {}
                         self._arbitrage_possibilities[code_base][code_curr] = markets
         return self._arbitrage_possibilities
@@ -205,7 +206,7 @@ class CryptoTrader:
                 try:
                     if self.trader[exchange]._complete_balances_btc[currency]['Total'] > 0:
                         code = self.get_currency_code(exchange, currency)
-                        if not 'BtcValue' in self.trader[exchange]._complete_balances_btc[currency]:
+                        if 'BtcValue' not in self.trader[exchange]._complete_balances_btc[currency]:
                             if code == 'BTC':
                                 btc_rate = 1
                             else:
@@ -217,7 +218,7 @@ class CryptoTrader:
                                     else:
                                         btc_rate = 0
                             self.trader[exchange]._complete_balances_btc[currency]['BtcValue'] = self.trader[exchange]._complete_balances_btc[currency]['Total'] * btc_rate
-                        if not code in self._balances_btc:
+                        if code not in self._balances_btc:
                             self._balances_btc[code] = { 'TotalBtcValue': 0.0 }
                         self._balances_btc[code][exchange] = self.trader[exchange]._complete_balances_btc[currency]
                         self._balances_btc[code]['TotalBtcValue'] += self._balances_btc[code][exchange]['BtcValue']
