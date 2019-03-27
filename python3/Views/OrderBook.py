@@ -96,8 +96,8 @@ class CTOrderBook(QWidget):
                 results = self._order_book
 
             for cell_index in range(2 * self._depth):
-                self._tableWidget.setItem(cell_index,0, QTableWidgetItem(""))
-                self._tableWidget.setItem(cell_index,1, QTableWidgetItem(""))
+                self._tableWidget.setItem(cell_index, 0, QTableWidgetItem(""))
+                self._tableWidget.setItem(cell_index, 1, QTableWidgetItem(""))
             sum_bid = 0
             sum_bid_base = 0
 
@@ -125,7 +125,7 @@ class CTOrderBook(QWidget):
                         self._tableWidget.item(self._depth + bid, i).setBackground(
                             self._CTMain._Parameters.Color['green_bold']
                         )
-                    self._tableWidget.item(self._depth + bid, i).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
+                    self._tableWidget.item(self._depth + bid, i).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
             sum_ask = 0
             sum_ask_base = 0
@@ -153,7 +153,7 @@ class CTOrderBook(QWidget):
                         self._tableWidget.item(self._depth - 1 - ask, i).setBackground(
                             self._CTMain._Parameters.Color['red_bold']
                         )
-                    self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
+                    self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self._CTMain.log("Loaded market " + self._market_symbol)
         except Exception as e:
             print(str(e))

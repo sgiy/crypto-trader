@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetIte
 
 
 class CTTwentyFourHours(QWidget):
-    def __init__(self, CTMain = None):
+    def __init__(self, CTMain=None):
         super().__init__()
 
         self._CTMain = CTMain
@@ -58,12 +58,24 @@ class CTTwentyFourHours(QWidget):
                         QTableWidgetItem('{:.2f}%'.format(move[exchanges[exchange_i]]))
                     )
                     if move[exchanges[exchange_i]] > 0:
-                        self._tableWidget.item(cell_index, exchange_i + 2).setForeground(self._CTMain._Parameters.Color['green_bold'])
+                        self._tableWidget.item(cell_index, exchange_i + 2).setForeground(
+                            self._CTMain._Parameters.Color['green_bold']
+                        )
                     else:
-                        self._tableWidget.item(cell_index, exchange_i + 2).setForeground(self._CTMain._Parameters.Color['red_bold'])
-            self._tableWidget.setItem(cell_index, n_columns - 1, QTableWidgetItem('{:.2f}%'.format(move['Avg_24HrPercentMove'])))
+                        self._tableWidget.item(cell_index, exchange_i + 2).setForeground(
+                            self._CTMain._Parameters.Color['red_bold']
+                        )
+            self._tableWidget.setItem(
+                cell_index,
+                n_columns - 1,
+                QTableWidgetItem('{:.2f}%'.format(move['Avg_24HrPercentMove']))
+            )
             if move['Avg_24HrPercentMove'] > 0:
-                self._tableWidget.item(cell_index, n_columns - 1).setForeground(self._CTMain._Parameters.Color['green_bold'])
+                self._tableWidget.item(cell_index, n_columns - 1).setForeground(
+                    self._CTMain._Parameters.Color['green_bold']
+                )
             else:
-                self._tableWidget.item(cell_index, n_columns - 1).setForeground(self._CTMain._Parameters.Color['red_bold'])
+                self._tableWidget.item(cell_index, n_columns - 1).setForeground(
+                    self._CTMain._Parameters.Color['red_bold']
+                )
             cell_index += 1

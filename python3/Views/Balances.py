@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTabWidget, QTableWidget, QTa
 
 
 class CTBalances(QWidget):
-    def __init__(self, CTMain = None):
+    def __init__(self, CTMain=None):
         super().__init__()
 
         self._CTMain = CTMain

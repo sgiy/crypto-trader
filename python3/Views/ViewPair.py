@@ -68,17 +68,19 @@ class CTCandlestickSet(QCandlestickSet):
     def draw_tool_tip(self, status):
         if status:
             self.parent()._chart_view._chart_tooltip.setPlainText(
-                " time:\t{0}\n open:\t{1:.8f}, close: {2:.8f}\n high:\t{3:.8f}, low:   {4:.8f}\n volume {5}: {6:,.2f}, volume {7}: {8:,.2f}".format(
+                " time:\t{0}\n open:\t{1:.8f}, close: {2:.8f}\n high:\t{3:.8f}, low:   {4:.8f}\n".format(
                     datetime.fromtimestamp(int(self.timestamp()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
                     self.open(),
                     self.close(),
                     self.high(),
-                    self.low(),
+                    self.low()
+                ) + " volume {0}: {1:,.2f}, volume {2}: {3:,.2f}".format(
                     self._curr_curr,
                     self._volume,
                     self._base_curr,
                     self._base_volume
-            ))
+                    )
+            )
 
 
 class CTViewPair(QWidget):
@@ -247,13 +249,13 @@ class CTViewPair(QWidget):
         self._splitter_left.addWidget(self._order_book_widget)
         self._splitter_left.addWidget(self._recent_trades_widget)
         self._splitter_left.addWidget(self._trade_widget)
-        self._splitter_left.setSizes([500,100,100])
+        self._splitter_left.setSizes([500, 100, 100])
 
         self._splitter_right = QSplitter(Qt.Vertical)
         self._splitter_right.addWidget(self._chart_view)
         self._splitter_right.addWidget(self._chart_view_volume)
         self._splitter_right.addWidget(self._open_orders_widget)
-        self._splitter_right.setSizes([500,100,100])
+        self._splitter_right.setSizes([500, 100, 100])
 
         self._splitter_top.addWidget(self._splitter_left)
         self._splitter_top.addWidget(self._splitter_right)

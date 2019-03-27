@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetIte
 
 
 class CTCurrencies(QWidget):
-    def __init__(self, CTMain = None):
+    def __init__(self, CTMain=None):
         super().__init__()
 
         self._CTMain = CTMain

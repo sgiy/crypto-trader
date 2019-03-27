@@ -8,7 +8,7 @@ from Protection import Protector
 
 
 class CTEncryptedSettings(QWidget):
-    def __init__(self, CTMain = None):
+    def __init__(self, CTMain=None):
         super().__init__()
 
         self._CTMain = CTMain

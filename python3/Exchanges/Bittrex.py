@@ -770,8 +770,8 @@ class Bittrex(Exchange):
         for balance in balances:
             try:
                 currency = balance['Currency']
-                available_balance = 0 if balance.get('Available',0) is None else balance.get('Available', 0)
-                total_balance = 0 if balance.get('Balance',0) is None else balance.get('Balance', 0)
+                available_balance = 0 if balance.get('Available', 0) is None else balance.get('Available', 0)
+                total_balance = 0 if balance.get('Balance', 0) is None else balance.get('Balance', 0)
                 self._complete_balances_btc[currency] = {
                     'Available': available_balance,
                     'OnOrders': total_balance - available_balance,

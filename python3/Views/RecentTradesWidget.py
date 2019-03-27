@@ -71,7 +71,7 @@ class CTRecentTradesWidget(QWidget):
                 self._table_widget.setItem(row_index, 2, QTableWidgetItem("{0:,.4f}".format(trade['Amount'])))
                 self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.4f}".format(trade['Total'])))
                 for col_index in range(4):
-                    self._table_widget.item(row_index, col_index).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
+                    self._table_widget.item(row_index, col_index).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                     if trade['TradeType'] == 'Buy':
                         self._table_widget.item(row_index, col_index).setBackground(
                             self._CTMain._Parameters.Color['green_light']

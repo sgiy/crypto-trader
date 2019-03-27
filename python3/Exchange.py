@@ -36,7 +36,7 @@ class Exchange:
         self._tick_lookbacks = {}
         self._map_tick_intervals = {}
         self._max_error_count = 3
-        self._error ={
+        self._error = {
             'count': 0,
             'message': '',
             'result_timestamp': time.time()

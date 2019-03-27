@@ -44,7 +44,7 @@ class CTOpenOrdersWidget(QWidget):
         self._CTMain._Crypto_Trader.trader[self._exchange].update_open_user_orders_in_market(self._market_symbol)
 
     def refresh_widget(self):
-        t = threading.Thread(target = self.refresh)
+        t = threading.Thread(target=self.refresh)
         t.start()
         t.join(1)
 

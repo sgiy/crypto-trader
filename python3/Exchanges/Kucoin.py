@@ -76,7 +76,8 @@ class Kucoin(Exchange):
             command = 'amount=10&price=1.1&type=BUY'
 
             "KC-API-KEY":           "5c2db93503aa674c74a31734" //The api key as a string.
-            "KC-API-SIGN":          "f03a5284-5c39-4aaa-9b20-dea10bdcf8e3" //The base64-encoded signature (see Signing a Message).
+            "KC-API-SIGN":          "f03a5284-5c39-4aaa-9b20-dea10bdcf8e3" //The base64-encoded signature
+                                    (see Signing a Message).
             "KC-API-TIMESTAMP":     1547015186532   //A timestamp for your request.
             "KC-API-PASSPHRASE":    "Abc123456"   //The passphrase you specified when creating the API key.
         """
@@ -86,7 +87,7 @@ class Kucoin(Exchange):
 
             body_str = ''
             if any(body):
-                body_str = json.dumps(body, sort_keys=True, separators=(',',':'))
+                body_str = json.dumps(body, sort_keys=True, separators=(',', ':'))
 
             signature = self.private_sign_request(method, endpoint, body_str, nonce)
 
@@ -114,9 +115,9 @@ class Kucoin(Exchange):
             print(str(e))
             return {}
 
-    ########################################
-    ### Exchange specific public methods ###
-    ########################################
+    # ############################################
+    # ##### Exchange specific public methods #####
+    # ############################################
 
     def public_get_base_currencies(self):
         """
@@ -397,9 +398,9 @@ class Kucoin(Exchange):
         """
         return self.public_get_request('/api/v1/market/allTickers')
 
-    #########################################
-    ### Exchange specific private methods ###
-    #########################################
+    # #############################################
+    # ##### Exchange specific private methods #####
+    # #############################################
 
     def private_get_accounts(self, currency=None, account_type=None):
         """
@@ -475,9 +476,10 @@ class Kucoin(Exchange):
                        'direction': 'in'}]}
         """
         return self.private_request('get',
-                                        '/api/v1/accounts/{}/ledgers?startAt={}&endAt={}&pageSize={}&currentPage={}'.format(
-                                                accountId, startAt, endAt, pageSize, currentPage
-                                            ))
+                                    '/api/v1/accounts/{}/ledgers?startAt={}&endAt={}&pageSize={}&currentPage={}'.format(
+                                        accountId, startAt, endAt, pageSize, currentPage
+                                    )
+                                    )
 
     def private_get_account_holds(self, accountId):
         """
@@ -504,7 +506,7 @@ class Kucoin(Exchange):
                     'amount': amount,
                 })
 
-    def private_submit_new_order(self, side, symbol, price, size, timeInForce, order_type = 'limit'):
+    def private_submit_new_order(self, side, symbol, price, size, timeInForce, order_type='limit'):
         """
             You can place two types of orders: limit and market. Orders can only
             be placed if your account has sufficient funds. Once an order is placed,
@@ -574,7 +576,7 @@ class Kucoin(Exchange):
         """
         return self.private_request('delete', '/api/v1/orders')
 
-    def private_get_orders(self, request = {}):
+    def private_get_orders(self, request={}):
         """
             List your current orders.
 
@@ -629,9 +631,9 @@ class Kucoin(Exchange):
         else:
             return []
 
-    #######################
-    ### Generic methods ###
-    #######################
+    # ###########################
+    # ##### Generic methods #####
+    # ###########################
     def get_consolidated_currency_definitions(self):
         """
             Loading currencies
@@ -666,14 +668,14 @@ class Kucoin(Exchange):
                         'MinConfirmation': 0,
                         'WithdrawalFee': float(currency.get('withdrawalMinFee', 0)),
                         'WithdrawalMinAmount': float(currency.get('withdrawalMinSize', 0)),
-                        'Precision': pow(10,-currency['precision'])
+                        'Precision': pow(10, -currency['precision'])
                     }
                 except Exception as e:
                     self.log_request_error(str(e))
 
         return results
 
-    def update_market_definitions(self, force_update = False):
+    def update_market_definitions(self, force_update=False):
         """
             Used to get the open and available trading markets at Binance along
             with other meta data.
@@ -832,9 +834,17 @@ class Kucoin(Exchange):
         take_ask = min(depth, len(raw_results['asks']))
 
         if take_bid == 0 and take_ask == 0:
-            results = { 'Tradeable': 0, 'Bid': {}, 'Ask': {} }
+            results = {
+                'Tradeable': 0,
+                'Bid': {},
+                'Ask': {}
+            }
         else:
-            results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
+            results = {
+                'Tradeable': 1,
+                'Bid': {},
+                'Ask': {}
+            }
         for i in range(take_bid):
             results['Bid'][i] = {
                 'Price': float(raw_results['bids'][i][0]),
@@ -847,10 +857,6 @@ class Kucoin(Exchange):
             }
 
         return results
-
-
-
-
 
     def load_available_balances(self):
         """

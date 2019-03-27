@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget, QTableWidgetIte
 
 
 class CTExchangeArbCircle(QWidget):
-    def __init__(self, CTMain = None):
+    def __init__(self, CTMain=None):
         super().__init__()
         self._CTMain = CTMain
 
@@ -18,7 +18,7 @@ class CTExchangeArbCircle(QWidget):
         label_return = QLabel("&Required Arbitrage Return (%):")
         label_return.setBuddy(self._required_rate_of_return_inputbox)
 
-        self._sort_by_return = QCheckBox("Sort by return?",self)
+        self._sort_by_return = QCheckBox("Sort by return?", self)
         self._sort_by_return.setChecked(True)
         self._sort_by_return.stateChanged.connect(lambda: self.check_arbs(False))
 
@@ -39,7 +39,7 @@ class CTExchangeArbCircle(QWidget):
         self._CTMain._Timer.timeout.connect(self.check_arbs)
         self.show()
 
-    def check_arbs(self, load_markets = True):
+    def check_arbs(self, load_markets=True):
         required_rate_of_return = 1.0
         try:
             required_rate_of_return += float(self._required_rate_of_return_inputbox.text()) / 100.0

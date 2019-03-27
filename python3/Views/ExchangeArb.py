@@ -37,8 +37,9 @@ class CTSelectArbButton(QPushButton):
         )
         self._parent._selected_order_books.setGeometry(150, 150, 1600, 800)
 
+
 class CTExchangeArb(QWidget):
-    def __init__(self, CTMain = None):
+    def __init__(self, CTMain=None):
         super().__init__()
         self._CTMain = CTMain
 
@@ -51,7 +52,7 @@ class CTExchangeArb(QWidget):
         label_return = QLabel("&Required Arbitrage Return (%):")
         label_return.setBuddy(self._required_rate_of_return_inputbox)
 
-        self._sort_by_return = QCheckBox("Sort by return?",self)
+        self._sort_by_return = QCheckBox("Sort by return?", self)
         self._sort_by_return.setChecked(True)
         self._sort_by_return.stateChanged.connect(lambda: self.check_arbs(load_markets=False))
 
@@ -71,7 +72,7 @@ class CTExchangeArb(QWidget):
         self._CTMain._Timer.start(5000)
         self._CTMain._Timer.timeout.connect(self.check_arbs)
 
-    def check_arbs(self, load_markets = True):
+    def check_arbs(self, load_markets=True):
         required_rate_of_return = 1.0
         try:
             required_rate_of_return += float(self._required_rate_of_return_inputbox.text()) / 100.0

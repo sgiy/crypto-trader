@@ -8,7 +8,7 @@ from Protection import Protector
 
 
 class CTLogin(QWidget):
-    def __init__(self, CTMain = None):
+    def __init__(self, CTMain=None):
         super().__init__()
 
         self._CTMain = CTMain
@@ -55,12 +55,12 @@ class CTLogin(QWidget):
         self._textbox_password.setEchoMode(QLineEdit.Password)
         self._textbox_password.returnPressed.connect(self.enter_password)
         self._label_password = QLabel("Password:")
-        self._label_password.setMinimumSize(100,23)
+        self._label_password.setMinimumSize(100, 23)
         group_box_layout.addRow(self._label_password, self._textbox_password)
         self._password_form_box.setLayout(group_box_layout)
 
         self._enter_button = QPushButton()
-        self._enter_button.setText("OK");
+        self._enter_button.setText("OK")
         self._enter_button.clicked.connect(self.enter_password)
 
         self._skip_button = QPushButton()

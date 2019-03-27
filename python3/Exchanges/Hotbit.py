@@ -29,13 +29,13 @@ class Hotbit(Exchange):
             else:
                 return {}
 
-    def trading_api_request(self, method, endpoint = '', extra = ''):
+    def trading_api_request(self, method, endpoint='', extra=''):
         """
 
         """
         try:
             url = self._BASE_URL + endpoint + '?Api_key=' + self._API_KEY + '&sign='
-            string_to_sign = 'api_key=' + self._API_KEY + extra + '&secret_key=' + self._API_SECRET
+            # string_to_sign = 'api_key=' + self._API_KEY + extra + '&secret_key=' + self._API_SECRET
             signature = hashlib.md5("whatever your string is".encode('utf-8')).hexdigest()
             signature = signature.upper()
             url += signature
@@ -58,9 +58,9 @@ class Hotbit(Exchange):
             else:
                 return {}
 
-    ########################################
-    ### Exchange specific public methods ###
-    ########################################
+    # ############################################
+    # ##### Exchange specific public methods #####
+    # ############################################
 
     def get_server_time(self):
         """
@@ -126,7 +126,9 @@ class Hotbit(Exchange):
             ...,
             'total': 100}
         """
-        return self.get_request('/order.book?market={}&side={}&offset={}&limit={}'.format(market, side, offset, limit))['result']
+        return self.get_request('/order.book?market={}&side={}&offset={}&limit={}'.format(
+            market, side, offset, limit
+        ))['result']
 
     def order_book(self, market, limit, interval):
         """
@@ -138,12 +140,14 @@ class Hotbit(Exchange):
                 0.000000001
             ct['Hotbit'].order_book('ETH/BTC',5,0.00000001)
             Response:
-        		{
-        			"asks": [["0.0733858", "0.319"], ["0.0741178", "0.252"], ["0.0742609", "0.03"], ... ["0.1250465", "0.272"]],
-        			"bids": [["0.0730197", "0.275"], ["0.0723", "1.052"], ["0.0722876", "0.302"], ... ["2.0e-7", "1"]]
+                {
+                    "asks": [["0.0733858", "0.319"], ["0.0741178", "0.252"], ... ["0.1250465", "0.272"]],
+                    "bids": [["0.0730197", "0.275"], ["0.0723", "1.052"], ["0.0722876", "0.302"], ... ["2.0e-7", "1"]]
                 },
         """
-        return self.get_request('/order.depth?&market={}&limit={}&interval={}'.format(market, limit, interval))['result']
+        return self.get_request('/order.depth?&market={}&limit={}&interval={}'.format(
+            market, limit, interval
+        ))['result']
 
     def market_list(self):
         """
@@ -313,7 +317,7 @@ class Hotbit(Exchange):
         """
         return self.get_request('/market.status24h')
 
-    def market_summary(self, markets = '[]'):
+    def market_summary(self, markets='[]'):
         """
             Market summary
             Markets: The market name is json array, such as:
@@ -366,16 +370,15 @@ class Hotbit(Exchange):
         """
         return self.get_request('/allticker')['ticker']
 
-
     def get_markets(self):
         """
             ct['Hotbit'].get_markets()
         """
         return requests.get('https://www.hotbit.io/public/markets').json()['Content']
 
-    ########################################
-    ### Exchange specific private methods ##
-    ########################################
+    # #############################################
+    # ##### Exchange specific private methods #####
+    # #############################################
 
     def get_balances(self, assets):
         """
@@ -406,9 +409,13 @@ class Hotbit(Exchange):
             ct['Hotbit'].get_balances('[]')
             Response:{"error": null, "result": 1520919059}
         """
-        return requests.trading_api_request('post', '/balance.query',
+        return requests.trading_api_request(
+            'post',
+            '/balance.query',
             '&asset={}&business={}&start_time={}&end_time={}&offset={}&limit={}'.format(
-                asset, business, start_time, end_time, offset, limit))
+                asset, business, start_time, end_time, offset, limit
+            )
+        )
 
     def submit_limit_trade(self, market, side, amount, price):
         """
@@ -423,29 +430,32 @@ class Hotbit(Exchange):
             {
                 "error": null,
                 "result":
-            	 {
-            	   "id":8688803,    #order-ID
-            	    "market":"ETHBTC",
-            	    "source":"web",    #数据请求来源标识
-            	    "type":1,	       #下单类型 1-限价单
-            	    "side":2,	       #买卖方标识 1-卖方，2-买方
-            	    "user":15731,
-            	    "ctime":1526971722.164765, #订单创建时间
-            	    "mtime":1526971722.164765, #订单更新时间
-            	    "price":"0.080003",
-            	    "amount":"0.4",
-            	    "taker_fee":"0.0025",
-            	    "maker_fee":"0",
-            	    "left":"0.4",
-            	    "deal_stock":"0",
-            	    "deal_money":"0",
-            	    "deal_fee":"0"
+                 {
+                   "id":8688803,    #order-ID
+                    "market":"ETHBTC",
+                    "source":"web",    #数据请求来源标识
+                    "type":1,	       #下单类型 1-限价单
+                    "side":2,	       #买卖方标识 1-卖方，2-买方
+                    "user":15731,
+                    "ctime":1526971722.164765, #订单创建时间
+                    "mtime":1526971722.164765, #订单更新时间
+                    "price":"0.080003",
+                    "amount":"0.4",
+                    "taker_fee":"0.0025",
+                    "maker_fee":"0",
+                    "left":"0.4",
+                    "deal_stock":"0",
+                    "deal_money":"0",
+                    "deal_fee":"0"
                     },
                 "id": 1521169460
             }
         """
-        return requests.trading_api_request('post', '/order.put_limit',
-            '&market={0}&side={1}&amount={2:.8f}&price={3:.8f}'.format(market, side, amount, price))
+        return requests.trading_api_request(
+            'post',
+            '/order.put_limit',
+            '&market={0}&side={1}&amount={2:.8f}&price={3:.8f}'.format(market, side, amount, price)
+        )
 
     def cancel_order(self, market, order_id):
         """
@@ -458,29 +468,32 @@ class Hotbit(Exchange):
             {
                 "error": null,
                 "result":
-            	 {
-            	   "id":8688803,    #order-ID
-            	    "market":"ETHBTC",
-            	    "source":"web",    #数据请求来源标识
-            	    "type":1,	       #下单类型 1-限价单
-            	    "side":2,	       #买卖方标识 1-卖方，2-买方
-            	    "user":15731,
-            	    "ctime":1526971722.164765, #订单创建时间
-            	    "mtime":1526971722.164765, #订单更新时间
-            	    "price":"0.080003",
-            	    "amount":"0.4",
-            	    "taker_fee":"0.0025",
-            	    "maker_fee":"0",
-            	    "left":"0.4",
-            	    "deal_stock":"0",
-            	    "deal_money":"0",
-            	    "deal_fee":"0"
+                 {
+                   "id":8688803,    #order-ID
+                    "market":"ETHBTC",
+                    "source":"web",    #数据请求来源标识
+                    "type":1,	       #下单类型 1-限价单
+                    "side":2,	       #买卖方标识 1-卖方，2-买方
+                    "user":15731,
+                    "ctime":1526971722.164765, #订单创建时间
+                    "mtime":1526971722.164765, #订单更新时间
+                    "price":"0.080003",
+                    "amount":"0.4",
+                    "taker_fee":"0.0025",
+                    "maker_fee":"0",
+                    "left":"0.4",
+                    "deal_stock":"0",
+                    "deal_money":"0",
+                    "deal_fee":"0"
                     },
                 "id": 1521169460
             }
         """
-        return requests.trading_api_request('post', '/order.cancel',
-            '&market={0}&order_id={1}'.format(market, order_id))
+        return requests.trading_api_request(
+            'post',
+            '/order.cancel',
+            '&market={0}&order_id={1}'.format(market, order_id)
+        )
 
     def cancel_order_batch(self, market, order_ids):
         """
@@ -494,7 +507,7 @@ class Hotbit(Exchange):
             {
                 "error": null,
                 "result":
-            	 [
+                 [
                         {#正确反馈
                                "id":8688803,    #order-ID
                                 "market":"ETHBTC",
@@ -515,18 +528,21 @@ class Hotbit(Exchange):
                         },
                         {	#发生错误反馈
                             "error": {
-            		   "code":10
-            		   "message":"order not found"
-            		}
-            	  	"result":null,
-            	         "id": 1521169460
+                       "code":10
+                       "message":"order not found"
+                    }
+                    "result":null,
+                         "id": 1521169460
                         }
                     ],
                 "id": 1521169460
             }
         """
-        return requests.trading_api_request('post', '/order.batch_cancel',
-            '&market={0}&order_id={1}'.format(market, order_ids))
+        return requests.trading_api_request(
+            'post',
+            '/order.batch_cancel',
+            '&market={0}&order_id={1}'.format(market, order_ids)
+        )
 
     def order_deals(self, order_id, limit):
         """
@@ -569,8 +585,11 @@ class Hotbit(Exchange):
                 "id": 1521169460
             }
         """
-        return requests.trading_api_request('post', '/order.deals',
-            '&order_id={0}&limit={1}'.format(order_id, limit))
+        return requests.trading_api_request(
+            'post',
+            '/order.deals',
+            '&order_id={0}&limit={1}'.format(order_id, limit)
+        )
 
     def finished_order_details(self, order_id):
         """
@@ -600,8 +619,11 @@ class Hotbit(Exchange):
                 "id": 1536050997
             }
         """
-        return requests.trading_api_request('post', '/order.finished_detail',
-            '&order_id={}'.format(order_id))
+        return requests.trading_api_request(
+            'post',
+            '/order.finished_detail',
+            '&order_id={}'.format(order_id)
+        )
 
     def pending_order(self, market, offset, limit):
         """
@@ -638,8 +660,11 @@ class Hotbit(Exchange):
                 "id": 1536050997
             }
         """
-        return requests.trading_api_request('post', '/order.pending',
-            '&market={}&offset={}&limit={}'.format(market, offset, limit))
+        return requests.trading_api_request(
+            'post',
+            '/order.pending',
+            '&market={}&offset={}&limit={}'.format(market, offset, limit)
+        )
 
     def finished_order(self, market, start_time, end_time, offset, limit, side):
         """
@@ -657,8 +682,11 @@ class Hotbit(Exchange):
             Side: 1 = "sell", 2="buy"
             ct['Hotbit'].finished_order_details(100)
         """
-        return requests.trading_api_request('post', '/order.pending',
-            '&market={}&offset={}&limit={}'.format(market, offset, limit))
+        return requests.trading_api_request(
+            'post',
+            '/order.pending',
+            '&market={}&offset={}&limit={}'.format(market, offset, limit)
+        )
 
     def user_transaction_history(self, market, offset, limit):
         """
@@ -673,12 +701,15 @@ class Hotbit(Exchange):
             Limit: Query limit (limit <= 1000)
             ct['Hotbit'].finished_order_details(100)
         """
-        return requests.trading_api_request('post', '/market.user_deals',
-            '&market={}&offset={}&limit={}'.format(market, offset, limit))
+        return requests.trading_api_request(
+            'post',
+            '/market.user_deals',
+            '&market={}&offset={}&limit={}'.format(market, offset, limit)
+        )
 
-    # #######################
-    # ### Generic methods ###
-    # #######################
+    # ###########################
+    # ##### Generic methods #####
+    # ###########################
     def load_currencies(self):
         """
             Loading currencies
@@ -713,12 +744,12 @@ class Hotbit(Exchange):
                 market_symbol = symbol['symbol']
                 local_base = market_symbol.split('_')[1]
                 local_curr = market_symbol.split('_')[0]
-                self.update_market( market_symbol,
-                                    local_base,
-                                    local_curr,
-                                    float(symbol['buy']),
-                                    float(symbol['sell'])
-                                    )
+                self.update_market(market_symbol,
+                                   local_base,
+                                   local_curr,
+                                   float(symbol['buy']),
+                                   float(symbol['sell'])
+                                   )
             except Exception as e:
                 self.log_request_error(str(market_symbol) + ". " + str(e))
         return self._active_markets
@@ -743,12 +774,16 @@ class Hotbit(Exchange):
             }
         return self._complete_balances_btc
 
-    def load_order_book(self, market, depth = 5):
+    def load_order_book(self, market, depth=5):
         raw_results = self.get_order_book(market, str(depth))
         take_bid = min(depth, len(raw_results['BUY']))
         take_ask = min(depth, len(raw_results['SELL']))
 
-        results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
+        results = {
+            'Tradeable': 1,
+            'Bid': {},
+            'Ask': {}
+        }
         for i in range(take_bid):
             results['Bid'][i] = {
                 'Price': float(raw_results['BUY'][i][0]),

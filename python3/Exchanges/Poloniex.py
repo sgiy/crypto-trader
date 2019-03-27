@@ -76,7 +76,7 @@ class Poloniex(Exchange):
                 'Key': self._API_KEY
             }
 
-            result = requests.post(self._BASE_URL + 'tradingApi', data = req, headers = headers).json()
+            result = requests.post(self._BASE_URL + 'tradingApi', data=req, headers=headers).json()
             if 'error' in result:
                 self.log_request_error(result['error'])
                 if self.retry_count_not_exceeded():
@@ -93,9 +93,9 @@ class Poloniex(Exchange):
             else:
                 return {}
 
-    ########################################
-    ### Exchange specific public methods ###
-    ########################################
+    # ############################################
+    # ##### Exchange specific public methods #####
+    # ############################################
 
     def public_get_all_markets(self):
         """
@@ -142,7 +142,7 @@ class Poloniex(Exchange):
         """
         return self.public_get_request('public?command=return24hVolume')
 
-    def public_get_order_book(self, market, depth = '5'):
+    def public_get_order_book(self, market, depth='5'):
         """
             Call: https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_NXT&depth=3
             Debug: ct['Poloniex'].public_get_order_book('BTC_ETH','2')
@@ -154,7 +154,7 @@ class Poloniex(Exchange):
         url = "public?command=returnOrderBook&currencyPair={}&depth={}".format(market, depth)
         return self.public_get_request(url)
 
-    def public_get_all_order_books(self, depth = '5'):
+    def public_get_all_order_books(self, depth='5'):
         """
             Call: https://poloniex.com/public?command=returnOrderBook&currencyPair=all&depth=2
             Debug: ct['Poloniex'].public_get_all_order_books('2')
@@ -172,15 +172,16 @@ class Poloniex(Exchange):
                           'isFrozen': '0',
                           'seq': 123456789}}
         """
-        return self.public_get_order_book('all',depth)
+        return self.public_get_order_book('all', depth)
 
-    def public_get_market_history(self, market, start = None, end = None):
+    def public_get_market_history(self, market, start=None, end=None):
         """
             Returns the past 200 trades for a given market, or up to 50,000
             trades between a range specified in UNIX timestamps by the "start"
             and "end" GET parameters.
 
-            Call: https://poloniex.com/public?command=returnTradeHistory&currencyPair=BTC_NXT&start=1410158341&end=1410499372
+            Call: https://poloniex.com/public?command=returnTradeHistory&currencyPair=BTC_NXT&start=1410158341&
+                    end=1410499372
             Debug: ct['Poloniex'].public_get_market_history('USDT_BTC', '1540000000','1540000000')
             [{'amount': '1.00000000',
               'date': '2019-01-20 01:23:45',
@@ -212,7 +213,8 @@ class Poloniex(Exchange):
             "end". "Start" and "end" are given in UNIX timestamp format and used
             to specify the date range for the data returned.
 
-            Call: https://poloniex.com/public?command=returnChartData&currencyPair=BTC_XMR&start=1405699200&end=9999999999&period=14400
+            Call: https://poloniex.com/public?command=returnChartData&currencyPair=BTC_XMR&start=1405699200&
+                    end=9999999999&period=14400
             Debug: ct['Poloniex'].public_get_chart_data('BTC_ETH', '1540000000','1540000000', '300')
             [{'close': 0.03000000,
               'date': 1540000000,
@@ -232,7 +234,9 @@ class Poloniex(Exchange):
               'volume': 0.00090000,
               'weightedAverage': 0.03000000}]
         """
-        url = "public?command=returnChartData&currencyPair={}&start={}&end={}&period={}".format(market, start, end, period)
+        url = "public?command=returnChartData&currencyPair={}&start={}&end={}&period={}".format(
+            market, start, end, period
+        )
         return self.public_get_request(url)
 
     def public_get_currencies(self):
@@ -291,9 +295,9 @@ class Poloniex(Exchange):
         """
         return self.public_get_request('public?command=returnLoanOrders&currency={}'.format(currency))
 
-    ########################################
-    ### Exchange specific private methods ##
-    ########################################
+    # #############################################
+    # ##### Exchange specific private methods #####
+    # #############################################
 
     def private_get_balances(self):
         """
@@ -307,7 +311,7 @@ class Poloniex(Exchange):
         """
         return self.private_request("returnBalances")
 
-    def private_get_available_balances(self, account = 'all'):
+    def private_get_available_balances(self, account='all'):
         """
             Returns your balances sorted by account. You may optionally specify
             the "account" POST parameter if you wish to fetch only the balances
@@ -318,9 +322,9 @@ class Poloniex(Exchange):
                           ...
                           'ZRX': '123.12345678'}}
         """
-        return self.private_request("returnAvailableAccountBalances",{'account': account})
+        return self.private_request("returnAvailableAccountBalances", {'account': account})
 
-    def private_get_complete_balances(self, account = None):
+    def private_get_complete_balances(self, account=None):
         """
             Returns all of your balances, including available balance, balance
             on orders, and the estimated BTC value of your balance.
@@ -344,7 +348,7 @@ class Poloniex(Exchange):
             Debug: ct['Poloniex'].private_get_deposit_addresses()
             {'BTC': '1234567891011tHeReGuLaRsIzEaDdRess',
             ...
-            'XMR': 'aLoNgEnOuGhAdDrEsStOcOnTaInBaDwOrDz1aLoNgEnOuGhAdDrEsStOcOnTaInBaDwOrDz2aLoNgEnOuGhAdDrEsStOcOnTaInBaDwOrDz3'
+            'XMR': 'aLoNgEnOuGhAdDrEsStOcOnTaInBaDwOrDz1aLoNgEnOuGhAdDrEsStOcOnTaInBaDwOrDz2aLoNgEnOuGhAdDrEsS'
         """
         return self.private_request("returnDepositAddresses")
 
@@ -356,7 +360,7 @@ class Poloniex(Exchange):
             {'response': '0xSoMeAlPhAnUmEr1c',
              'success': 1}
         """
-        return self.private_request("generateNewAddress",{'currency':currency})
+        return self.private_request("generateNewAddress", {'currency': currency})
 
     def private_get_deposits_and_withdrawals(self, start, end):
         """
@@ -399,7 +403,7 @@ class Poloniex(Exchange):
                               'timestamp': 1540000000,
                               'withdrawalNumber': 12345679}]}
         """
-        return self.private_request("returnDepositsWithdrawals",{'start':start,'end':end})
+        return self.private_request("returnDepositsWithdrawals", {'start': start, 'end': end})
 
     def private_get_open_orders_in_market(self, market):
         """
@@ -417,7 +421,7 @@ class Poloniex(Exchange):
               'type': 'buy'}]
         """
         if self.has_api_keys():
-            return self.private_request("returnOpenOrders",{'currencyPair':market})
+            return self.private_request("returnOpenOrders", {'currencyPair': market})
         else:
             return []
 
@@ -433,7 +437,7 @@ class Poloniex(Exchange):
         """
         return self.private_get_open_orders_in_market('all')
 
-    def private_get_trade_history_in_market(self, market, start, end, limit = '10000'):
+    def private_get_trade_history_in_market(self, market, start, end, limit='10000'):
         """
             Returns your trade history for a given market, specified by the
             "currencyPair" POST parameter. You may specify "all" as the
@@ -477,7 +481,7 @@ class Poloniex(Exchange):
 
         return self.private_request("returnTradeHistory", parameters)
 
-    def private_get_all_trade_history(self, start, end, limit = '10000'):
+    def private_get_all_trade_history(self, start, end, limit='10000'):
         """
             Debug: ct['Poloniex'].private_get_all_trade_history(1540000000, 1540000000)
             {'BTC_BAT': [{'amount': '0.00010000',
@@ -557,7 +561,7 @@ class Poloniex(Exchange):
               'tradeID': '123456789',
               'type': 'buy'}]
         """
-        return self.private_request("returnOrderTrades",{'orderNumber':orderNumber})
+        return self.private_request("returnOrderTrades", {'orderNumber': orderNumber})
 
     def private_get_order_status(self, orderNumber):
         """
@@ -575,18 +579,18 @@ class Poloniex(Exchange):
                                         'type': 'buy'}},
              'success': 1}
         """
-        return self.private_request("returnOrderStatus",{'orderNumber':orderNumber})
+        return self.private_request("returnOrderStatus", {'orderNumber': orderNumber})
 
     def private_submit_new_order(self, direction, market, price, amount, trade_type):
         """
             Debug: ct['Poloniex'].private_submit_new_order('buy','USDT_BTC',1.00000000,100,'GTC')
             {'Amount': 0, 'OrderNumber': '12345678910'}
         """
-        request =   {
-                        'currencyPair': market,
-                        'rate': "{0:.8f}".format(price),
-                        'amount': "{0:.8f}".format(amount)
-                    }
+        request = {
+                    'currencyPair': market,
+                    'rate': "{0:.8f}".format(price),
+                    'amount': "{0:.8f}".format(amount)
+                  }
         if trade_type == 'ImmediateOrCancel':
             request['immediateOrCancel'] = '1'
 
@@ -611,7 +615,7 @@ class Poloniex(Exchange):
         """
         return self.private_request("cancelOrder", {'orderNumber': orderNumber})
 
-    def private_move_order(self, orderNumber, rate, amount = None):
+    def private_move_order(self, orderNumber, rate, amount=None):
         """
             Cancels an order and places a new one of the same type in a single
             atomic transaction, meaning either both operations will succeed or
@@ -625,15 +629,15 @@ class Poloniex(Exchange):
                                 },
              'success': 1}
         """
-        request =   {
-                        'orderNumber': orderNumber,
-                        'rate': "{0:.8f}".format(rate)
-                    }
+        request = {
+                    'orderNumber': orderNumber,
+                    'rate': "{0:.8f}".format(rate)
+                  }
         if amount is not None:
             request['amount'] = "{0:.8f}".format(amount)
         return self.private_request("moveOrder", request)
 
-    def private_submit_withdrawal_request(self, currency, amount, address, paymentId = None):
+    def private_submit_withdrawal_request(self, currency, amount, address, paymentId=None):
         """
             Immediately places a withdrawal for a given currency, with no email
             confirmation. In order to use this method, the withdrawal privilege
@@ -641,11 +645,11 @@ class Poloniex(Exchange):
             "currency", "amount", and "address". For XMR withdrawals, you may
             optionally specify "paymentId".
         """
-        request =   {
-                        'currency': currency,
-                        'amount': "{0:.8f}".format(amount),
-                        'address': address
-                    }
+        request = {
+                    'currency': currency,
+                    'amount': "{0:.8f}".format(amount),
+                    'address': address
+                  }
         if paymentId is not None:
             request['paymentId'] = paymentId
         return self.private_request("withdraw", request)
@@ -664,9 +668,9 @@ class Poloniex(Exchange):
         """
         return self.private_request("returnFeeInfo")
 
-    ########################################
-    ### Exchange specific websockets API ###
-    ########################################
+    # ############################################
+    # ##### Exchange specific websockets API #####
+    # ############################################
 
     def ws_init(self):
         self._ws = websocket.WebSocketApp("wss://api2.poloniex.com",
@@ -800,7 +804,8 @@ class Poloniex(Exchange):
                                     if float(account_update[2]) == 0:
                                         self._open_orders[market_symbol].pop(order_ix)
                                     else:
-                                        self._open_orders[market_symbol][order_ix]['AmountRemaining'] = float(account_update[2])
+                                        self._open_orders[market_symbol][order_ix]['AmountRemaining'] = \
+                                            float(account_update[2])
                     if account_update[0] == 't':
                         print('Trade:', account_update)
                 return
@@ -862,9 +867,9 @@ class Poloniex(Exchange):
     def ws_on_close(self):
         print("### Poloniex websocket is closed ###")
 
-    #######################
-    ### Generic methods ###
-    #######################
+    # ###########################
+    # ##### Generic methods #####
+    # ###########################
     def get_consolidated_currency_definitions(self):
         """
             Loading currencies
@@ -1012,7 +1017,7 @@ class Poloniex(Exchange):
                 })
         return results
 
-    def get_consolidated_klines(self, market_symbol, interval = '300', lookback = None, startAt = None, endAt = None):
+    def get_consolidated_klines(self, market_symbol, interval='300', lookback=None, startAt=None, endAt=None):
         """
             Returns candlestick chart data. Required GET parameters are
             "currencyPair", "period" (candlestick period in seconds; valid
@@ -1044,11 +1049,12 @@ class Poloniex(Exchange):
         load_chart = self. public_get_chart_data(market_symbol, startAt, endAt, interval)
         results = []
         for i in load_chart:
-            new_row = i['date'], i['open'], i['high'], i['low'], i['close'], i['quoteVolume'], i['weightedAverage'] * i['quoteVolume']
+            new_row = i['date'], i['open'], i['high'], i['low'], i['close'], i['quoteVolume'], \
+                      i['weightedAverage'] * i['quoteVolume']
             results.append(new_row)
         return results
 
-    def get_consolidated_order_book(self, market, depth = 5):
+    def get_consolidated_order_book(self, market, depth=5):
         raw_results = self.public_get_order_book(market, str(depth))
         take_bid = min(depth, len(raw_results['bids']))
         take_ask = min(depth, len(raw_results['asks']))
@@ -1070,10 +1076,6 @@ class Poloniex(Exchange):
             }
 
         return results
-
-
-
-
 
     def load_available_balances(self):
         available_balances = self.private_get_balances()

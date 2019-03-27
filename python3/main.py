@@ -60,8 +60,8 @@ class CTMainWindow(QMainWindow):
 
     def initCryptoTrader(self):
         self._Crypto_Trader = CryptoTrader(
-            API_KEYS = self._API_KEYS,
-            SETTINGS = self._settings
+            API_KEYS=self._API_KEYS,
+            SETTINGS=self._settings
         )
         print('Initialized Exchanges')
 
