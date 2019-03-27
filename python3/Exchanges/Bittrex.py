@@ -23,12 +23,12 @@ class Bittrex(Exchange):
             'day':          24*60
         }
 
-    def public_get_request(self, url, base_url_override = None):
+    def public_get_request(self, url, base_url_override=None):
         if base_url_override is None:
             base_url_override = self._BASE_URL
         try:
             result = requests.get(base_url_override + url).json()
-            if result.get('success', None) == True:
+            if result.get('success', False):
                 self.log_request_success()
                 return result['result']
             else:
@@ -50,7 +50,11 @@ class Bittrex(Exchange):
             request_url = self._BASE_URL + command + '?' + 'apikey=' + self._API_KEY + "&nonce=" + nonce + extra
             result = requests.get(
                 request_url,
-                headers={"apisign": hmac.new(self._API_SECRET.encode(), request_url.encode(), hashlib.sha512).hexdigest()}
+                headers={"apisign": hmac.new(self._API_SECRET.encode(),
+                                             request_url.encode(),
+                                             hashlib.sha512
+                                             ).hexdigest()
+                         }
             ).json()
             if result.get('success', None):
                 self.log_request_success()
@@ -69,9 +73,9 @@ class Bittrex(Exchange):
             else:
                 return {}
 
-    ########################################
-    ### Exchange specific public methods ###
-    ########################################
+    # ############################################
+    # ##### Exchange specific public methods #####
+    # ############################################
 
     def public_get_currencies(self):
         """
@@ -108,7 +112,8 @@ class Bittrex(Exchange):
                   'IsActive': True,
                   'IsRestricted': False,
                   'IsSponsored': None,
-                  'LogoUrl': 'https://bittrexblobstorage.blob.core.windows.net/public/6defbc41-582d-47a6-bb2e-d0fa88663524.png',
+                  'LogoUrl': 'https://bittrexblobstorage.blob.core.windows.net/public/
+                              6defbc41-582d-47a6-bb2e-d0fa88663524.png',
                   'MarketCurrency': 'LTC',
                   'MarketCurrencyLong': 'Litecoin',
                   'MarketName': 'BTC-LTC',
@@ -180,7 +185,7 @@ class Bittrex(Exchange):
         """
         return self.public_get_request('/public/getmarketsummary?market=' + market)
 
-    def public_get_order_book(self, market, type = 'both'):
+    def public_get_order_book(self, market, book_type='both'):
         """
             Used to get retrieve the orderbook for a given market.
             Debug: ct['Bittrex'].public_get_order_book('BTC-LTC')
@@ -201,7 +206,7 @@ class Bittrex(Exchange):
               ]
             }
         """
-        return self.public_get_request('/public/getorderbook?market=' + market + '&type=' + type)
+        return self.public_get_request('/public/getorderbook?market=' + market + '&type=' + book_type)
 
     def public_get_market_history(self, market):
         """
@@ -222,9 +227,9 @@ class Bittrex(Exchange):
         """
         return self.public_get_request('/public/getmarkethistory?market=' + market)
 
-    ########################################
-    ### Exchange specific private methods ##
-    ########################################
+    # #############################################
+    # ##### Exchange specific private methods #####
+    # #############################################
 
     def private_submit_buylimit_order(self, market, quantity, rate):
         """
@@ -257,7 +262,7 @@ class Bittrex(Exchange):
             Used to cancel an existing order
             Debug: ct['Bittrex'].private_cancel_order("614c34e4-8d71-11e3-94b5-425861b86ab6")
         """
-        return self.private_request('/market/cancel','&uuid='+order_uuid)
+        return self.private_request('/market/cancel', '&uuid=' + order_uuid)
 
     def private_get_open_orders_in_market(self, market):
         """
@@ -286,7 +291,7 @@ class Bittrex(Exchange):
               ]
         """
         if self.has_api_keys():
-            return self.private_request('/market/getopenorders','&market='+market)
+            return self.private_request('/market/getopenorders', '&market=' + market)
         else:
             return []
 
@@ -378,7 +383,7 @@ class Bittrex(Exchange):
         else:
             return []
 
-    def private_submit_withdrawal_request(self, currency, quantity, address, paymentid = None):
+    def private_submit_withdrawal_request(self, currency, quantity, address, payment_id=None):
         """
             Used to withdraw funds from your account. Note: please account for
             txfee.
@@ -390,11 +395,11 @@ class Bittrex(Exchange):
               }
         """
         request = '&currency={0}&quantity={1:.8f}&address={2}'.format(currency, quantity, address)
-        if paymentid is not None:
-            request += '&paymentid='+paymentid
+        if payment_id is not None:
+            request += '&paymentid=' + payment_id
         return self.private_request('/account/withdraw', request)
 
-    def private_get_order_status(self, orderId):
+    def private_get_order_status(self, order_id):
         """
             Used to retrieve a single order by uuid
             Debug: ct['Bittrex'].private_get_order_status('0cb4c4e4-bdc7-4e13-8c13-430e587d2cc1')
@@ -419,11 +424,11 @@ class Bittrex(Exchange):
               ]
         """
         if self.has_api_keys():
-            return self.private_request('/account/getorder', '&uuid='+orderId)
+            return self.private_request('/account/getorder', '&uuid='+order_id)
         else:
             return []
 
-    def private_get_order_history(self, market = None):
+    def private_get_order_history(self, market=None):
         """
             Used to retrieve a single order by uuid
             market: a string literal for the market (ie. BTC-LTC). If omitted,
@@ -457,7 +462,7 @@ class Bittrex(Exchange):
         else:
             return []
 
-    def private_get_withdrawal_history(self, currency = None):
+    def private_get_withdrawal_history(self, currency=None):
         """
             Used to retrieve your withdrawal history.
             currency: a string literal for the currency (ie. BTC). If omitted,
@@ -482,12 +487,12 @@ class Bittrex(Exchange):
         if self.has_api_keys():
             request = ''
             if currency is not None:
-                request += '&currency='+currency
+                request += '&currency=' + currency
             return self.private_request('/account/getwithdrawalhistory', request)
         else:
             return []
 
-    def private_get_deposit_history(self, currency = None):
+    def private_get_deposit_history(self, currency=None):
         """
             Used to retrieve your deposit history.
             currency: a string literal for the currency (ie. BTC). If omitted,
@@ -508,30 +513,37 @@ class Bittrex(Exchange):
         if self.has_api_keys():
             request = ''
             if currency is not None:
-                request += '&currency='+currency
+                request += '&currency=' + currency
             return self.private_request('/account/getdeposithistory', request)
         else:
             return []
 
-    ############################################
-    ### Additional exchange specific methods ###
-    ############################################
+    # ################################################
+    # ##### Additional exchange specific methods #####
+    # ################################################
 
-    def public_get_ticks(self, market, interval = 'fiveMin'):
-        return self.public_get_request('https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + market + '&tickInterval=' + interval, '')
+    def public_get_ticks(self, market, interval='fiveMin'):
+        return self.public_get_request(
+            'https://bittrex.com/Api/v2.0/pub/market/GetTicks?marketName=' + market + '&tickInterval=' + interval,
+            ''
+        )
 
-    def public_get_latest_tick(self, market, interval = 'fiveMin'):
-        return self.public_get_request('https://bittrex.com/Api/v2.0/pub/market/GetLatestTick?marketName=' + market + '&tickInterval=' + interval, '')
+    def public_get_latest_tick(self, market, interval='fiveMin'):
+        return self.public_get_request(
+            'https://bittrex.com/Api/v2.0/pub/market/GetLatestTick?marketName=' + market + '&tickInterval=' + interval,
+            ''
+        )
 
-    def internal_parse_timestamp(self, timestamp):
+    @staticmethod
+    def internal_parse_timestamp(timestamp):
         millis = timestamp.find('.')
         if millis > 0:
             timestamp = timestamp[:millis]
         return datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S")
 
-    #######################
-    ### Generic methods ###
-    #######################
+    # ###########################
+    # ##### Generic methods #####
+    # ###########################
     def get_consolidated_currency_definitions(self):
         """
             Loading currencies
@@ -673,11 +685,11 @@ class Bittrex(Exchange):
             results.append({
                 'OrderId': order['OrderUuid'],
                 'OrderType': order_type,
-                'OpderOpenedAt': self.internal_parse_timestamp(order['Opened']),
-                'Price': order.get('Limit',0),
-                'Amount': order.get('Quantity',0),
-                'Total': order.get('Price',0),
-                'AmountRemaining': order.get('QuantityRemaining',0),
+                'OrderOpenedAt': self.internal_parse_timestamp(order['Opened']),
+                'Price': order.get('Limit', 0),
+                'Amount': order.get('Quantity', 0),
+                'Total': order.get('Price', 0),
+                'AmountRemaining': order.get('QuantityRemaining', 0),
             })
         return results
 
@@ -694,7 +706,7 @@ class Bittrex(Exchange):
             else:
                 order_type = 'Sell'
 
-            if trade.get('Price',0) > 0 and trade.get('Quantity',0) > 0:
+            if trade.get('Price', 0) > 0 and trade.get('Quantity', 0) > 0:
                 results.append({
                     'TradeId': trade['Id'],
                     'TradeType': order_type,
@@ -705,23 +717,32 @@ class Bittrex(Exchange):
                 })
         return results
 
-    def get_consolidated_klines(self, market_symbol, interval = 'fiveMin', lookback = None):
+    def get_consolidated_klines(self, market_symbol, interval='fiveMin', lookback=None):
         load_chart = self.public_get_ticks(market_symbol, interval)
         results = []
         for i in load_chart:
-            new_row = datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp(), i['O'], i['H'], i['L'], i['C'], i['V'], i['BV']
+            new_row = datetime.strptime(i['T'], "%Y-%m-%dT%H:%M:%S").timestamp(), i['O'], i['H'], i['L'], i['C'], \
+                      i['V'], i['BV']
             results.append(new_row)
         return results
 
-    def get_consolidated_order_book(self, market, depth = 5):
-        raw_results = self.public_get_order_book(market,'both')
+    def get_consolidated_order_book(self, market, depth=5):
+        raw_results = self.public_get_order_book(market, 'both')
         take_bid = min(depth, len(raw_results['buy']))
         take_ask = min(depth, len(raw_results['sell']))
 
         if take_bid == 0 and take_ask == 0:
-            results = { 'Tradeable': 0, 'Bid': {}, 'Ask': {} }
+            results = {
+                'Tradeable': 0,
+                'Bid': {},
+                'Ask': {}
+            }
         else:
-            results = { 'Tradeable': 1, 'Bid': {}, 'Ask': {} }
+            results = {
+                'Tradeable': 1,
+                'Bid': {},
+                'Ask': {}
+            }
         for i in range(take_bid):
             results['Bid'][i] = {
                 'Price': raw_results['buy'][i]['Rate'],
@@ -734,12 +755,6 @@ class Bittrex(Exchange):
             }
 
         return results
-
-
-
-
-
-
 
     def load_available_balances(self):
         available_balances = self.private_get_balances()
@@ -755,8 +770,8 @@ class Bittrex(Exchange):
         for balance in balances:
             try:
                 currency = balance['Currency']
-                available_balance = 0 if balance.get('Available',0) is None else balance.get('Available',0)
-                total_balance = 0 if balance.get('Balance',0) is None else balance.get('Balance',0)
+                available_balance = 0 if balance.get('Available',0) is None else balance.get('Available', 0)
+                total_balance = 0 if balance.get('Balance',0) is None else balance.get('Balance', 0)
                 self._complete_balances_btc[currency] = {
                     'Available': available_balance,
                     'OnOrders': total_balance - available_balance,

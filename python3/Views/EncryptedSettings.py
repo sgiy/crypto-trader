@@ -13,9 +13,7 @@ class CTEncryptedSettings(QWidget):
 
         self._CTMain = CTMain
         self._full_file_path = os.path.join(sys.path[0], 'encrypted_settings')
-        self.init_layout()
 
-    def init_layout(self):
         self._label_notification = QLabel('')
         if not hasattr(self, '_layout'):
             self._layout = QGridLayout()
@@ -50,10 +48,19 @@ class CTEncryptedSettings(QWidget):
             api_keys_layout.setRowStretch(row_index, 1)
 
             self._api_key_inputs[exchange] = {}
-            self._api_key_inputs[exchange]['APIKey'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('APIKey', ''), self)
-            self._api_key_inputs[exchange]['Secret'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('Secret', ''), self)
-            self._api_key_inputs[exchange]['APIPassword'] = QLineEdit(self._CTMain._API_KEYS.get(exchange, {}).get('APIPassword', ''), self)
-            if self._CTMain._settings['Exchanges with Trading API'][exchange].get('APIPassword','True') == 'False':
+            self._api_key_inputs[exchange]['APIKey'] = QLineEdit(
+                self._CTMain._API_KEYS.get(exchange, {}).get('APIKey', ''),
+                self
+            )
+            self._api_key_inputs[exchange]['Secret'] = QLineEdit(
+                self._CTMain._API_KEYS.get(exchange, {}).get('Secret', ''),
+                self
+            )
+            self._api_key_inputs[exchange]['APIPassword'] = QLineEdit(
+                self._CTMain._API_KEYS.get(exchange, {}).get('APIPassword', ''),
+                self
+            )
+            if self._CTMain._settings['Exchanges with Trading API'][exchange].get('APIPassword', 'True') == 'False':
                 self._api_key_inputs[exchange]['APIPassword'].setReadOnly(True)
 
             api_keys_layout.addWidget(QLabel(exchange), row_index, 0)

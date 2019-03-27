@@ -22,8 +22,8 @@ from Views.ViewPair import CTViewPair
 
 
 def read_settings():
-    with open(os.path.join(sys.path[0], 'settings'), 'rb') as myfile:
-        msg=myfile.read()
+    with open(os.path.join(sys.path[0], 'settings'), 'rb') as settings_file:
+        msg = settings_file.read()
     return eval(msg)
 
 
@@ -65,7 +65,7 @@ class CTMainWindow(QMainWindow):
         )
         print('Initialized Exchanges')
 
-    def log(self, message = '', message_type = 'INFO'):
+    def log(self, message='', message_type='INFO'):
         message = '{0} ({1}): {2}'.format(message_type, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message)
         self.StatusBar.showMessage(message)
 
@@ -85,10 +85,6 @@ class CTMainWindow(QMainWindow):
                         'StatusTip': 'View Crypto Pair',
                         'Connect': lambda: self.switch_view('ViewPair'),
                 },
-            # 'View Two Exchange Order Books': {
-            #             'StatusTip': 'View Two Exchange Order Books',
-            #             'Connect': lambda: self.switch_view('ViewTwoExchangeOrderBooks'),
-            #     },
             'Cross Exchange Arbitrage': {
                         'Icon': qta.icon('mdi.arrow-collapse-vertical'),
                         'StatusTip': 'View Cross Exchange Arbitrage Possibilities',
@@ -141,7 +137,12 @@ class CTMainWindow(QMainWindow):
                 self.Actions[action] = QAction(action, self)
             if 'Shortcut' in self._actions_setup[action]:
                 self.Actions[action].setShortcut(self._actions_setup[action]['Shortcut'])
-                self.Actions[action].setStatusTip("{0} ({1})".format(self._actions_setup[action]['StatusTip'],self._actions_setup[action]['Shortcut']))
+                self.Actions[action].setStatusTip(
+                    "{0} ({1})".format(
+                        self._actions_setup[action]['StatusTip'],
+                        self._actions_setup[action]['Shortcut']
+                    )
+                )
             else:
                 self.Actions[action].setStatusTip(self._actions_setup[action]['StatusTip'])
             self.Actions[action].triggered.connect(self._actions_setup[action]['Connect'])
@@ -190,32 +191,32 @@ class CTMainWindow(QMainWindow):
         self._Timer.stop()
         if view_name == 'ViewPair':
             self.Views['ViewPair'] = CTViewPair(
-                CTMain = self,
-                exchange = self._settings['Initial Market View Exchange'],
-                base_code = self._settings['Initial Market View Base Currency'],
-                curr_code = self._settings['Initial Market View Quote Currency'],
-                chart_lookback = self._settings['Initial Market View Chart Lookback'],
-                chart_interval = self._settings['Initial Market View Chart Interval'],
-                order_book_depth = self._settings['Default Order Book Depth']
+                CTMain=self,
+                exchange=self._settings['Initial Market View Exchange'],
+                base_code=self._settings['Initial Market View Base Currency'],
+                curr_code=self._settings['Initial Market View Quote Currency'],
+                chart_lookback=self._settings['Initial Market View Chart Lookback'],
+                chart_interval=self._settings['Initial Market View Chart Interval'],
+                order_book_depth=self._settings['Default Order Book Depth']
             )
         if view_name == 'Balances':
-            self.Views['Balances'] = CTBalances(CTMain = self)
+            self.Views['Balances'] = CTBalances(CTMain=self)
         if view_name == 'ViewCrossExchangeArbitrage':
-            self.Views['ViewCrossExchangeArbitrage'] = CTExchangeArb(CTMain = self)
+            self.Views['ViewCrossExchangeArbitrage'] = CTExchangeArb(CTMain=self)
         if view_name == 'ViewCircleExchangeArbitrage':
-            self.Views['ViewCircleExchangeArbitrage'] = CTExchangeArbCircle(CTMain = self)
+            self.Views['ViewCircleExchangeArbitrage'] = CTExchangeArbCircle(CTMain=self)
         if view_name == 'Debug':
-            self.Views['Debug'] = CTDebug(CTMain = self)
+            self.Views['Debug'] = CTDebug(CTMain=self)
         if view_name == 'Login':
-            self.Views['Login'] = CTLogin(CTMain = self)
+            self.Views['Login'] = CTLogin(CTMain=self)
         if view_name == 'ViewSettings':
-            self.Views['ViewSettings'] = CTEncryptedSettings(CTMain = self)
+            self.Views['ViewSettings'] = CTEncryptedSettings(CTMain=self)
         if view_name == 'ViewCurrencies':
-            self.Views['ViewCurrencies'] = CTCurrencies(CTMain = self)
+            self.Views['ViewCurrencies'] = CTCurrencies(CTMain=self)
         if view_name == 'ViewActiveMarkets':
-            self.Views['ViewActiveMarkets'] = CTActiveMarkets(CTMain = self)
+            self.Views['ViewActiveMarkets'] = CTActiveMarkets(CTMain=self)
         if view_name == 'View24HourMoves':
-            self.Views['View24HourMoves'] = CTTwentyFourHours(CTMain = self)
+            self.Views['View24HourMoves'] = CTTwentyFourHours(CTMain=self)
         self.setCentralWidget(self.Views[view_name])
         self._selected_view = view_name
         self.Views[view_name].show()

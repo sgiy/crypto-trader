@@ -21,21 +21,21 @@ class CTChartView(QChartView):
         self.chart.legend().setVisible(False)
         self._chart_loaded = False
 
-        self._chart_horizontal_line = QGraphicsLineItem(0,0,0,0)
+        self._chart_horizontal_line = QGraphicsLineItem(0, 0, 0, 0)
         pen = self._chart_horizontal_line.pen()
         pen.setStyle(Qt.DashLine)
         self._chart_horizontal_line.setPen(pen)
         self.scene().addItem(self._chart_horizontal_line)
-        self._chart_vertical_line = QGraphicsLineItem(0,0,0,0)
+        self._chart_vertical_line = QGraphicsLineItem(0, 0, 0, 0)
         self._chart_vertical_line.setPen(pen)
         self.scene().addItem(self._chart_vertical_line)
 
         self._chart_tooltip = QGraphicsTextItem("")
-        self._chart_tooltip.setPos(100,20)
+        self._chart_tooltip.setPos(100, 20)
         self.scene().addItem(self._chart_tooltip)
 
         self._chart_crosshair = QGraphicsTextItem("")
-        self._chart_crosshair.setPos(600,20)
+        self._chart_crosshair.setPos(600, 20)
         self.scene().addItem(self._chart_crosshair)
 
         margins = self.chart.margins()
@@ -57,8 +57,8 @@ class CTChartView(QChartView):
 
 
 class CTCandlestickSet(QCandlestickSet):
-    def __init__(self, timestamp, open, high, low, close, volume, base_volume, parent):
-        super().__init__(open, high, low, close, timestamp, parent)
+    def __init__(self, timestamp, c_open, c_high, c_low, c_close, volume, base_volume, parent):
+        super().__init__(c_open, c_high, c_low, c_close, timestamp, parent)
         self._volume = volume
         self._base_volume = base_volume
         self._base_curr = parent._base_curr
@@ -82,8 +82,8 @@ class CTCandlestickSet(QCandlestickSet):
 
 
 class CTViewPair(QWidget):
-    def __init__(self, CTMain = None, exchange = '', base_code = '', curr_code = '',
-                    chart_lookback = '', chart_interval = '', order_book_depth = 5):
+    def __init__(self, CTMain=None, exchange='', base_code='', curr_code='', chart_lookback='', chart_interval='',
+                 order_book_depth=5):
         super().__init__()
         self._CTMain = CTMain
         self._exchange = exchange
@@ -94,7 +94,7 @@ class CTViewPair(QWidget):
         self._order_book_depth = order_book_depth
 
         if 'Fusion' in QStyleFactory.keys():
-            self.changeStyle('Fusion')
+            self.change_style('Fusion')
 
         self._layout = QGridLayout()
         self.setLayout(self._layout)
@@ -102,7 +102,7 @@ class CTViewPair(QWidget):
         self.draw_view()
         self.show()
 
-    def refresh_dropdown_exchange_change(self, exchange, default_base = None, default_curr = None):
+    def refresh_dropdown_exchange_change(self, exchange, default_base=None, default_curr=None):
         self._exchange = exchange
         if default_base is None:
             default_base = self._dropdown_base_curr.currentText
@@ -111,26 +111,30 @@ class CTViewPair(QWidget):
         base_codes = sorted(list(self._CTMain._Crypto_Trader.trader[exchange]._active_markets))
         self._dropdown_base_curr.clear()
         self._dropdown_base_curr.addItems(base_codes)
-        if not default_base in base_codes:
+        if default_base not in base_codes:
             default_base = base_codes[0]
         self._dropdown_base_curr.setCurrentText(default_base)
         self.refresh_dropdown_base_change(default_base, default_curr)
 
-    def refresh_dropdown_base_change(self, base_curr, default_curr = None):
+    def refresh_dropdown_base_change(self, base_curr, default_curr=None):
         self._base_curr = base_curr
         if default_curr is None:
             default_curr = self._dropdown_curr_curr.currentText
         curr_codes = sorted(list(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets[base_curr]))
         self._dropdown_curr_curr.clear()
         self._dropdown_curr_curr.addItems(curr_codes)
-        if not default_curr in curr_codes:
+        if default_curr not in curr_codes:
             default_curr = curr_codes[0]
         self._dropdown_curr_curr.setCurrentText(default_curr)
         self.refresh_dropdown_curr_change(default_curr)
 
     def refresh_dropdown_curr_change(self, curr_curr):
         self._curr_curr = curr_curr
-        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(self._exchange, self._base_curr, curr_curr)
+        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(
+            self._exchange,
+            self._base_curr,
+            curr_curr
+        )
 
         self.initiate_widgets()
 
@@ -170,21 +174,50 @@ class CTViewPair(QWidget):
         self._dropdown_curr_curr.activated[str].connect(self.refresh_dropdown_curr_change)
 
         label_lookback = QLabel("Lookback:")
-        self._chart_dropdown_lookback = Dropdown(self._CTMain._Parameters.get_chart_lookback_windows(), self._chart_lookback)
+        self._chart_dropdown_lookback = Dropdown(
+            self._CTMain._Parameters.get_chart_lookback_windows(),
+            self._chart_lookback
+        )
         self._chart_dropdown_lookback.currentTextChanged.connect(self.draw_chart)
         label_interval = QLabel("Interval:")
-        self._chart_dropdown_interval = Dropdown(self._CTMain._Parameters.get_chart_intervals(), self._chart_interval)
+        self._chart_dropdown_interval = Dropdown(
+            self._CTMain._Parameters.get_chart_intervals(),
+            self._chart_interval
+        )
         self._chart_dropdown_interval.currentTextChanged.connect(self.draw_chart)
 
-        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(self._exchange, self._base_curr, self._curr_curr)
-        self._trade_widget = CTTradeWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr, self._market_symbol)
-        self._open_orders_widget = CTOpenOrdersWidget(self._CTMain, self._exchange, self._market_symbol)
-        self._recent_trades_widget = CTRecentTradesWidget(self._CTMain, self._exchange, self._base_curr, self._curr_curr, self._market_symbol)
-        self.refresh_dropdown_exchange_change(self._exchange, self._base_curr, self._curr_curr)
+        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(
+            self._exchange,
+            self._base_curr,
+            self._curr_curr
+        )
+        self._trade_widget = CTTradeWidget(
+            self._CTMain,
+            self._exchange,
+            self._base_curr,
+            self._curr_curr,
+            self._market_symbol
+        )
+        self._open_orders_widget = CTOpenOrdersWidget(
+            self._CTMain,
+            self._exchange,
+            self._market_symbol
+        )
+        self._recent_trades_widget = CTRecentTradesWidget(
+            self._CTMain,
+            self._exchange,
+            self._base_curr,
+            self._curr_curr,
+            self._market_symbol
+        )
+        self.refresh_dropdown_exchange_change(
+            self._exchange,
+            self._base_curr,
+            self._curr_curr
+        )
 
-
-        label_base_exch = QLabel("&Exchange:")
-        label_base_exch.setBuddy(self._dropdown_exchange)
+        label_exchange = QLabel("&Exchange:")
+        label_exchange.setBuddy(self._dropdown_exchange)
         label_base_curr = QLabel("&Base:")
         label_base_curr.setBuddy(self._dropdown_base_curr)
         label_curr_curr = QLabel("&Currency:")
@@ -194,21 +227,21 @@ class CTViewPair(QWidget):
         self._debug_button.setText("Debug")
         self._debug_button.clicked.connect(self.debug)
 
-        topLayout = QHBoxLayout()
-        topLayout.addWidget(label_base_exch)
-        topLayout.addWidget(self._dropdown_exchange)
-        topLayout.addWidget(label_base_curr)
-        topLayout.addWidget(self._dropdown_base_curr)
-        topLayout.addWidget(label_curr_curr)
-        topLayout.addWidget(self._dropdown_curr_curr)
-        topLayout.addWidget(label_lookback)
-        topLayout.addWidget(self._chart_dropdown_lookback)
-        topLayout.addWidget(label_interval)
-        topLayout.addWidget(self._chart_dropdown_interval)
-        topLayout.addWidget(self._debug_button)
-        topLayout.addStretch(1)
+        top_layout = QHBoxLayout()
+        top_layout.addWidget(label_exchange)
+        top_layout.addWidget(self._dropdown_exchange)
+        top_layout.addWidget(label_base_curr)
+        top_layout.addWidget(self._dropdown_base_curr)
+        top_layout.addWidget(label_curr_curr)
+        top_layout.addWidget(self._dropdown_curr_curr)
+        top_layout.addWidget(label_lookback)
+        top_layout.addWidget(self._chart_dropdown_lookback)
+        top_layout.addWidget(label_interval)
+        top_layout.addWidget(self._chart_dropdown_interval)
+        top_layout.addWidget(self._debug_button)
+        top_layout.addStretch(1)
 
-        self._layout.addLayout(topLayout, 0, 0, 1, 10)
+        self._layout.addLayout(top_layout, 0, 0, 1, 10)
         self._splitter_top = QSplitter(Qt.Horizontal)
         self._splitter_left = QSplitter(Qt.Vertical)
         self._splitter_left.addWidget(self._order_book_widget)
@@ -231,11 +264,14 @@ class CTViewPair(QWidget):
         # self._CTMain._Timer.start(1000)
         # self._CTMain._Timer.timeout.connect(self.refresh)
 
-    def changeStyle(self, styleName):
-        QApplication.setStyle(QStyleFactory.create(styleName))
+    @staticmethod
+    def change_style(style_name):
+        QApplication.setStyle(QStyleFactory.create(style_name))
 
-    def debug(self):
-        import ipdb; ipdb.set_trace()
+    @staticmethod
+    def debug():
+        import ipdb
+        ipdb.set_trace()
 
     # def refresh(self):
     #     t = threading.Thread(target = self.refresh_widgets)
@@ -269,15 +305,17 @@ class CTViewPair(QWidget):
 
     def draw_chart(self):
         exchange = self._exchange
-        code_base = self._base_curr
-        code_curr = self._curr_curr
         market_symbol = self._market_symbol
         interval_name = self._chart_dropdown_interval.currentText()
         lookback_name = self._chart_dropdown_lookback.currentText()
         interval = self._CTMain._Parameters.ChartInterval[interval_name]
         lookback = self._CTMain._Parameters.ChartLookbackWindow[lookback_name]
 
-        load_chart = self._CTMain._Crypto_Trader.trader[exchange].load_chart_data(market_symbol, interval, lookback)
+        load_chart = self._CTMain._Crypto_Trader.trader[exchange].load_chart_data(
+            market_symbol,
+            interval,
+            lookback
+        )
 
         self.CandlestickSeries.clear()
         self.VolumeBarSeries.clear()
@@ -303,16 +341,16 @@ class CTViewPair(QWidget):
         for point in load_chart:
             # high = min_y + 0.1 * (max_y - min_y)  * point[6] / v_max
             # low = min_y
-            low = 0
-            high = point[6]
+            v_low = 0
+            v_high = point[6]
             max_volume = max(max_volume, point[6])
             if point[4] >= point[1]:
-                open = low
-                close = high
+                v_open = v_low
+                v_close = v_high
             else:
-                open = high
-                close = low
-            volume_candle = QCandlestickSet(open, high, low, close, point[0] * 1000, self)
+                v_open = v_high
+                v_close = v_low
+            volume_candle = QCandlestickSet(v_open, v_high, v_low, v_close, point[0] * 1000, self)
             self.VolumeBarSeries.append(volume_candle)
 
         if not self._chart_view._chart_loaded:
@@ -320,22 +358,28 @@ class CTViewPair(QWidget):
             self._chart_view_volume.chart().addSeries(self.VolumeBarSeries)
             self._chart_view._chart_loaded = True
 
-        axisX = QDateTimeAxis()
-        axisX.setFormat("dd-MM-yyyy h:mm")
-        axisX.setRange(datetime.fromtimestamp(int(t_min) - 30 * interval), datetime.fromtimestamp(int(t_max) + 30 * interval))
-        self._chart_view.chart.setAxisX(axisX, self.CandlestickSeries)
+        axis_x = QDateTimeAxis()
+        axis_x.setFormat("dd-MM-yyyy h:mm")
+        axis_x.setRange(
+            datetime.fromtimestamp(int(t_min) - 30 * interval),
+            datetime.fromtimestamp(int(t_max) + 30 * interval)
+        )
+        self._chart_view.chart.setAxisX(axis_x, self.CandlestickSeries)
 
-        axisY = QValueAxis()
-        axisY.setRange(min_y, max_y)
-        self._chart_view.chart.setAxisY(axisY, self.CandlestickSeries)
+        axis_y = QValueAxis()
+        axis_y.setRange(min_y, max_y)
+        self._chart_view.chart.setAxisY(axis_y, self.CandlestickSeries)
 
-        axisX2 = QDateTimeAxis()
-        axisX2.setFormat("dd-MM-yyyy h:mm")
-        axisX2.setRange(datetime.fromtimestamp(int(t_min) - 30 * interval), datetime.fromtimestamp(int(t_max) + 30 * interval))
-        self._chart_view_volume.chart().setAxisX(axisX2, self.VolumeBarSeries)
+        axis_x2 = QDateTimeAxis()
+        axis_x2.setFormat("dd-MM-yyyy h:mm")
+        axis_x2.setRange(
+            datetime.fromtimestamp(int(t_min) - 30 * interval),
+            datetime.fromtimestamp(int(t_max) + 30 * interval)
+        )
+        self._chart_view_volume.chart().setAxisX(axis_x2, self.VolumeBarSeries)
 
-        axisY2 = QValueAxis()
-        axisY2.setRange(0, max_volume)
-        self._chart_view_volume.chart().setAxisY(axisY2, self.VolumeBarSeries)
-        # self.VolumeBarSeries.attachAxis(axisX)
-        # self.VolumeBarSeries.attachAxis(axisY)
+        axis_y2 = QValueAxis()
+        axis_y2.setRange(0, max_volume)
+        self._chart_view_volume.chart().setAxisY(axis_y2, self.VolumeBarSeries)
+        # self.VolumeBarSeries.attachAxis(axis_x)
+        # self.VolumeBarSeries.attachAxis(axis_y)

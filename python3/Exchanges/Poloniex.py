@@ -785,7 +785,7 @@ class Poloniex(Exchange):
                             {
                                 'OrderId': account_update[2],
                                 'OrderType': order_type,
-                                'OpderOpenedAt': datetime.strptime(account_update[6], "%Y-%m-%d %H:%M:%S"),
+                                'OrderOpenedAt': datetime.strptime(account_update[6], "%Y-%m-%d %H:%M:%S"),
                                 'Price': float(account_update[4]),
                                 'Amount': float(account_update[5]),
                                 'Total': float(account_update[4]) * float(account_update[5]),
@@ -980,7 +980,7 @@ class Poloniex(Exchange):
             results.append({
                 'OrderId': order['orderNumber'],
                 'OrderType': order_type,
-                'OpderOpenedAt': datetime.strptime(order['date'], "%Y-%m-%d %H:%M:%S"),
+                'OrderOpenedAt': datetime.strptime(order['date'], "%Y-%m-%d %H:%M:%S"),
                 'Price': float(order['rate']),
                 'Amount': float(order['startingAmount']),
                 'Total': float(order['total']),

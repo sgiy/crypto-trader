@@ -159,37 +159,39 @@ class CryptoTrader:
                 for code_base2 in self._active_markets:
                     if code_base1 != code_base2:
                         for exchange in self._active_markets[code_base1][code_curr]:
-                            if code_curr in self._active_markets[code_base2] and exchange in self._active_markets[code_base2][code_curr]:
-                                if code_base2 in self._active_markets[code_base1] and exchange in self._active_markets[code_base1][code_base2]:
-                                    market1 = self._active_markets[code_base1][code_curr][exchange]
-                                    market2 = self._active_markets[code_base2][code_curr][exchange]
-                                    market3 = self._active_markets[code_base1][code_base2][exchange]
-                                    if market3['BestAsk'] is not None and market2['BestAsk'] is not None and market1['BestBid'] is not None and market3['BestAsk'] * market2['BestAsk'] > 0 and market3['BestAsk'] * market2['BestAsk'] * required_rate_of_return < market1['BestBid']:
-                                        self._arbitrage_possibilities.append(
-                                            {
-                                                'exchange': exchange,
-                                                'market1': market1,
-                                                'action1': 'sell',
-                                                'market2': market2,
-                                                'action2': 'buy',
-                                                'market3': market3,
-                                                'action3': 'buy',
-                                                'return': 100.0 * (market1['BestBid'] / (market3['BestAsk'] * market2['BestAsk']) - 1)
-                                            }
-                                        )
-                                    if market1['BestAsk'] is not None and market3['BestBid'] is not None and market2['BestBid'] is not None and market1['BestAsk'] > 0 and market3['BestBid'] * market2['BestBid'] > market1['BestAsk'] * required_rate_of_return:
-                                        self._arbitrage_possibilities.append(
-                                            {
-                                                'exchange': exchange,
-                                                'market1': market1,
-                                                'action1': 'buy',
-                                                'market2': market2,
-                                                'action2': 'sell',
-                                                'market3': market3,
-                                                'action3': 'sell',
-                                                'return': 100.0 * (market3['BestBid'] * market2['BestBid'] / market1['BestAsk'] - 1)
-                                            }
-                                        )
+                            if code_curr in self._active_markets[code_base2]:
+                                if exchange in self._active_markets[code_base2][code_curr]:
+                                    if code_base2 in self._active_markets[code_base1]:
+                                        if exchange in self._active_markets[code_base1][code_base2]:
+                                            market1 = self._active_markets[code_base1][code_curr][exchange]
+                                            market2 = self._active_markets[code_base2][code_curr][exchange]
+                                            market3 = self._active_markets[code_base1][code_base2][exchange]
+                                            if market3['BestAsk'] is not None and market2['BestAsk'] is not None and market1['BestBid'] is not None and market3['BestAsk'] * market2['BestAsk'] > 0 and market3['BestAsk'] * market2['BestAsk'] * required_rate_of_return < market1['BestBid']:
+                                                self._arbitrage_possibilities.append(
+                                                    {
+                                                        'exchange': exchange,
+                                                        'market1': market1,
+                                                        'action1': 'sell',
+                                                        'market2': market2,
+                                                        'action2': 'buy',
+                                                        'market3': market3,
+                                                        'action3': 'buy',
+                                                        'return': 100.0 * (market1['BestBid'] / (market3['BestAsk'] * market2['BestAsk']) - 1)
+                                                    }
+                                                )
+                                            if market1['BestAsk'] is not None and market3['BestBid'] is not None and market2['BestBid'] is not None and market1['BestAsk'] > 0 and market3['BestBid'] * market2['BestBid'] > market1['BestAsk'] * required_rate_of_return:
+                                                self._arbitrage_possibilities.append(
+                                                    {
+                                                        'exchange': exchange,
+                                                        'market1': market1,
+                                                        'action1': 'buy',
+                                                        'market2': market2,
+                                                        'action2': 'sell',
+                                                        'market3': market3,
+                                                        'action3': 'sell',
+                                                        'return': 100.0 * (market3['BestBid'] * market2['BestBid'] / market1['BestAsk'] - 1)
+                                                    }
+                                                )
 
         return self._arbitrage_possibilities
 

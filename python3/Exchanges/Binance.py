@@ -949,7 +949,7 @@ class Binance(Exchange):
             results.append({
                 'OrderId': order['orderId'],
                 'OrderType': order_type,
-                'OpderOpenedAt': datetime.fromtimestamp(market['time'] / 1000),
+                'OrderOpenedAt': datetime.fromtimestamp(market['time'] / 1000),
                 'Price': float(order['price']),
                 'Amount': float(order['origQty']),
                 'Total': float(order['price']) * float(order['origQty']),

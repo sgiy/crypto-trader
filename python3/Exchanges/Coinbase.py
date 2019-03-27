@@ -5,7 +5,8 @@ class Coinbase:
     def __init__(self):
         pass
 
-    def get_request(self, url):
+    @staticmethod
+    def get_request(url):
         return requests.get('https://api.gdax.com' + url).json()
 
     def get_btc_usd_price(self):

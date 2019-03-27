@@ -5,15 +5,15 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetIte
 
 
 class CTCancelOrderButton(QPushButton):
-    def __init__(self, parent=None, orderId=None):
+    def __init__(self, parent=None, order_id=None):
         super().__init__()
-        self._orderId = orderId
+        self._order_id = order_id
         self._parent = parent
-        self.setText("Cancel");
+        self.setText("Cancel")
         self.clicked.connect(self.cancel)
 
     def cancel(self):
-        self._parent._CTMain._Crypto_Trader.trader[self._parent._exchange].cancel_order(self._orderId)
+        self._parent._CTMain._Crypto_Trader.trader[self._parent._exchange].cancel_order(self._order_id)
         self._parent._single_shot_timer.start(500)
 
 
@@ -56,7 +56,7 @@ class CTOpenOrdersWidget(QWidget):
         self._table_widget.verticalHeader().hide()
         self._table_widget.setHorizontalHeaderLabels([
             'OrderType',
-            'OpderOpenedAt',
+            'OrderOpenedAt',
             'Price',
             'Amount',
             'Total',
@@ -67,7 +67,7 @@ class CTOpenOrdersWidget(QWidget):
         row_index = 0
         for order in self._open_orders:
             self._table_widget.setItem(row_index, 0, QTableWidgetItem("{}".format(order['OrderType'])))
-            self._table_widget.setItem(row_index, 1, QTableWidgetItem("{}".format(order['OpderOpenedAt'])))
+            self._table_widget.setItem(row_index, 1, QTableWidgetItem("{}".format(order['OrderOpenedAt'])))
             self._table_widget.setItem(row_index, 2, QTableWidgetItem("{0:,.8f}".format(order['Price'])))
             self._table_widget.setItem(row_index, 3, QTableWidgetItem("{0:,.8f}".format(order['Amount'])))
             self._table_widget.setItem(row_index, 4, QTableWidgetItem("{0:,.8f}".format(order['Total'])))

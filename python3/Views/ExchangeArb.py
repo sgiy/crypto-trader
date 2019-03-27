@@ -1,7 +1,7 @@
 import time
 
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget,
-                             QTableWidgetItem, QLineEdit, QLabel, QCheckBox, QHBoxLayout, QPushButton)
+from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget, QTableWidgetItem, QLineEdit, QLabel, QCheckBox,
+                             QHBoxLayout, QPushButton)
 
 from Views.TwoOrderBooks import CTTwoOrderBooks
 
@@ -11,22 +11,30 @@ class CTSelectArbButton(QPushButton):
         super().__init__()
         self._row = row
         self._parent = parent
-        self.setText("View");
+        self.setText("View")
         self.clicked.connect(self.select_arb)
 
     def select_arb(self):
         self._parent._selected_order_books = CTTwoOrderBooks(
-            CTMain = self._parent._CTMain,
-            exchange1 = self._row['exchangeAsk'],
-            market_symbol_1 = self._row['marketAsk'],
-            base_curr1 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeAsk']].get_local_code(self._row['code_base']),
-            curr_curr1 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeAsk']].get_local_code(self._row['code_curr']),
-            exchange2 = self._row['exchangeBid'],
-            market_symbol_2 = self._row['marketBid'],
-            base_curr2 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeBid']].get_local_code(self._row['code_base']),
-            curr_curr2 = self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeBid']].get_local_code(self._row['code_curr']),
-            depth = 5
-            )
+            CTMain=self._parent._CTMain,
+            exchange1=self._row['exchangeAsk'],
+            market_symbol_1=self._row['marketAsk'],
+            base_curr1=self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeAsk']].get_local_code(
+                self._row['code_base']
+            ),
+            curr_curr1=self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeAsk']].get_local_code(
+                self._row['code_curr']
+            ),
+            exchange2=self._row['exchangeBid'],
+            market_symbol_2=self._row['marketBid'],
+            base_curr2=self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeBid']].get_local_code(
+                self._row['code_base']
+            ),
+            curr_curr2=self._parent._CTMain._Crypto_Trader.trader[self._row['exchangeBid']].get_local_code(
+                self._row['code_curr']
+            ),
+            depth=5
+        )
         self._parent._selected_order_books.setGeometry(150, 150, 1600, 800)
 
 class CTExchangeArb(QWidget):
@@ -39,13 +47,13 @@ class CTExchangeArb(QWidget):
         self._layout = QGridLayout()
 
         self._required_rate_of_return_inputbox = QLineEdit('0.5', self)
-        self._required_rate_of_return_inputbox.textEdited.connect(lambda: self.check_arbs(load_markets = False))
+        self._required_rate_of_return_inputbox.textEdited.connect(lambda: self.check_arbs(load_markets=False))
         label_return = QLabel("&Required Arbitrage Return (%):")
         label_return.setBuddy(self._required_rate_of_return_inputbox)
 
         self._sort_by_return = QCheckBox("Sort by return?",self)
         self._sort_by_return.setChecked(True)
-        self._sort_by_return.stateChanged.connect(lambda: self.check_arbs(load_markets = False))
+        self._sort_by_return.stateChanged.connect(lambda: self.check_arbs(load_markets=False))
 
         topLayout = QHBoxLayout()
         topLayout.addWidget(label_return)
@@ -71,7 +79,9 @@ class CTExchangeArb(QWidget):
             pass
         start_time = time.time()
         if load_markets:
-            self._arbitrage_possibilities = self._CTMain._Crypto_Trader.get_arbitrage_possibilities(required_rate_of_return)
+            self._arbitrage_possibilities = self._CTMain._Crypto_Trader.get_arbitrage_possibilities(
+                required_rate_of_return
+            )
         results = self._arbitrage_possibilities
         rows_to_report = []
 
@@ -116,7 +126,6 @@ class CTExchangeArb(QWidget):
         self._tableWidget.setRowCount(count_rows)
 
         row_index = 0
-        buttons = {}
         for row in sorted_rows_to_report:
             self._tableWidget.setItem(row_index, 0, QTableWidgetItem(row['code_base']))
             self._tableWidget.setItem(row_index, 1, QTableWidgetItem(row['code_curr']))

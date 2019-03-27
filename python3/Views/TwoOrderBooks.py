@@ -4,17 +4,8 @@ from Views.OrderBookWithSelectors import CTOrderBookWithSelectors
 
 
 class CTTwoOrderBooks(QWidget):
-    def __init__(self,
-            CTMain = None,
-            exchange1 = None,
-            market_symbol_1 = None,
-            base_curr1 = None,
-            curr_curr1 = None,
-            exchange2 = None,
-            market_symbol_2 = None,
-            base_curr2 = None,
-            curr_curr2 = None,
-            depth = None):
+    def __init__(self, CTMain=None, exchange1=None, market_symbol_1=None, base_curr1=None, curr_curr1=None,
+                 exchange2=None, market_symbol_2=None, base_curr2=None, curr_curr2=None, depth=None):
         super().__init__()
 
         self._CTMain = CTMain

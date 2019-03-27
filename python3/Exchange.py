@@ -53,21 +53,29 @@ class Exchange:
     def has_implementation(self, name):
         return name in self._implements
 
-    ### Error handling ###
+    # ##### Error handling #####
     def raise_not_implemented_error(self):
-        raise NotImplementedError("Class " + self.__class__.__name__ + " needs to implement method " + traceback.extract_stack(None, 2)[0][2] + "!!! ")
+        raise NotImplementedError("Class {} needs to implement method {}!!!".format(
+                self.__class__.__name__,
+                traceback.extract_stack(None, 2)[0][2]
+            )
+        )
 
     def log_request_success(self):
-        self._error ={
+        self._error = {
             'count': 0,
             'message': '',
             'result_timestamp': time.time()
         }
 
     def log_request_error(self, message):
-        error_message = 'Exception in class {} method {}: {}'.format(self.__class__.__name__, traceback.extract_stack(None, 2)[0][2], message)
+        error_message = 'Exception in class {} method {}: {}'.format(
+            self.__class__.__name__,
+            traceback.extract_stack(None, 2)[0][2],
+            message
+        )
         print(error_message)
-        self._error ={
+        self._error = {
             'count': self._error['count'] + 1,
             'message': error_message
         }
@@ -75,7 +83,13 @@ class Exchange:
     def retry_count_not_exceeded(self):
         return self._error['count'] < self._max_error_count
 
-    ### Generic methods ###
+    # ##### Generic methods #####
+    def get_consolidated_currency_definitions(self):
+        """
+            Returns currency definitions as a dictionary
+        """
+        self.raise_not_implemented_error()
+
     def update_currency_definitions(self):
         """
             get_consolidated_currency_definitions() needs to return a dictionary:
@@ -116,13 +130,13 @@ class Exchange:
     def get_local_code(self, global_code):
         return self._map_currency_code_to_exchange_code.get(global_code, None)
 
-    def update_market(self, market_symbol, dict):
+    def update_market(self, market_symbol, input_dict):
         """
             Updates self._markets and self._active_markets using provided
             market_symbol (exchange symbol for traded pair, e.g. 'BTC-ETH')
             local_base (exchange code for base currency)
             local_curr (exchange code for traded currency)
-            dict contains a dictionary of data to update for the market:
+            update_dict contains a dictionary of data to update for the market:
             {
                 'BaseMinAmount': 0,
                 'BaseIncrement': 0.00000001,
@@ -135,8 +149,8 @@ class Exchange:
                 'LogoUrl':       'url',
             }
         """
-        local_base = dict.pop('LocalBase', None)
-        local_curr = dict.pop('LocalCurr', None)
+        local_base = input_dict.pop('LocalBase', None)
+        local_curr = input_dict.pop('LocalCurr', None)
         if local_base is not None and local_curr is not None:
             code_base = self.get_global_code(local_base)
             code_curr = self.get_global_code(local_curr)
@@ -154,13 +168,13 @@ class Exchange:
                 code_base = self.get_global_code(local_base)
                 code_curr = self.get_global_code(local_curr)
 
-        if not code_base in self._markets:
+        if code_base not in self._markets:
             self._markets[code_base] = {}
-        if not code_curr in self._markets[code_base]:
+        if code_curr not in self._markets[code_base]:
             self._markets[code_base][code_curr] = {}
-        if not code_base in self._active_markets:
+        if code_base not in self._active_markets:
             self._active_markets[code_base] = {}
-        if not code_curr in self._active_markets[code_base]:
+        if code_curr not in self._active_markets[code_base]:
             self._active_markets[code_base][code_curr] = {}
 
         update_dict = {
@@ -175,7 +189,7 @@ class Exchange:
             'IsRestricted':     False,
             'Notice':           '',
         }
-        update_dict.update(dict)
+        update_dict.update(input_dict)
         self._markets[code_base][code_curr].update(update_dict)
 
         if update_dict['IsActive'] and not update_dict['IsRestricted']:
@@ -206,7 +220,7 @@ class Exchange:
                 {
                     'OrderId': exchangeOrderId,
                     'OrderType': order_type, # Buy / Sell
-                    'OpderOpenedAt': datetime.datetime,
+                    'OrderOpenedAt': datetime.datetime,
                     'Price': double,
                     'Amount': double,
                     'Total': double,
@@ -243,13 +257,11 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
-
     def load_balances_btc(self):
         """
             Returns a map by currency code and exchange showing available balances in currency terms and in btc terms
         """
         self.raise_not_implemented_error()
-
 
     def get_consolidated_order_book(self, market, depth):
         """
@@ -302,9 +314,7 @@ class Exchange:
                 take_i_name = i_name
 
         preliminary_ticks = self.get_consolidated_klines(market_symbol, take_i_name, lookback)
-        if preliminary_ticks is None:
-            return None
-        else:
+        if preliminary_ticks is not None:
             if take_i_mins == interval:
                 results = []
                 for entry in preliminary_ticks:
@@ -334,13 +344,13 @@ class Exchange:
 
                 for agg_timestamp in result_dict:
                     if agg_timestamp >= preliminary_ticks[-1][0] - lookback * 60:
-                        new_row =  (agg_timestamp,
-                                    result_dict[agg_timestamp]['o'],
-                                    result_dict[agg_timestamp]['h'],
-                                    result_dict[agg_timestamp]['l'],
-                                    result_dict[agg_timestamp]['c'],
-                                    result_dict[agg_timestamp]['v'],
-                                    result_dict[agg_timestamp]['bv'])
+                        new_row = (agg_timestamp,
+                                   result_dict[agg_timestamp]['o'],
+                                   result_dict[agg_timestamp]['h'],
+                                   result_dict[agg_timestamp]['l'],
+                                   result_dict[agg_timestamp]['c'],
+                                   result_dict[agg_timestamp]['v'],
+                                   result_dict[agg_timestamp]['bv'])
                         results.append(new_row)
 
                 return results
@@ -353,7 +363,8 @@ class Exchange:
         """
         self.raise_not_implemented_error()
 
-    def order_params_for_sig(self, data):
+    @staticmethod
+    def order_params_for_sig(data):
         """Convert params to ordered string for signature
 
         :param data:
@@ -365,7 +376,7 @@ class Exchange:
             strs.append("{}={}".format(key, data[key]))
         return '&'.join(strs)
 
-    def get_available_balance(self, currency, force_update = False):
+    def get_available_balance(self, currency, force_update=False):
         if not self._available_balances or force_update:
             self.load_available_balances()
         return self._available_balances.get(currency, 0)

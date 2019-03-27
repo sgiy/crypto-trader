@@ -22,13 +22,13 @@ class CTExchangeArbCircle(QWidget):
         self._sort_by_return.setChecked(True)
         self._sort_by_return.stateChanged.connect(lambda: self.check_arbs(False))
 
-        topLayout = QHBoxLayout()
-        topLayout.addWidget(label_return)
-        topLayout.addWidget(self._required_rate_of_return_inputbox)
-        topLayout.addWidget(self._sort_by_return)
-        topLayout.addStretch(1)
+        top_layout = QHBoxLayout()
+        top_layout.addWidget(label_return)
+        top_layout.addWidget(self._required_rate_of_return_inputbox)
+        top_layout.addWidget(self._sort_by_return)
+        top_layout.addStretch(1)
 
-        self._layout.addLayout(topLayout, 0, 0, 1, 10)
+        self._layout.addLayout(top_layout, 0, 0, 1, 10)
         self._layout.addWidget(self._tableWidget, 1, 0, 10, 10)
 
         self.setLayout(self._layout)
@@ -47,7 +47,9 @@ class CTExchangeArbCircle(QWidget):
             pass
         start_time = time.time()
         if load_markets:
-            self._arbitrage_possibilities = self._CTMain._Crypto_Trader.get_arbitrage_possibilities_circle(required_rate_of_return)
+            self._arbitrage_possibilities = self._CTMain._Crypto_Trader.get_arbitrage_possibilities_circle(
+                required_rate_of_return
+            )
         results = self._arbitrage_possibilities
 
         if self._sort_by_return.isChecked():
@@ -72,28 +74,28 @@ class CTExchangeArbCircle(QWidget):
 
         row_index = 0
         for row in sorted_rows_to_report:
-            self._tableWidget.setItem(row_index,0, QTableWidgetItem(row['exchange']))
-            self._tableWidget.setItem(row_index,1, QTableWidgetItem(row['market1']['MarketSymbol']))
-            self._tableWidget.setItem(row_index,2, QTableWidgetItem(row['action1']))
+            self._tableWidget.setItem(row_index, 0, QTableWidgetItem(row['exchange']))
+            self._tableWidget.setItem(row_index, 1, QTableWidgetItem(row['market1']['MarketSymbol']))
+            self._tableWidget.setItem(row_index, 2, QTableWidgetItem(row['action1']))
             if row['action1'] == 'buy':
                 price = row['market1']['BestAsk']
             else:
                 price = row['market1']['BestBid']
-            self._tableWidget.setItem(row_index,3, QTableWidgetItem('{:.8f}'.format(price)))
-            self._tableWidget.setItem(row_index,4, QTableWidgetItem(row['market2']['MarketSymbol']))
-            self._tableWidget.setItem(row_index,5, QTableWidgetItem(row['action2']))
+            self._tableWidget.setItem(row_index, 3, QTableWidgetItem('{:.8f}'.format(price)))
+            self._tableWidget.setItem(row_index, 4, QTableWidgetItem(row['market2']['MarketSymbol']))
+            self._tableWidget.setItem(row_index, 5, QTableWidgetItem(row['action2']))
             if row['action2'] == 'buy':
                 price = row['market2']['BestAsk']
             else:
                 price = row['market2']['BestBid']
-            self._tableWidget.setItem(row_index,6, QTableWidgetItem('{:.8f}'.format(price)))
-            self._tableWidget.setItem(row_index,7, QTableWidgetItem(row['market3']['MarketSymbol']))
-            self._tableWidget.setItem(row_index,8, QTableWidgetItem(row['action3']))
+            self._tableWidget.setItem(row_index, 6, QTableWidgetItem('{:.8f}'.format(price)))
+            self._tableWidget.setItem(row_index, 7, QTableWidgetItem(row['market3']['MarketSymbol']))
+            self._tableWidget.setItem(row_index, 8, QTableWidgetItem(row['action3']))
             if row['action3'] == 'buy':
                 price = row['market3']['BestAsk']
             else:
                 price = row['market3']['BestBid']
-            self._tableWidget.setItem(row_index,9, QTableWidgetItem('{:.8f}'.format(price)))
-            self._tableWidget.setItem(row_index,10, QTableWidgetItem('{:.2f}%'.format(row['return'])))
+            self._tableWidget.setItem(row_index, 9, QTableWidgetItem('{:.8f}'.format(price)))
+            self._tableWidget.setItem(row_index, 10, QTableWidgetItem('{:.2f}%'.format(row['return'])))
             row_index += 1
         self._CTMain.log(' Check for arbitrage possibilities took {:.4f} seconds '.format(time.time() - start_time))

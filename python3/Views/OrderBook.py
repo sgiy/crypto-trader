@@ -7,7 +7,7 @@ from Worker import CTWorker
 
 
 class CTOrderBook(QWidget):
-    def __init__(self, CTMain = None, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):
+    def __init__(self, CTMain=None, exchange=None, market_symbol=None, base_curr=None, curr_curr=None, depth=None):
         super().__init__()
         self._CTMain = CTMain
         self._exchange = exchange
@@ -40,10 +40,13 @@ class CTOrderBook(QWidget):
         while True:
             if self._exchange in self._CTMain._Crypto_Trader.trader:
                 if not self._CTMain._Crypto_Trader.trader[self._exchange].has_implementation('ws_order_book'):
-                    self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].get_consolidated_order_book(self._market_symbol, self._depth)
+                    self._order_book = self._CTMain._Crypto_Trader.trader[self._exchange].get_consolidated_order_book(
+                        self._market_symbol,
+                        self._depth
+                    )
             time.sleep(self._re_load_seconds)
 
-    def refresh_order_book(self, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):
+    def refresh_order_book(self, exchange=None, market_symbol=None, base_curr=None, curr_curr=None, depth=None):
         try:
             if exchange is not None:
                 self._exchange = exchange
@@ -72,7 +75,8 @@ class CTOrderBook(QWidget):
                     'Ask': {}
                 }
                 if 'Bids' in full_book:
-                    bids = [{'Price': k, 'Quantity': full_book['Bids'][k]} for k in sorted(full_book['Bids'].keys(), reverse=True)[:5]]
+                    bids = [{'Price': k, 'Quantity': full_book['Bids'][k]} for k in
+                            sorted(full_book['Bids'].keys(), reverse=True)[:5]]
                     for i in range(len(bids)):
                         results['Bid'][i] = {
                             'Price': bids[i]['Price'],
@@ -81,7 +85,8 @@ class CTOrderBook(QWidget):
                 else:
                     self._CTMain._Crypto_Trader.trader[self._exchange].ws_subscribe(self._market_symbol)
                 if 'Asks' in full_book:
-                    asks = [{'Price': k, 'Quantity': full_book['Asks'][k]} for k in sorted(full_book['Asks'].keys())[:5]]
+                    asks = [{'Price': k, 'Quantity': full_book['Asks'][k]} for k in
+                            sorted(full_book['Asks'].keys())[:5]]
                     for i in range(len(asks)):
                         results['Ask'][i] = {
                             'Price': asks[i]['Price'],
@@ -97,33 +102,57 @@ class CTOrderBook(QWidget):
             sum_bid_base = 0
 
             for bid in results.get('Bid', []):
-                self._tableWidget.setItem(self._depth + bid, 0, QTableWidgetItem("{0:,.8f}".format(results['Bid'][bid]['Price'])))
-                self._tableWidget.setItem(self._depth + bid, 1, QTableWidgetItem("{0:,.8f}".format(results['Bid'][bid]['Quantity'])))
+                self._tableWidget.setItem(
+                    self._depth + bid,
+                    0,
+                    QTableWidgetItem("{0:,.8f}".format(results['Bid'][bid]['Price']))
+                )
+                self._tableWidget.setItem(
+                    self._depth + bid,
+                    1,
+                    QTableWidgetItem("{0:,.8f}".format(results['Bid'][bid]['Quantity']))
+                )
                 sum_bid += results['Bid'][bid]['Quantity']
                 sum_bid_base += results['Bid'][bid]['Quantity'] * results['Bid'][bid]['Price']
                 self._tableWidget.setItem(self._depth + bid, 2, QTableWidgetItem("{0:,.4f}".format(sum_bid)))
                 self._tableWidget.setItem(self._depth + bid, 3, QTableWidgetItem("{0:,.4f}".format(sum_bid_base)))
                 for i in range(4):
                     if bid > 0:
-                        self._tableWidget.item(self._depth + bid, i).setBackground(self._CTMain._Parameters.Color['green_light'])
+                        self._tableWidget.item(self._depth + bid, i).setBackground(
+                            self._CTMain._Parameters.Color['green_light']
+                        )
                     else:
-                        self._tableWidget.item(self._depth + bid, i).setBackground(self._CTMain._Parameters.Color['green_bold'])
+                        self._tableWidget.item(self._depth + bid, i).setBackground(
+                            self._CTMain._Parameters.Color['green_bold']
+                        )
                     self._tableWidget.item(self._depth + bid, i).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
 
             sum_ask = 0
             sum_ask_base = 0
             for ask in results.get('Ask', []):
-                self._tableWidget.setItem(self._depth - 1 - ask, 0, QTableWidgetItem("{0:,.8f}".format(results['Ask'][ask]['Price'])))
-                self._tableWidget.setItem(self._depth - 1 - ask, 1, QTableWidgetItem("{0:,.8f}".format(results['Ask'][ask]['Quantity'])))
+                self._tableWidget.setItem(
+                    self._depth - 1 - ask,
+                    0,
+                    QTableWidgetItem("{0:,.8f}".format(results['Ask'][ask]['Price']))
+                )
+                self._tableWidget.setItem(
+                    self._depth - 1 - ask,
+                    1,
+                    QTableWidgetItem("{0:,.8f}".format(results['Ask'][ask]['Quantity']))
+                )
                 sum_ask += results['Ask'][ask]['Quantity']
                 sum_ask_base += results['Ask'][ask]['Quantity'] * results['Ask'][ask]['Price']
                 self._tableWidget.setItem(self._depth - 1 - ask, 2, QTableWidgetItem("{0:,.4f}".format(sum_ask)))
                 self._tableWidget.setItem(self._depth - 1 - ask, 3, QTableWidgetItem("{0:,.4f}".format(sum_ask_base)))
                 for i in range(4):
                     if ask > 0:
-                        self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_light'])
+                        self._tableWidget.item(self._depth - 1 - ask, i).setBackground(
+                            self._CTMain._Parameters.Color['red_light']
+                        )
                     else:
-                        self._tableWidget.item(self._depth - 1 - ask, i).setBackground(self._CTMain._Parameters.Color['red_bold'])
+                        self._tableWidget.item(self._depth - 1 - ask, i).setBackground(
+                            self._CTMain._Parameters.Color['red_bold']
+                        )
                     self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight|Qt.AlignVCenter)
             self._CTMain.log("Loaded market " + self._market_symbol)
         except Exception as e:

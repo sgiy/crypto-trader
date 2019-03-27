@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QLi
 
 
 class CTTradeWidget(QWidget):
-    def __init__(self, CTMain, exchange, code_base, code_curr, market_symbol = None):
+    def __init__(self, CTMain, exchange, code_base, code_curr, market_symbol=None):
         super().__init__()
         self._CTMain = CTMain
 
@@ -19,7 +19,7 @@ class CTTradeWidget(QWidget):
         self._price.textEdited[str].connect(self.recalculate_total)
         self._quantity = QLineEdit('', self)
         self._quantity.textEdited[str].connect(self.recalculate_total)
-        self._base_amount  = QLineEdit('', self)
+        self._base_amount = QLineEdit('', self)
         self._base_amount.textEdited[str].connect(self.recalculate_quantity)
 
         self._label_price = QLabel("Price:")
@@ -54,7 +54,7 @@ class CTTradeWidget(QWidget):
 
         self.setLayout(self._layout)
 
-    def update_currencies(self, exchange, code_base, code_curr, market_symbol = None, force_update = False):
+    def update_currencies(self, exchange, code_base, code_curr, market_symbol=None, force_update=False):
         if self._exchange != exchange or self._code_base != code_base or self._code_curr != code_curr or force_update:
             self._exchange = exchange
             self._code_base = code_base

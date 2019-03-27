@@ -13,9 +13,7 @@ class CTLogin(QWidget):
 
         self._CTMain = CTMain
         self._full_file_path = os.path.join(sys.path[0], 'encrypted_settings')
-        self.init_layout()
 
-    def init_layout(self):
         # Initialize grid layout
         self._layout = QGridLayout()
         self._layout.setRowStretch(0, 2)
@@ -37,10 +35,12 @@ class CTLogin(QWidget):
             border: none;
         """)
         if os.path.isfile(self._full_file_path):
-            self._label_top_text = 'Please enter your password to load your API keys or press button below to continue with public data'
+            self._label_top_text = 'Please enter your password to load your API keys or press button below ' + \
+                                   'to continue with public data'
         else:
             self._label_top_text = 'Please create a password to encrypt your API Keys'
-            self._label_bottom.setText('It is recommended to use longer passwords that include lower and upper case letters, numbers, and special characters.')
+            self._label_bottom.setText('It is recommended to use longer passwords that include lower and ' +
+                                       'upper case letters, numbers, and special characters.')
         self._label_top = QTextEdit(self._label_top_text)
         self._label_top.setReadOnly(True)
         self._label_top.setAlignment(Qt.AlignCenter)

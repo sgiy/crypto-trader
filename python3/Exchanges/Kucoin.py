@@ -42,10 +42,10 @@ class Kucoin(Exchange):
                 return result['data']
             else:
                 print(self._BASE_URL + url + ". " + str(result.get('msg')))
-                #return self.public_get_request(url)
+                # return self.public_get_request(url)
         except Exception as e:
             print(self._BASE_URL + url + ". " + str(e))
-            #return self.public_get_request(url)
+            # return self.public_get_request(url)
 
     def private_sign_request(self, method, endpoint, body, nonce):
         """
@@ -65,8 +65,10 @@ class Kucoin(Exchange):
             STRING-TO-SIGN = 1547015186532POST/api/v1/deposit-addresses{"currency":"BTC"}
             KC-API-SIGN = 7QP/oM0ykidMdrfNEUmng8eZjg/ZvPafjIqmxiVfYu4=
         """
-        strForSign = nonce + method.upper() + endpoint + body
-        return base64.b64encode(hmac.new(self._API_SECRET.encode(), strForSign.encode(), hashlib.sha256).digest()).decode()
+        string_to_sign = nonce + method.upper() + endpoint + body
+        return base64.b64encode(
+            hmac.new(self._API_SECRET.encode(), string_to_sign.encode(), hashlib.sha256).digest()
+        ).decode()
 
     def private_request(self, method, endpoint, body={}):
         """
@@ -93,20 +95,20 @@ class Kucoin(Exchange):
                 request['params'] = body
             else:
                 request['data'] = body_str
-            request['headers'] =   {
-                                        'Content-Type': 'application/json',
-                                        "KC-API-KEY": self._API_KEY,
-                                        "KC-API-TIMESTAMP": nonce,
-                                        "KC-API-PASSPHRASE": self._API_PASSPHRASE,
-                                        "KC-API-SIGN": signature
-                                    }
-            result = getattr(requests,method)(request_url, **request).json()
+            request['headers'] = {
+                                    'Content-Type': 'application/json',
+                                    "KC-API-KEY": self._API_KEY,
+                                    "KC-API-TIMESTAMP": nonce,
+                                    "KC-API-PASSPHRASE": self._API_PASSPHRASE,
+                                    "KC-API-SIGN": signature
+                                 }
+            result = getattr(requests, method)(request_url, **request).json()
 
             if result.get('code', None) == '200000':
                 return result['data']
             else:
                 print(request_url + ". " + str(result))
-                #return self.private_request(method,endpoint,body)
+                # return self.private_request(method,endpoint,body)
 
         except Exception as e:
             print(str(e))
@@ -335,7 +337,9 @@ class Kucoin(Exchange):
             GET /api/v1/market/candles?symbol=<symbol>
 
         """
-        return self.public_get_request('/api/v1/market/candles?symbol={0}&startAt={1}&endAt={2}&type={3}'.format(symbol, startAt, endAt, type))
+        return self.public_get_request('/api/v1/market/candles?symbol={0}&startAt={1}&endAt={2}&type={3}'.format(
+            symbol, startAt, endAt, type)
+        )
 
     def public_get_24hr_stats(self, symbol):
         """
@@ -397,7 +401,7 @@ class Kucoin(Exchange):
     ### Exchange specific private methods ###
     #########################################
 
-    def private_get_accounts(self, currency = None, account_type = None):
+    def private_get_accounts(self, currency=None, account_type=None):
         """
             Get a list of accounts.
             GET /api/v1/accounts?currency=<currency>&type=<type>
@@ -451,7 +455,7 @@ class Kucoin(Exchange):
                     'currency': currency
                 })
 
-    def private_get_account_history(self, accountId, startAt, endAt, pageSize= 100, currentPage = 1):
+    def private_get_account_history(self, accountId, startAt, endAt, pageSize=100, currentPage=1):
         """
             List account activity. Account activity either increases or decreases
             your account balance. Items are paginated and sorted latest first.
@@ -754,7 +758,7 @@ class Kucoin(Exchange):
             results.append({
                 'OrderId': order['id'],
                 'OrderType': order_type,
-                'OpderOpenedAt': datetime.fromtimestamp(market['createdAt'] / 1000),
+                'OrderOpenedAt': datetime.fromtimestamp(market['createdAt'] / 1000),
                 'Price': float(order['price']),
                 'Amount': float(order['size']),
                 'Total': float(order['dealSize']),
@@ -786,7 +790,7 @@ class Kucoin(Exchange):
                 })
         return results
 
-    def get_consolidated_klines(self, market_symbol, interval = '5m', lookback = None, startAt = None, endAt = None):
+    def get_consolidated_klines(self, market_symbol, interval='5m', lookback=None, startAt=None, endAt=None):
         """
             Klines for a symbol. Data are returned in grouped buckets based on
             requested type.
@@ -822,7 +826,7 @@ class Kucoin(Exchange):
             results.append(new_row)
         return results
 
-    def get_consolidated_order_book(self, market, depth = 5):
+    def get_consolidated_order_book(self, market, depth=5):
         raw_results = self.public_get_part_order_book_agg(market)
         take_bid = min(depth, len(raw_results['bids']))
         take_ask = min(depth, len(raw_results['asks']))

@@ -5,13 +5,7 @@ from Views.OrderBook import CTOrderBook
 
 
 class CTOrderBookWithSelectors(QWidget):
-    def __init__(self,
-            CTMain = None,
-            exchange = None,
-            market_symbol = None,
-            base_curr = None,
-            curr_curr = None,
-            depth = None):
+    def __init__(self, CTMain=None, exchange=None, market_symbol=None, base_curr=None, curr_curr=None, depth=None):
         super().__init__()
 
         self._CTMain = CTMain
@@ -69,7 +63,7 @@ class CTOrderBookWithSelectors(QWidget):
         base_codes = sorted(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets)
         self._dropdown_base_curr.clear()
         self._dropdown_base_curr.addItems(base_codes)
-        if not self._base_curr in base_codes:
+        if self._base_curr not in base_codes:
             self._base_curr = base_codes[0]
         self._dropdown_base_curr.setCurrentText(self._base_curr)
         self.dropdown_base_changed(self._base_curr)
@@ -79,27 +73,31 @@ class CTOrderBookWithSelectors(QWidget):
         curr_codes = sorted(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets[self._base_curr])
         self._dropdown_curr_curr.clear()
         self._dropdown_curr_curr.addItems(curr_codes)
-        if not self._curr_curr in curr_codes:
+        if self._curr_curr not in curr_codes:
             self._curr_curr = curr_codes[0]
         self._dropdown_curr_curr.setCurrentText(self._curr_curr)
         self.dropdown_curr_changed(self._curr_curr)
 
     def dropdown_curr_changed(self, curr_curr):
         self._curr_curr = curr_curr
-        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(self._exchange, self._base_curr, self._curr_curr)
+        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(
+            self._exchange,
+            self._base_curr,
+            self._curr_curr
+        )
         self._order_book.refresh_order_book(
             self._exchange,
             self._market_symbol,
             self._base_curr,
             self._curr_curr,
             self._depth
-            )
+        )
 
-    def refresh_order_book(self, exchange = None, market_symbol = None, base_curr = None, curr_curr = None, depth = None):
+    def refresh_order_book(self, exchange=None, market_symbol=None, base_curr=None, curr_curr=None, depth=None):
         self._order_book.refresh_order_book(
             exchange,
             market_symbol,
             base_curr,
             curr_curr,
             depth
-            )
+        )
