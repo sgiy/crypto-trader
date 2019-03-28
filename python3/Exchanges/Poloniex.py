@@ -32,6 +32,8 @@ class Poloniex(Exchange):
         self._thread_pool = QThreadPool()
         self._thread_pool.start(CTWorker(self.ws_init))
 
+        self._ws = None
+        self._ws_heartbeat = None
         self._implements = {
             'ws_24hour_market_moves',
             'ws_account_balances',
@@ -533,7 +535,7 @@ class Poloniex(Exchange):
         """
         return self.private_get_trade_history_in_market('all', start, end, limit)
 
-    def private_get_order_trades(self, orderNumber):
+    def private_get_order_trades(self, order_id):
         """
             Returns all trades involving a given order, specified by the
             "orderNumber" POST parameter. If no trades for the order have
@@ -561,9 +563,9 @@ class Poloniex(Exchange):
               'tradeID': '123456789',
               'type': 'buy'}]
         """
-        return self.private_request("returnOrderTrades", {'orderNumber': orderNumber})
+        return self.private_request("returnOrderTrades", {'orderNumber': order_id})
 
-    def private_get_order_status(self, orderNumber):
+    def private_get_order_status(self, order_id):
         """
             Returns the status of a given order, specified by the "orderNumber"
             POST parameter. If the specified orderNumber is not open, or it is
@@ -579,7 +581,7 @@ class Poloniex(Exchange):
                                         'type': 'buy'}},
              'success': 1}
         """
-        return self.private_request("returnOrderStatus", {'orderNumber': orderNumber})
+        return self.private_request("returnOrderStatus", {'orderNumber': order_id})
 
     def private_submit_new_order(self, direction, market, price, amount, trade_type):
         """
@@ -604,7 +606,7 @@ class Poloniex(Exchange):
                 'OrderNumber': results['orderNumber']
             }
 
-    def private_cancel_order(self, orderNumber):
+    def private_cancel_order(self, order_id):
         """
             Cancels an order you have placed in a given market. Required POST
             parameter is "orderNumber".
@@ -613,9 +615,9 @@ class Poloniex(Exchange):
              'message': 'Order #12345678910 canceled.',
              'success': 1}
         """
-        return self.private_request("cancelOrder", {'orderNumber': orderNumber})
+        return self.private_request("cancelOrder", {'orderNumber': order_id})
 
-    def private_move_order(self, orderNumber, rate, amount=None):
+    def private_move_order(self, order_id, rate, amount=None):
         """
             Cancels an order and places a new one of the same type in a single
             atomic transaction, meaning either both operations will succeed or
@@ -630,14 +632,14 @@ class Poloniex(Exchange):
              'success': 1}
         """
         request = {
-                    'orderNumber': orderNumber,
+                    'orderNumber': order_id,
                     'rate': "{0:.8f}".format(rate)
                   }
         if amount is not None:
             request['amount'] = "{0:.8f}".format(amount)
         return self.private_request("moveOrder", request)
 
-    def private_submit_withdrawal_request(self, currency, amount, address, paymentId=None):
+    def private_submit_withdrawal_request(self, currency, amount, address, payment_id=None):
         """
             Immediately places a withdrawal for a given currency, with no email
             confirmation. In order to use this method, the withdrawal privilege
@@ -650,8 +652,8 @@ class Poloniex(Exchange):
                     'amount': "{0:.8f}".format(amount),
                     'address': address
                   }
-        if paymentId is not None:
-            request['paymentId'] = paymentId
+        if payment_id is not None:
+            request['paymentId'] = payment_id
         return self.private_request("withdraw", request)
 
     def private_get_fees(self):
@@ -861,10 +863,12 @@ class Poloniex(Exchange):
                 return
         print(message)
 
-    def ws_on_error(self, error):
+    @staticmethod
+    def ws_on_error(error):
         print("*** Poloniex websocket ERROR: ", error)
 
-    def ws_on_close(self):
+    @staticmethod
+    def ws_on_close():
         print("### Poloniex websocket is closed ###")
 
     # ###########################
@@ -1017,7 +1021,7 @@ class Poloniex(Exchange):
                 })
         return results
 
-    def get_consolidated_klines(self, market_symbol, interval='300', lookback=None, startAt=None, endAt=None):
+    def get_consolidated_klines(self, market_symbol, interval='300', lookback=None, start_at=None, end_at=None):
         """
             Returns candlestick chart data. Required GET parameters are
             "currencyPair", "period" (candlestick period in seconds; valid
@@ -1042,11 +1046,11 @@ class Poloniex(Exchange):
         """
         if lookback is None:
             lookback = 24 * 60
-        if startAt is None:
-            endAt = int(datetime.now().timestamp())
-            startAt = endAt - lookback * 60
+        if start_at is None:
+            end_at = int(datetime.now().timestamp())
+            start_at = end_at - lookback * 60
 
-        load_chart = self. public_get_chart_data(market_symbol, startAt, endAt, interval)
+        load_chart = self. public_get_chart_data(market_symbol, start_at, end_at, interval)
         results = []
         for i in load_chart:
             new_row = i['date'], i['open'], i['high'], i['low'], i['close'], i['quoteVolume'], \

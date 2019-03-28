@@ -285,7 +285,7 @@ class Kucoin(Exchange):
         """
         return self.public_get_request('/api/v1/market/histories?symbol=' + symbol)
 
-    def public_get_klines(self, symbol, startAt, endAt, type='5min'):
+    def public_get_klines(self, symbol, start_at, end_at, kline_type='5min'):
         """
             Historic rates for a symbol. Rates are returned in grouped buckets
             based on requested type.
@@ -339,7 +339,7 @@ class Kucoin(Exchange):
 
         """
         return self.public_get_request('/api/v1/market/candles?symbol={0}&startAt={1}&endAt={2}&type={3}'.format(
-            symbol, startAt, endAt, type)
+            symbol, start_at, end_at, kline_type)
         )
 
     def public_get_24hr_stats(self, symbol):
@@ -434,7 +434,7 @@ class Kucoin(Exchange):
             request = '?' + request
         return self.private_request('get', '/api/v1/accounts' + request)
 
-    def private_get_account(self, accountId):
+    def private_get_account(self, account_id):
         """
             Information for a single account. Use this endpoint when you know the accountId.
             GET /api/v1/accounts/<accountId>
@@ -443,7 +443,7 @@ class Kucoin(Exchange):
              'holds': '0',
              'currency': 'BTC'}
         """
-        return self.private_request('get', '/api/v1/accounts/' + accountId)
+        return self.private_request('get', '/api/v1/accounts/' + account_id)
 
     def private_create_account(self, account_type, currency):
         """
@@ -456,12 +456,12 @@ class Kucoin(Exchange):
                     'currency': currency
                 })
 
-    def private_get_account_history(self, accountId, startAt, endAt, pageSize=100, currentPage=1):
+    def private_get_account_history(self, account_id, start_at, end_at, page_size=100, current_page=1):
         """
             List account activity. Account activity either increases or decreases
             your account balance. Items are paginated and sorted latest first.
             See the Pagination section for retrieving additional entries after the first page.
-            GET /api/v1/accounts/<accountId>/ledgers
+            GET /api/v1/accounts/<account_id>/ledgers
             {'totalNum': 1,
              'totalPage': 1,
              'pageSize': 100,
@@ -477,21 +477,21 @@ class Kucoin(Exchange):
         """
         return self.private_request('get',
                                     '/api/v1/accounts/{}/ledgers?startAt={}&endAt={}&pageSize={}&currentPage={}'.format(
-                                        accountId, startAt, endAt, pageSize, currentPage
+                                        account_id, start_at, end_at, page_size, current_page
                                     )
                                     )
 
-    def private_get_account_holds(self, accountId):
+    def private_get_account_holds(self, account_id):
         """
             Holds are placed on an account for any active orders or pending
             withdraw requests. As an order is filled, the hold amount is updated.
             If an order is canceled, any remaining hold is removed. For a withdraw,
             once it is completed, the hold is removed.
-            GET /api/v1/accounts/<accountId>/holds
+            GET /api/v1/accounts/<account_id>/holds
         """
-        return self.private_request('get', '/api/v1/accounts/' + accountId + '/holds')
+        return self.private_request('get', '/api/v1/accounts/' + account_id + '/holds')
 
-    def private_post_inner_transfer(self, clientOid, payAccountId, recAccountId, amount):
+    def private_post_inner_transfer(self, client_order_id, pay_account_id, rec_account_id, amount):
         """
             The inner transfer interface is used for assets transfer among the
             accounts of a user and is free of charges on the platform. For example,
@@ -500,13 +500,13 @@ class Kucoin(Exchange):
             POST /api/v1/accounts/inner-transfer
         """
         return self.private_request('post', '/api/v1/accounts/inner-transfer', {
-                    'clientOid': clientOid,
-                    'payAccountId': payAccountId,
-                    'recAccountId': recAccountId,
+                    'clientOid': client_order_id,
+                    'payAccountId': pay_account_id,
+                    'recAccountId': rec_account_id,
                     'amount': amount,
                 })
 
-    def private_submit_new_order(self, side, symbol, price, size, timeInForce, order_type='limit'):
+    def private_submit_new_order(self, side, symbol, price, size, time_in_force, order_type='limit'):
         """
             You can place two types of orders: limit and market. Orders can only
             be placed if your account has sufficient funds. Once an order is placed,
@@ -539,9 +539,9 @@ class Kucoin(Exchange):
             size	string	[optional] Desired amount in base currency
             funds	string	[optional] Desired amount of quote currency to use
         """
-        clientOid = str(uuid.uuid4())
+        client_order_id = str(uuid.uuid4())
         request = {
-                    'clientOid': clientOid,
+                    'clientOid': client_order_id,
                     'type': order_type,
                     'side': side,
                     'symbol': symbol,
@@ -550,11 +550,11 @@ class Kucoin(Exchange):
             request['price'] = price
         if size is not None:
             request['size'] = size
-        if timeInForce is not None:
-            request['timeInForce'] = timeInForce
+        if time_in_force is not None:
+            request['timeInForce'] = time_in_force
         return self.private_request('post', '/api/v1/orders', request)
 
-    def private_cancel_order(self, clientOid):
+    def private_cancel_order(self, client_order_id):
         """
             Cancel a previously placed order.
 
@@ -565,7 +565,7 @@ class Kucoin(Exchange):
             from the pushes.
         """
         request = {
-                    'clientOid': clientOid
+                    'clientOid': client_order_id
                 }
         return self.private_request('delete', '/api/v1/orders', request)
 
@@ -718,7 +718,7 @@ class Kucoin(Exchange):
             for ticker in all_markets:
                 try:
                     market_symbol = ticker['symbol']
-                    dict = {
+                    update_dict = {
                         'BestBid':          float(ticker.get('buy', 0)),
                         'BestAsk':          float(ticker.get('sell', 0)),
                         'CurrVolume':       float(ticker.get('vol', 0)),
@@ -729,7 +729,7 @@ class Kucoin(Exchange):
                     }
                     self.update_market(
                         market_symbol,
-                        dict
+                        update_dict
                     )
                 except Exception as e:
                     self.log_request_error(str(e))
@@ -792,7 +792,7 @@ class Kucoin(Exchange):
                 })
         return results
 
-    def get_consolidated_klines(self, market_symbol, interval='5m', lookback=None, startAt=None, endAt=None):
+    def get_consolidated_klines(self, market_symbol, interval='5m', lookback=None, start_at=None, end_at=None):
         """
             Klines for a symbol. Data are returned in grouped buckets based on
             requested type.
@@ -817,11 +817,11 @@ class Kucoin(Exchange):
         """
         if lookback is None:
             lookback = 24 * 60
-        if startAt is None:
-            endAt = int(datetime.now().timestamp())
-            startAt = endAt - lookback * 60
+        if start_at is None:
+            end_at = int(datetime.now().timestamp())
+            start_at = end_at - lookback * 60
 
-        load_chart = self.public_get_klines(market_symbol, startAt, endAt, interval)
+        load_chart = self.public_get_klines(market_symbol, start_at, end_at, interval)
         results = []
         for i in load_chart:
             new_row = int(i[0]), float(i[1]), float(i[3]), float(i[4]), float(i[2]), float(i[5]), float(i[6])
