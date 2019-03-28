@@ -39,10 +39,11 @@ class Binance(Exchange):
             '1M':   30*24*60
         }
         self._timestamp_correction = int(self.public_get_server_time()) - int(time.time()*1000)
-        self.public_update_exchangeInfo()
+        self.public_update_exchange_info()
         self._thread_pool = QThreadPool()
         self._thread_pool.start(CTWorker(self.ws_init))
 
+        self._ws = None
         self._implements = {
             'ws_24hour_market_moves',
             'ws_all_markets_best_bid_ask',
@@ -114,7 +115,7 @@ class Binance(Exchange):
         """
         return self.public_get_request('/api/v1/time').get('serverTime', None)
 
-    def public_update_exchangeInfo(self):
+    def public_update_exchange_info(self):
         """
             Current exchange trading rules and symbol information
             Debug: ct['Binance'].public_update_exchangeInfo()
@@ -248,7 +249,7 @@ class Binance(Exchange):
     #     url = "/api/v1/historicalTrades?symbol={}&limit={}{}".format(market, limit, fromIdStr)
     #     return self.public_get_request(url)
 
-    def public_get_aggregated_trades(self, market, limit='500', fromId=None, startTime=None, endTime=None):
+    def public_get_aggregated_trades(self, market, limit='500', start_id=None, start_time=None, end_time=None):
         """
             Get compressed, aggregate trades. Trades that fill at the time, from
             the same order, with the same price will have the quantity aggregated.
@@ -271,17 +272,17 @@ class Binance(Exchange):
               ...
               ]
         """
-        addString = ''
-        if fromId is not None:
-            addString += '&fromId={}'.format(fromId)
-        if startTime is not None:
-            addString += '&startTime={}'.format(startTime)
-        if endTime is not None:
-            addString += '&endTime={}'.format(endTime)
-        url = "/api/v1/aggTrades?symbol={}&limit={}{}".format(market, limit, addString)
+        additional_string = ''
+        if start_id is not None:
+            additional_string += '&fromId={}'.format(start_id)
+        if start_time is not None:
+            additional_string += '&startTime={}'.format(start_time)
+        if end_time is not None:
+            additional_string += '&endTime={}'.format(end_time)
+        url = "/api/v1/aggTrades?symbol={}&limit={}{}".format(market, limit, additional_string)
         return self.public_get_request(url)
 
-    def public_get_candlesticks(self, market, interval='5m', limit=100, startTime=None, endTime=None):
+    def public_get_candlesticks(self, market, interval='5m', limit=100, start_time=None, end_time=None):
         """
             Kline/candlestick bars for a symbol. Klines are uniquely identified
             by their open time.
@@ -302,14 +303,14 @@ class Binance(Exchange):
               ...
               ]
         """
-        addString = ''
+        additional_string = ''
         if limit is not None:
-            addString += '&limit={}'.format(limit)
-        if startTime is not None:
-            addString += '&startTime={}'.format(startTime)
-        if endTime is not None:
-            addString += '&endTime={}'.format(endTime)
-        url = "/api/v1/klines?symbol={}&interval={}{}".format(market, interval, addString)
+            additional_string += '&limit={}'.format(limit)
+        if start_time is not None:
+            additional_string += '&startTime={}'.format(start_time)
+        if end_time is not None:
+            additional_string += '&endTime={}'.format(end_time)
+        url = "/api/v1/klines?symbol={}&interval={}{}".format(market, interval, additional_string)
         return self.public_get_request(url)
 
     def public_get_avg_price(self, market):
@@ -351,10 +352,10 @@ class Binance(Exchange):
              or [{...},...,{...}] if no symbol provided
         """
         if market is None:
-            addString = ''
+            additional_string = ''
         else:
-            addString = '?symbol={}'.format(market)
-        url = "/api/v1/ticker/24hr{}".format(addString)
+            additional_string = '?symbol={}'.format(market)
+        url = "/api/v1/ticker/24hr{}".format(additional_string)
         return self.public_get_request(url)
 
     def public_get_latest_prices(self, market=None):
@@ -364,10 +365,10 @@ class Binance(Exchange):
             {'price': '0.03300000', 'symbol': 'ETHBTC'}
         """
         if market is None:
-            addString = ''
+            additional_string = ''
         else:
-            addString = '?symbol={}'.format(market)
-        url = "/api/v3/ticker/price{}".format(addString)
+            additional_string = '?symbol={}'.format(market)
+        url = "/api/v3/ticker/price{}".format(additional_string)
         return self.public_get_request(url)
 
     def public_get_ticker(self, market=None):
@@ -381,18 +382,19 @@ class Binance(Exchange):
              'symbol': 'ETHBTC'}
         """
         if market is None:
-            addString = ''
+            additional_string = ''
         else:
-            addString = '?symbol={}'.format(market)
-        url = "/api/v3/ticker/bookTicker{}".format(addString)
+            additional_string = '?symbol={}'.format(market)
+        url = "/api/v3/ticker/bookTicker{}".format(additional_string)
         return self.public_get_request(url)
 
     # #############################################
     # ##### Exchange specific private methods #####
     # #############################################
 
-    def private_submit_trade(self, symbol, side, type, quantity, timeInForce='GTC', price=None, newClientOrderId=None,
-                             stopPrice=None, icebergQty=None, newOrderRespType='RESULT', recvWindow=None):
+    def private_submit_trade(self, symbol, side, order_type, quantity, time_in_force='GTC', price=None,
+                             new_client_order_id=None, stop_price=None, iceberg_quantity=None,
+                             new_order_response_type='RESULT', receive_window=None):
         """
             Send in a new order.
             newClientOrderId: A unique id for the order. Automatically generated
@@ -421,26 +423,26 @@ class Binance(Exchange):
         request = {
                 'symbol': symbol,
                 'side': side,
-                'type': type,
+                'type': order_type,
                 'quantity': "{0:.8f}".format(quantity),
-                'timeInForce': timeInForce,
-                'newOrderRespType': newOrderRespType
+                'timeInForce': time_in_force,
+                'newOrderRespType': new_order_response_type
             }
         if price is not None:
             request['price'] = "{0:.8f}".format(price)
-        if newClientOrderId is not None:
-            request['newClientOrderId'] = newClientOrderId
-        if stopPrice is not None:
-            request['stopPrice'] = "{0:.8f}".format(stopPrice)
-        if icebergQty is not None:
-            request['icebergQty'] = "{0:.8f}".format(icebergQty)
-        if recvWindow is not None:
-            request['recvWindow'] = "{}".format(recvWindow)
+        if new_client_order_id is not None:
+            request['newClientOrderId'] = new_client_order_id
+        if stop_price is not None:
+            request['stopPrice'] = "{0:.8f}".format(stop_price)
+        if iceberg_quantity is not None:
+            request['icebergQty'] = "{0:.8f}".format(iceberg_quantity)
+        if receive_window is not None:
+            request['recvWindow'] = "{}".format(receive_window)
         return self.private_request('post', '/api/v3/order', request)
 
-    def private_test_submit_new_order(self, symbol, side, type, quantity, timeInForce='GTC', price=None,
-                                      newClientOrderId=None, stopPrice=None, icebergQty=None, newOrderRespType='RESULT',
-                                      recvWindow=None):
+    def private_test_submit_new_order(self, symbol, side, order_type, quantity, time_in_force='GTC', price=None,
+                                      new_client_order_id=None, stop_price=None, iceberg_quantity=None,
+                                      new_order_response_type='RESULT', receive_window=None):
         """
             Test new order creation and signature/recvWindow long. Creates and
             validates a new order but does not send it into the matching engine.
@@ -451,24 +453,24 @@ class Binance(Exchange):
         request = {
                 'symbol': symbol,
                 'side': side,
-                'type': type,
+                'type': order_type,
                 'quantity': "{0:.8f}".format(quantity),
-                'timeInForce': timeInForce,
-                'newOrderRespType': newOrderRespType
+                'timeInForce': time_in_force,
+                'newOrderRespType': new_order_response_type
             }
         if price is not None:
             request['price'] = "{0:.8f}".format(price)
-        if newClientOrderId is not None:
-            request['newClientOrderId'] = newClientOrderId
-        if stopPrice is not None:
-            request['stopPrice'] = "{0:.8f}".format(stopPrice)
-        if icebergQty is not None:
-            request['icebergQty'] = "{0:.8f}".format(icebergQty)
-        if recvWindow is not None:
-            request['recvWindow'] = "{}".format(recvWindow)
+        if new_client_order_id is not None:
+            request['newClientOrderId'] = new_client_order_id
+        if stop_price is not None:
+            request['stopPrice'] = "{0:.8f}".format(stop_price)
+        if iceberg_quantity is not None:
+            request['icebergQty'] = "{0:.8f}".format(iceberg_quantity)
+        if receive_window is not None:
+            request['recvWindow'] = "{}".format(receive_window)
         return self.private_request('post', '/api/v3/order/test', request)
 
-    def private_get_order_status(self, market, orderId=None, origClientOrderId=None, recvWindow=None):
+    def private_get_order_status(self, market, order_id=None, original_client_order_id=None, receive_window=None):
         """
             Check an order's status.
             Either orderId or origClientOrderId must be sent.
@@ -493,16 +495,16 @@ class Binance(Exchange):
         request = {
                 'symbol': market
             }
-        if orderId is not None:
-            request['orderId'] = orderId
-        if origClientOrderId is not None:
-            request['origClientOrderId'] = origClientOrderId
-        if recvWindow is not None:
-            request['recvWindow'] = recvWindow
+        if order_id is not None:
+            request['orderId'] = order_id
+        if original_client_order_id is not None:
+            request['origClientOrderId'] = original_client_order_id
+        if receive_window is not None:
+            request['recvWindow'] = receive_window
         return self.private_request('get', '/api/v3/order', request)
 
-    def private_cancel_order(self, market, orderId=None, origClientOrderId=None, newClientOrderId=None,
-                             recvWindow=None):
+    def private_cancel_order(self, market, order_id=None, original_client_order_id=None, new_client_order_id=None,
+                             receive_window=None):
         """
             Cancel an active order.
             Either orderId or origClientOrderId must be sent.
@@ -523,17 +525,17 @@ class Binance(Exchange):
         request = {
                 'symbol': market
             }
-        if orderId is not None:
-            request['orderId'] = orderId
-        if origClientOrderId is not None:
-            request['origClientOrderId'] = origClientOrderId
-        if newClientOrderId is not None:
-            request['newClientOrderId'] = newClientOrderId
-        if recvWindow is not None:
-            request['recvWindow'] = recvWindow
+        if order_id is not None:
+            request['orderId'] = order_id
+        if original_client_order_id is not None:
+            request['origClientOrderId'] = original_client_order_id
+        if new_client_order_id is not None:
+            request['newClientOrderId'] = new_client_order_id
+        if receive_window is not None:
+            request['recvWindow'] = receive_window
         return self.private_request('delete', '/api/v3/order', request)
 
-    def private_get_open_orders(self, market=None, recvWindow=None):
+    def private_get_open_orders(self, market=None, receive_window=None):
         """
             Get all open orders on a symbol. Careful when accessing this with no
             symbol. Weight: 1 for a single symbol; 40 when the symbol parameter
@@ -562,14 +564,14 @@ class Binance(Exchange):
             request = {}
             if market is not None:
                 request['symbol'] = market
-            if recvWindow is not None:
-                request['recvWindow'] = recvWindow
+            if receive_window is not None:
+                request['recvWindow'] = receive_window
             return self.private_request('get', '/api/v3/openOrders', request)
         else:
             return []
 
-    def private_get_all_orders(self, market, fromOrderId=None, startTime=None, endTime=None, limit='500',
-                               recvWindow=None):
+    def private_get_all_orders(self, market, start_order_id=None, start_time=None, end_time=None, limit='500',
+                               receive_window=None):
         """
             Get all account orders; active, canceled, or filled.
             Weight: 5 with symbol
@@ -598,19 +600,19 @@ class Binance(Exchange):
                     'symbol': market,
                     'limit': limit
                 }
-            if fromOrderId is not None:
-                request['orderId'] = fromOrderId
-            if startTime is not None:
-                request['startTime'] = startTime
-            if endTime is not None:
-                request['endTime'] = endTime
-            if recvWindow is not None:
-                request['recvWindow'] = recvWindow
+            if start_order_id is not None:
+                request['orderId'] = start_order_id
+            if start_time is not None:
+                request['startTime'] = start_time
+            if end_time is not None:
+                request['endTime'] = end_time
+            if receive_window is not None:
+                request['recvWindow'] = receive_window
             return self.private_request('get', '/api/v3/allOrders', request)
         else:
             return []
 
-    def private_get_account_info(self, recvWindow=None):
+    def private_get_account_info(self, receive_window=None):
         """
             Get current account information.
             Weight: 5
@@ -631,17 +633,17 @@ class Binance(Exchange):
         """
         if self.has_api_keys():
             request = {}
-            if recvWindow is not None:
-                request['recvWindow'] = recvWindow
+            if receive_window is not None:
+                request['recvWindow'] = receive_window
             return self.private_request('get', '/api/v3/account', request)
         else:
             return {}
 
-    def private_get_account_trades(self, market, fromOrderId=None, startTime=None, endTime=None, limit='500',
-                                   recvWindow=None):
+    def private_get_account_trades(self, market, start_order_id=None, start_time=None, end_time=None, limit='500',
+                                   receive_window=None):
         """
-            Get trades for a specific account and symbol. If fromId is set, it
-            will get orders >= that fromId. Otherwise most recent orders are
+            Get trades for a specific account and symbol. If start_order_id is set, it
+            will get orders >= that start_order_id. Otherwise most recent orders are
             returned.
             Weight: 5 with symbol
 
@@ -650,14 +652,14 @@ class Binance(Exchange):
                 'symbol': market,
                 'limit': limit
             }
-        if fromOrderId is not None:
-            request['orderId'] = fromOrderId
-        if startTime is not None:
-            request['startTime'] = startTime
-        if endTime is not None:
-            request['endTime'] = endTime
-        if recvWindow is not None:
-            request['recvWindow'] = recvWindow
+        if start_order_id is not None:
+            request['orderId'] = start_order_id
+        if start_time is not None:
+            request['startTime'] = start_time
+        if end_time is not None:
+            request['endTime'] = end_time
+        if receive_window is not None:
+            request['recvWindow'] = receive_window
         return self.private_request('get', '/api/v3/myTrades', request)
 
     # def start_user_data_stream(self):
@@ -766,11 +768,13 @@ class Binance(Exchange):
                 except Exception as e:
                     self.log_request_error(str(e))
 
-    def ws_on_error(self, error):
+    @staticmethod
+    def ws_on_error(error):
         print("*** Binance websocket ERROR: ", error)
 
     def ws_on_close(self):
         print("### Binance websocket is closed ###")
+        self.ws_init()
 
     # ###########################
     # ##### Generic methods #####
@@ -841,34 +845,34 @@ class Binance(Exchange):
                 try:
                     is_active = market.get('status', '') == 'TRADING'
                     is_restricted = not is_active
-                    dict = {
+                    update_dict = {
                         'LocalBase':        market['quoteAsset'],
                         'LocalCurr':        market['baseAsset'],
                         'IsActive':         is_active,
                         'IsRestricted':     is_restricted,
                     }
 
-                    for filter in market['filters']:
-                        if filter.get('filterType', '') == 'PRICE_FILTER':
-                            dict.update(
+                    for market_filter in market['filters']:
+                        if market_filter.get('filterType', '') == 'PRICE_FILTER':
+                            update_dict.update(
                                 {
-                                    'PriceMin':         float(filter['minPrice']),
-                                    'PriceIncrement':   float(filter['tickSize']),
+                                    'PriceMin':         float(market_filter['minPrice']),
+                                    'PriceIncrement':   float(market_filter['tickSize']),
                                 }
                             )
-                        if filter.get('filterType', '') == 'LOT_SIZE':
-                            dict.update(
+                        if market_filter.get('filterType', '') == 'LOT_SIZE':
+                            update_dict.update(
                                 {
                                     'BaseMinAmount':   0,
                                     'BaseIncrement':   pow(10, -market['quotePrecision']),
-                                    'CurrMinAmount':   float(filter['minQty']),
-                                    'CurrIncrement':   float(filter['stepSize']),
+                                    'CurrMinAmount':   float(market_filter['minQty']),
+                                    'CurrIncrement':   float(market_filter['stepSize']),
                                 }
                             )
 
                     self.update_market(
                         market['symbol'],
-                        dict
+                        update_dict
                     )
                 except Exception as e:
                     self.log_request_error(str(e))
@@ -883,7 +887,7 @@ class Binance(Exchange):
             for ticker in book_ticker:
                 try:
                     market_symbol = ticker['symbol']
-                    dict = {
+                    update_dict = {
                         'BestBid': float(ticker['bidPrice']),
                         'BestAsk': float(ticker['askPrice']),
                         'BestBidSize': float(ticker['bidQty']),
@@ -891,7 +895,7 @@ class Binance(Exchange):
                     }
                     self.update_market(
                         market_symbol,
-                        dict
+                        update_dict
                     )
                 except Exception as e:
                     self.log_request_error(str(e))
