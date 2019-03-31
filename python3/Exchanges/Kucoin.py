@@ -7,8 +7,11 @@ import uuid
 from datetime import datetime
 
 import requests
+import websocket
+from PyQt5.QtCore import QThreadPool
 
 from Exchange import Exchange
+from Worker import CTWorker
 
 
 class Kucoin(Exchange):
@@ -33,6 +36,17 @@ class Kucoin(Exchange):
             '12hour':    12 * 60,
             '1day':      24 * 60,
             '1week':     7 * 24 * 60
+        }
+        self._ws = None
+        self._ws_token = None
+        self._ws_heartbeat = None
+
+        self._thread_pool = QThreadPool()
+        self._thread_pool.start(CTWorker(self.ws_init))
+
+        self._implements = {
+            'ws_24hour_market_moves',
+            'ws_all_markets_best_bid_ask',
         }
 
     def public_get_request(self, url):
@@ -630,6 +644,100 @@ class Kucoin(Exchange):
             return self.private_request('get', '/api/v1/orders', request)
         else:
             return []
+
+    def ws_get_token(self, token_type='public'):
+        if token_type == 'private':
+            return self.private_request('post', '/api/v1/bullet-private')
+        else:
+            return requests.post(self._BASE_URL + '/api/v1/bullet-public').json()['data']
+
+    def ws_init(self):
+        token = self.ws_get_token('public')
+        self._ws_token = token
+        if token['instanceServers'][0]['protocol'] == 'websocket':
+            self._ws = websocket.WebSocketApp(
+                '{}?token={}'.format(token['instanceServers'][0]['endpoint'], token['token']),
+                on_message=self.ws_on_message,
+                on_error=self.ws_on_error,
+                on_close=self.ws_on_close
+            )
+            self._ws.run_forever(ping_interval=30)
+
+    def ws_subscribe(self, channel, is_private_channel=False):
+        """
+            To subscribe to a particular channel, the client side should send subscription message to the server.
+        """
+        nonce = int(time.time() * 1000000)
+        self._ws.send(json.dumps({
+            "id": nonce,
+            "type": "subscribe",
+            "topic": channel,
+            "privateChannel": is_private_channel
+        }))
+
+    def ws_unsubscribe(self, channel):
+        """
+        """
+        self._ws.send(json.dumps({"command": "unsubscribe", "channel": channel}))
+
+    def ws_on_message(self, message):
+        parsed_message = json.loads(message)
+        if parsed_message['type'] == 'welcome':
+            self.ws_subscribe('/market/ticker:all')
+            for base in self.public_get_base_currencies():
+                self.ws_subscribe('/market/snapshot:' + base)
+            return
+        if parsed_message['type'] == 'message':
+            if parsed_message['topic'] == '/market/ticker:all':
+                try:
+                    market_symbol = parsed_message['subject']
+                    update_dict = {
+                        'BestBid': float(parsed_message['data'].get('bestBid', 0)),
+                        'BestAsk': float(parsed_message['data'].get('bestAsk', 0)),
+                        'BestBidSize': float(parsed_message['data'].get('bestBidSize', 0)),
+                        'BestAskSize': float(parsed_message['data'].get('bestAskSize', 0)),
+                    }
+                    self.update_market(
+                        market_symbol,
+                        update_dict
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
+                return
+            if parsed_message['topic'][:17] == '/market/snapshot:':
+                try:
+                    new_data = parsed_message['data']['data']
+                    market_symbol = new_data['symbol']
+                    is_active = new_data['trading']
+                    is_restricted = not is_active
+                    update_dict = {
+                        'BestBid': float(new_data.get('buy', 0)),
+                        'BestAsk': float(new_data.get('sell', 0)),
+                        'IsActive': is_active,
+                        'IsRestricted': is_restricted,
+                        'BaseVolume': float(new_data.get('volValue', 0)),
+                        'CurrVolume': float(new_data.get('vol', 0)),
+                        '24HrHigh': float(new_data.get('high', 0)),
+                        '24HrLow': float(new_data.get('low', 0)),
+                        '24HrPercentMove': float(new_data.get('changeRate', 0)) * 100,
+                        'LastTradedPrice': float(new_data.get('lastTradedPrice', 0))
+                    }
+                    self.update_market(
+                        market_symbol,
+                        update_dict
+                    )
+                except Exception as e:
+                    self.log_request_error(str(e))
+                return
+        print(message)
+
+    @staticmethod
+    def ws_on_error(error):
+        print("*** Kucoin websocket ERROR: ", error)
+
+    @staticmethod
+    def ws_on_close():
+        print("### Kucoin websocket is closed ###")
 
     # ###########################
     # ##### Generic methods #####

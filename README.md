@@ -68,7 +68,7 @@ pipenv run python main.py
 | Binance  | Good            | Good             | Good       | -------- |
 | Bittrex  | Good            | Good             | NI         | -------- |
 | Hotbit   | Good            | NA               | NI         | -------- |
-| Kucoin   | Good            | Good             | NI         | -------- |
+| Kucoin   | Good            | Good             | Good       | -------- |
 | Poloniex | Good            | Good             | Good       | -------- |
 
 - NR - Needs review (and development)
