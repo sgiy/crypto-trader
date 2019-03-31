@@ -19,9 +19,7 @@ class CryptoTrader:
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
             self.trader[exchange] = exchange_class()
-        print('Initializing Currencies')
         self.init_currencies()
-        print('Loading Active Markets')
         self.init_markets()
 
     def update_api_keys(self):
@@ -82,6 +80,11 @@ class CryptoTrader:
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading market definitions for ' + exchange)
             t = threading.Thread(target=self.trader[exchange].update_market_definitions)
+            t.start()
+            t.join(5)
+        for exchange in self._SETTINGS.get('Exchanges to Load', []):
+            print('Loading market quotes for ' + exchange)
+            t = threading.Thread(target=self.trader[exchange].update_market_quotes)
             t.start()
             t.join(5)
 
