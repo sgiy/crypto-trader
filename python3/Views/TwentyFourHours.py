@@ -1,5 +1,6 @@
 from operator import itemgetter
 
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem)
 
 
@@ -14,6 +15,10 @@ class CTTwentyFourHours(QWidget):
         self._layout.addWidget(self._tableWidget)
         self.show_moves()
         self.setLayout(self._layout)
+
+        self._timer_painter = QTimer(self)
+        self._timer_painter.start(2000)
+        self._timer_painter.timeout.connect(self.show_moves)
 
     def show_moves(self):
         exchanges = sorted(self._CTMain._Crypto_Trader._map_exchange_code_to_currency_code.keys())
