@@ -18,6 +18,7 @@ class Binance(Exchange):
         """
             https://github.com/binance-exchange/binance-official-api-docs
             https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md
+            https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md
         """
         self._BASE_URL = 'https://api.binance.com'
         self._exchangeInfo = None

@@ -65,7 +65,7 @@ pipenv run python main.py
 
 | Exchange | Public REST API | Private REST API | Websockets | Comments |
 | -------- | --------------- | ---------------- | ---------- | -------- |
-| Binance  | Good            | Good             | NI         | -------- |
+| Binance  | Good            | Good             | Good       | -------- |
 | Bittrex  | Good            | Good             | NI         | -------- |
 | Hotbit   | Good            | NA               | NI         | -------- |
 | Kucoin   | Good            | Good             | NI         | -------- |
