@@ -87,6 +87,7 @@ class CryptoTrader:
             t = threading.Thread(target=self.trader[exchange].update_market_quotes)
             t.start()
             t.join(5)
+        self.refresh_agg_active_markets()
 
     def refresh_agg_active_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
