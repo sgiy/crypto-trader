@@ -15,6 +15,7 @@ datetime = "*"
 pandas = "*"
 pyqtchart = "*"
 websocket-client = "*"
+pyqt5-stubs = "*"
 
 [requires]
 python_version = "3.7"
