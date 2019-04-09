@@ -6,16 +6,16 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-pyqt5 = "*"
+cryptography = "==2.5"
+datetime = "*"
+ipdb = "*"
+pandas = "*"
+pyqt5 = "==5.12.1"
+pyqt5-stubs = "==5.12.1.0"
+pyqtchart = "*"
 qtawesome = "*"
 requests = "*"
-cryptography = "==2.5"
-ipdb = "*"
-datetime = "*"
-pandas = "*"
-pyqtchart = "*"
 websocket-client = "*"
-pyqt5-stubs = "*"
 
 [requires]
 python_version = "3.7"
