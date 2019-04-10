@@ -1,4 +1,3 @@
-import os
 import sys
 from datetime import datetime
 
@@ -21,31 +20,59 @@ from Views.TwentyFourHours import CTTwentyFourHours
 from Views.ViewPair import CTViewPair
 
 
-def read_settings():
-    with open(os.path.join(sys.path[0], 'settings'), 'rb') as settings_file:
-        msg = settings_file.read()
-    return eval(msg)
-
-
 class CTMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Load public settings
+        self._settings = self.read_public_settings()
+
+        # Set window title and icon
         self.setWindowTitle('Crypto Trader')
+        self.setWindowIcon(qta.icon('mdi.chart-line'))
+
+        # Set initial window position
+        if 'Initial Main Window Position and Size' in self._settings:
+            self.setGeometry(
+                self._settings['Initial Main Window Position and Size']['left'],
+                self._settings['Initial Main Window Position and Size']['top'],
+                self._settings['Initial Main Window Position and Size']['width'],
+                self._settings['Initial Main Window Position and Size']['height']
+            )
+
+        # Load application level style sheet
+        self.refresh_stylesheet()
+
         self._Timer = QTimer(self)
         self.Views = {}
-
-        self._settings = read_settings()
-        self.setGeometry(
-            self._settings['Initial Main Window Position and Size']['left'],
-            self._settings['Initial Main Window Position and Size']['top'],
-            self._settings['Initial Main Window Position and Size']['width'],
-            self._settings['Initial Main Window Position and Size']['height']
-        )
         self._selected_view = None
-        self.refresh_stylesheet()
         self.switch_view('Login')
         self.show()
+
+    @staticmethod
+    def read_public_settings():
+        """
+        Loading public (non-encrypted) settings file
+        :return: file contents as a dictionary
+        """
+        try:
+            with open('settings', 'rb') as settings_file:
+                file_contents = settings_file.read()
+            return eval(file_contents)
+        except FileNotFoundError:
+            print('Settings file is missing')
+            return {}
+        except SyntaxError as e:
+            print('Settings file is corrupted: {}\n{}'.format(e, e.text))
+            return {}
+
+    def refresh_stylesheet(self):
+        """
+        Sets application level style sheet.
+        Can update style sheet while application is running.
+        """
+        with open('StyleSheet.css', 'r') as style_sheet_file:
+            self.setStyleSheet(style_sheet_file.read())
 
     def initUI(self):
         self.initCryptoTrader()
@@ -183,10 +210,6 @@ class CTMainWindow(QMainWindow):
         self.StatusBar = self.statusBar()
         self.StatusBar.showMessage('Ready')
 
-    def refresh_stylesheet(self):
-        css = open(os.path.join(sys.path[0], "StyleSheet.css"), "r")
-        self.setStyleSheet(css.read())
-
     def switch_view(self, view_name):
         self._Timer.stop()
         if view_name == 'ViewPair':
@@ -223,11 +246,9 @@ class CTMainWindow(QMainWindow):
 
 
 if __name__ == '__main__':
-    print('Starting...')
+    print('Initializing...')
     font = QFont("Helvetica")
-
-    settings = read_settings()
-    font.setPointSize(settings.get('Font Size', 12))
+    font.setPointSize(9)
 
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setFont(font)
