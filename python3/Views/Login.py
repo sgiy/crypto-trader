@@ -101,7 +101,7 @@ class CTLogin(QWidget):
             self._CTMain._settings.update(decrypted_settings)
             # Update settings with decrypted values that take precedence.
             # Initialize the system, and show balances view by default
-            self._CTMain.initUI()
+            self._CTMain.init_gui()
             self._CTMain.switch_view('Balances')
 
         else:
@@ -112,12 +112,12 @@ class CTLogin(QWidget):
             # initiated. Then go to settings view to enter api keys
             self._CTMain._API_KEYS = {}
             protector.save_encrypted_file(self._CTMain._settings, self._full_file_path)
-            self._CTMain.initUI()
+            self._CTMain.init_gui()
             self._CTMain.switch_view('ViewSettings')
 
     def skip_password(self):
         # If user chooses to skip decrypting settings, declare default values,
         # initialize the system, and show currency pair view by default
         self._CTMain._API_KEYS = {}
-        self._CTMain.initUI()
+        self._CTMain.init_gui()
         self._CTMain.switch_view('ViewPair')
