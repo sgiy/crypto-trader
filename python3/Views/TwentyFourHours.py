@@ -3,6 +3,8 @@ from operator import itemgetter
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem)
 
+import CTColors
+
 
 class CTTwentyFourHours(QWidget):
     def __init__(self, CTMain=None):
@@ -63,24 +65,16 @@ class CTTwentyFourHours(QWidget):
                         QTableWidgetItem('{:.2f}%'.format(move[exchanges[exchange_i]]))
                     )
                     if move[exchanges[exchange_i]] > 0:
-                        self._tableWidget.item(cell_index, exchange_i + 2).setForeground(
-                            self._CTMain._Parameters.Color['green_bold']
-                        )
+                        self._tableWidget.item(cell_index, exchange_i + 2).setForeground(CTColors.GREEN_BOLD)
                     else:
-                        self._tableWidget.item(cell_index, exchange_i + 2).setForeground(
-                            self._CTMain._Parameters.Color['red_bold']
-                        )
+                        self._tableWidget.item(cell_index, exchange_i + 2).setForeground(CTColors.RED_BOLD)
             self._tableWidget.setItem(
                 cell_index,
                 n_columns - 1,
                 QTableWidgetItem('{:.2f}%'.format(move['Avg_24HrPercentMove']))
             )
             if move['Avg_24HrPercentMove'] > 0:
-                self._tableWidget.item(cell_index, n_columns - 1).setForeground(
-                    self._CTMain._Parameters.Color['green_bold']
-                )
+                self._tableWidget.item(cell_index, n_columns - 1).setForeground(CTColors.GREEN_BOLD)
             else:
-                self._tableWidget.item(cell_index, n_columns - 1).setForeground(
-                    self._CTMain._Parameters.Color['red_bold']
-                )
+                self._tableWidget.item(cell_index, n_columns - 1).setForeground(CTColors.RED_BOLD)
             cell_index += 1

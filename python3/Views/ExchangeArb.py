@@ -1,8 +1,10 @@
 import time
 
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget, QTableWidgetItem, QLineEdit, QLabel, QCheckBox,
                              QHBoxLayout, QPushButton)
 
+import CTColors
 from Views.TwoOrderBooks import CTTwoOrderBooks
 
 
@@ -69,8 +71,10 @@ class CTExchangeArb(QWidget):
 
         self._arbitrage_possibilities = {}
         self.check_arbs()
-        self._CTMain._Timer.start(5000)
-        self._CTMain._Timer.timeout.connect(self.check_arbs)
+
+        self._timer = QTimer(self)
+        self._timer.start(5000)
+        self._timer.timeout.connect(self.check_arbs)
 
     def check_arbs(self, load_markets=True):
         required_rate_of_return = 1.0
@@ -133,11 +137,11 @@ class CTExchangeArb(QWidget):
             self._tableWidget.setItem(row_index, 2, QTableWidgetItem(row['exchangeAsk']))
             self._tableWidget.setItem(row_index, 3, QTableWidgetItem('{:.8f}'.format(row['exchangeAskBid'])))
             ask_item = QTableWidgetItem('{:.8f}'.format(row['exchangeAskAsk']))
-            ask_item.setBackground(self._CTMain._Parameters.Color['green_light'])
+            ask_item.setBackground(CTColors.GREEN_LIGHT)
             self._tableWidget.setItem(row_index, 4, ask_item)
             self._tableWidget.setItem(row_index, 5, QTableWidgetItem(row['exchangeBid']))
             bid_item = QTableWidgetItem('{:.8f}'.format(row['exchangeBidBid']))
-            bid_item.setBackground(self._CTMain._Parameters.Color['red_light'])
+            bid_item.setBackground(CTColors.RED_LIGHT)
             self._tableWidget.setItem(row_index, 6, bid_item)
             self._tableWidget.setItem(row_index, 7, QTableWidgetItem('{:.8f}'.format(row['exchangeBidAsk'])))
             self._tableWidget.setItem(row_index, 8, QTableWidgetItem('{:.2f}%'.format(row['return'])))

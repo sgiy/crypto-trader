@@ -3,6 +3,7 @@ import time
 from PyQt5.QtCore import Qt, QTimer, QThreadPool
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem)
 
+import CTColors
 from Worker import CTWorker
 
 
@@ -73,11 +74,7 @@ class CTRecentTradesWidget(QWidget):
                 for col_index in range(4):
                     self._table_widget.item(row_index, col_index).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                     if trade['TradeType'] == 'Buy':
-                        self._table_widget.item(row_index, col_index).setBackground(
-                            self._CTMain._Parameters.Color['green_light']
-                        )
+                        self._table_widget.item(row_index, col_index).setBackground(CTColors.GREEN_LIGHT)
                     else:
-                        self._table_widget.item(row_index, col_index).setBackground(
-                            self._CTMain._Parameters.Color['red_light']
-                        )
+                        self._table_widget.item(row_index, col_index).setBackground(CTColors.RED_LIGHT)
                 row_index += 1

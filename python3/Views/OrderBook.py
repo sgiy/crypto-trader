@@ -3,6 +3,7 @@ import time
 from PyQt5.QtCore import Qt, QTimer, QThreadPool
 from PyQt5.QtWidgets import (QWidget, QTableWidget, QTableWidgetItem, QVBoxLayout)
 
+import CTColors
 from Worker import CTWorker
 
 
@@ -118,13 +119,9 @@ class CTOrderBook(QWidget):
                 self._tableWidget.setItem(self._depth + bid, 3, QTableWidgetItem("{0:,.4f}".format(sum_bid_base)))
                 for i in range(4):
                     if bid > 0:
-                        self._tableWidget.item(self._depth + bid, i).setBackground(
-                            self._CTMain._Parameters.Color['green_light']
-                        )
+                        self._tableWidget.item(self._depth + bid, i).setBackground(CTColors.GREEN_LIGHT)
                     else:
-                        self._tableWidget.item(self._depth + bid, i).setBackground(
-                            self._CTMain._Parameters.Color['green_bold']
-                        )
+                        self._tableWidget.item(self._depth + bid, i).setBackground(CTColors.GREEN_BOLD)
                     self._tableWidget.item(self._depth + bid, i).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
             sum_ask = 0
@@ -146,13 +143,9 @@ class CTOrderBook(QWidget):
                 self._tableWidget.setItem(self._depth - 1 - ask, 3, QTableWidgetItem("{0:,.4f}".format(sum_ask_base)))
                 for i in range(4):
                     if ask > 0:
-                        self._tableWidget.item(self._depth - 1 - ask, i).setBackground(
-                            self._CTMain._Parameters.Color['red_light']
-                        )
+                        self._tableWidget.item(self._depth - 1 - ask, i).setBackground(CTColors.RED_LIGHT)
                     else:
-                        self._tableWidget.item(self._depth - 1 - ask, i).setBackground(
-                            self._CTMain._Parameters.Color['red_bold']
-                        )
+                        self._tableWidget.item(self._depth - 1 - ask, i).setBackground(CTColors.RED_BOLD)
                     self._tableWidget.item(self._depth - 1 - ask, i).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self._CTMain.log("Loaded market " + self._market_symbol)
         except Exception as e:
