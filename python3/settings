@@ -51,4 +51,20 @@
                         'HOT': 'HOT_HOTNOW'
                     },
     },
+    'Chart Interval': {
+        '1 Minute':     1,
+        '5 Minutes':    5,
+        '15 Minutes':   15,
+        '30 Minutes':   30,
+        '1 Hour':       60,
+        '4 Hours':      4*60,
+        '8 Hours':      8*60,
+        '1 Day':        24*60
+    },
+    'Chart Lookback Window': {
+        '1 Day':    24*60,         # translations into minutes
+        '5 Days':   5*24*60,
+        '1 Month':  30*24*60,
+        '3 Months': 3*30*24*60
+    }
 }

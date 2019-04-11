@@ -177,13 +177,13 @@ class CTViewPair(QWidget):
 
         label_lookback = QLabel("Lookback:")
         self._chart_dropdown_lookback = Dropdown(
-            self._CTMain._Parameters.get_chart_lookback_windows(),
+            list(self._CTMain._settings['Chart Lookback Window']),
             self._chart_lookback
         )
         self._chart_dropdown_lookback.currentTextChanged.connect(self.draw_chart)
         label_interval = QLabel("Interval:")
         self._chart_dropdown_interval = Dropdown(
-            self._CTMain._Parameters.get_chart_intervals(),
+            list(self._CTMain._settings['Chart Interval']),
             self._chart_interval
         )
         self._chart_dropdown_interval.currentTextChanged.connect(self.draw_chart)
@@ -263,15 +263,11 @@ class CTViewPair(QWidget):
         self._splitter_top.setSizes([round(0.3*window_width), round(0.7 * window_width)])
         self._layout.addWidget(self._splitter_top, 1, 0, 9, 10)
 
-        # self._CTMain._Timer.start(1000)
-        # self._CTMain._Timer.timeout.connect(self.refresh)
-
     @staticmethod
     def change_style(style_name):
         QApplication.setStyle(QStyleFactory.create(style_name))
 
-    @staticmethod
-    def debug():
+    def debug(self):
         import ipdb
         ipdb.set_trace()
 
@@ -310,8 +306,8 @@ class CTViewPair(QWidget):
         market_symbol = self._market_symbol
         interval_name = self._chart_dropdown_interval.currentText()
         lookback_name = self._chart_dropdown_lookback.currentText()
-        interval = self._CTMain._Parameters.ChartInterval[interval_name]
-        lookback = self._CTMain._Parameters.ChartLookbackWindow[lookback_name]
+        interval = self._CTMain._settings['Chart Interval'][interval_name]
+        lookback = self._CTMain._settings['Chart Lookback Window'][lookback_name]
 
         load_chart = self._CTMain._Crypto_Trader.trader[exchange].load_chart_data(
             market_symbol,
