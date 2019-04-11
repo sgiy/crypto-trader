@@ -1,5 +1,6 @@
 import time
 
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QWidget, QGridLayout, QTableWidget, QTableWidgetItem, QLineEdit, QLabel, QCheckBox,
                              QHBoxLayout)
 
@@ -35,8 +36,11 @@ class CTExchangeArbCircle(QWidget):
 
         self._arbitrage_possibilities = {}
         self.check_arbs()
-        self._CTMain._Timer.start(5000)
-        self._CTMain._Timer.timeout.connect(self.check_arbs)
+
+        self._timer = QTimer(self)
+        self._timer.start(5000)
+        self._timer.timeout.connect(self.check_arbs)
+
         self.show()
 
     def check_arbs(self, load_markets=True):

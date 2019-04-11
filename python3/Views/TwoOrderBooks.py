@@ -1,3 +1,4 @@
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import (QWidget, QHBoxLayout)
 
 from Views.OrderBookWithSelectors import CTOrderBookWithSelectors
@@ -42,8 +43,10 @@ class CTTwoOrderBooks(QWidget):
         self.setLayout(self._layout)
 
         self.refresh_order_books()
-        self._CTMain._Timer.start(1000)
-        self._CTMain._Timer.timeout.connect(self.refresh_order_books)
+
+        self._timer = QTimer(self)
+        self._timer.start(1000)
+        self._timer.timeout.connect(self.refresh_order_books)
 
         self.show()
 
