@@ -14,13 +14,13 @@ database. The source code of the program has to be open to enable user code
 audit to make sure that the api keys are used only in the manner specified by
 the relevant exchange and are not accessible to any third parties.
 
-* If you do not plan to use the GUI to submit withdrawal requests, then is
-recommended that the exchange API keys are created with access only to trading.
+* If you do not plan to use the GUI to submit withdrawal requests, then it is
+recommended that the exchange API keys are created with trading permissions only.
 Additionally, it is recommended limiting api access to user's ip address if
 possible in exchange account - this provides additional protection to the funds
-in case user's computer is compromised.
+in case API keys are compromised.
 
-The project is not yet ready for release, but you are welcome to use what is
+The project is not yet ready for a release, but you are welcome to use what is
 already written and to submit your suggestions.
 
 ## If you like the project, please consider participating and/or donating:
@@ -44,7 +44,7 @@ already written and to submit your suggestions.
     greater amount of currency A than the user started with).
 
 ## To run the project
-Make sue you have pipenv installed (it's a python packaging suite)
+Make sure you have pipenv installed (it's a python packaging suite)
 ```
 pip install pipenv
 ```
@@ -67,7 +67,7 @@ pipenv run python main.py
 | -------- | --------------- | ---------------- | ---------- | -------- |
 | Binance  | Good            | Good             | Good       | -------- |
 | Bittrex  | Good            | Good             | NI         | -------- |
-| Hotbit   | Good            | NA               | NI         | -------- |
+| Hotbit   | Good            | NA               | NA         | -------- |
 | Kucoin   | Good            | Good             | Good       | -------- |
 | Poloniex | Good            | Good             | Good       | -------- |
 
