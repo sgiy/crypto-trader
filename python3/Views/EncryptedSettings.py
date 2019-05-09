@@ -89,6 +89,7 @@ class CTEncryptedSettings(QWidget):
         # self.show()
 
     def save_changes(self):
+        self._label_notification.setText('')
         password = self._textbox_password.text()
         if len(password) < 8:
             self._label_notification.setText('Password is too short! Please enter at least 8 characters!')
@@ -104,5 +105,5 @@ class CTEncryptedSettings(QWidget):
         shutil.copy2(self._full_file_path, self._full_file_path + '_backup')
         protector.save_encrypted_file(settings_to_save, self._full_file_path)
         self._CTMain._API_KEYS = settings_to_save['API Keys']
-        self._CTMain.initCryptoTrader()
+        self._CTMain.init_crypto_trader()
         self._label_notification.setText('Saved!')
