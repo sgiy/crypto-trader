@@ -388,7 +388,7 @@ class Hotbit(Exchange):
             ct['Hotbit'].get_balances('[]')
             Response:{"error": null, "result": 1520919059}
         """
-        return requests.trading_api_request('post', '/balance.query', '&assets={}'.format(assets))
+        return self.trading_api_request('post', '/balance.query', '&assets={}'.format(assets))
 
     def get_balance_history(self, asset, business, start_time, end_time, offset, limit):
         """
@@ -409,7 +409,7 @@ class Hotbit(Exchange):
             ct['Hotbit'].get_balances('[]')
             Response:{"error": null, "result": 1520919059}
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/balance.query',
             '&asset={}&business={}&start_time={}&end_time={}&offset={}&limit={}'.format(
@@ -451,7 +451,7 @@ class Hotbit(Exchange):
                 "id": 1521169460
             }
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/order.put_limit',
             '&market={0}&side={1}&amount={2:.8f}&price={3:.8f}'.format(market, side, amount, price)
@@ -489,7 +489,7 @@ class Hotbit(Exchange):
                 "id": 1521169460
             }
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/order.cancel',
             '&market={0}&order_id={1}'.format(market, order_id)
@@ -538,7 +538,7 @@ class Hotbit(Exchange):
                 "id": 1521169460
             }
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/order.batch_cancel',
             '&market={0}&order_id={1}'.format(market, order_ids)
@@ -585,7 +585,7 @@ class Hotbit(Exchange):
                 "id": 1521169460
             }
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/order.deals',
             '&order_id={0}&limit={1}'.format(order_id, limit)
@@ -619,7 +619,7 @@ class Hotbit(Exchange):
                 "id": 1536050997
             }
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/order.finished_detail',
             '&order_id={}'.format(order_id)
@@ -660,7 +660,7 @@ class Hotbit(Exchange):
                 "id": 1536050997
             }
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/order.pending',
             '&market={}&offset={}&limit={}'.format(market, offset, limit)
@@ -682,7 +682,7 @@ class Hotbit(Exchange):
             Side: 1 = "sell", 2="buy"
             ct['Hotbit'].finished_order_details(100)
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/order.pending',
             '&market={}&offset={}&limit={}'.format(market, offset, limit)
@@ -701,7 +701,7 @@ class Hotbit(Exchange):
             Limit: Query limit (limit <= 1000)
             ct['Hotbit'].finished_order_details(100)
         """
-        return requests.trading_api_request(
+        return self.trading_api_request(
             'post',
             '/market.user_deals',
             '&market={}&offset={}&limit={}'.format(market, offset, limit)
