@@ -1,3 +1,4 @@
+import json
 import sys
 from datetime import datetime
 
@@ -34,12 +35,12 @@ class CTMainWindow(QMainWindow):
         self.setWindowIcon(qta.icon('mdi.chart-line'))
 
         # Set initial window position
-        initial_window_position = self._settings.get('Initial Main Window Position and Size', {})
+        window_position = self._settings.get('Initial Main Window Position and Size', {})
         self.setGeometry(
-            initial_window_position.get('left', 50),
-            initial_window_position.get('top', 50),
-            initial_window_position.get('width', 1500),
-            initial_window_position.get('height', 800)
+            window_position['left'],
+            window_position['top'],
+            window_position['width'],
+            window_position['height']
         )
 
         # Load application level style sheet
@@ -54,68 +55,80 @@ class CTMainWindow(QMainWindow):
 
         # Declare GUI actions through a setup dictionary using self.init_actions()
         self._actions = {}
-        self._actions_setup = {
-            'Balances': {
+        self._actions_setup = [
+            {
+                'Name': 'Balances',
                 'Icon': qta.icon('mdi.credit-card-multiple'),
                 'Shortcut': 'Ctrl+B',
                 'StatusTip': 'Balances',
                 'Connect': lambda: self.switch_view('Balances'),
             },
-            'Market': {
+            {
+                'Name': 'Market',
                 'Icon': qta.icon('mdi.monitor-dashboard'),
                 'Shortcut': 'Ctrl+M',
                 'StatusTip': 'View Crypto Pair',
                 'Connect': lambda: self.switch_view('ViewPair'),
             },
-            'Cross Exchange Arbitrage': {
+            {
+                'Name': 'Cross Exchange Arbitrage',
                 'Icon': qta.icon('mdi.arrow-collapse-vertical'),
                 'StatusTip': 'View Cross Exchange Arbitrage Possibilities',
                 'Connect': lambda: self.switch_view('ViewCrossExchangeArbitrage'),
             },
-            'Circle Exchange Arbitrage': {
+            {
+                'Name': 'Circle Exchange Arbitrage',
                 'Icon': qta.icon('mdi.sync'),
                 'StatusTip': 'View Circle Exchange Arbitrage Possibilities',
                 'Connect': lambda: self.switch_view('ViewCircleExchangeArbitrage'),
             },
-            'Settings': {
+            {
+                'Name': 'Settings',
                 'Icon': qta.icon('mdi.shield-key-outline'),
                 'Shortcut': 'Ctrl+S',
                 'StatusTip': 'Settings',
                 'Connect': lambda: self.switch_view('ViewSettings'),
             },
-            'Currencies': {
+            {
+                'Name': 'Currencies',
                 'StatusTip': 'View Exchange Currencies',
                 'Connect': lambda: self.switch_view('ViewCurrencies'),
             },
-            'Tradeable Markets': {
+            {
+                'Name': 'Tradeable Markets',
                 'StatusTip': 'View Tradeable Markets',
                 'Connect': lambda: self.switch_view('ViewActiveMarkets'),
             },
-            '24-Hour Market Moves': {
+            {
+                'Name': '24-Hour Market Moves',
                 'Icon': qta.icon('mdi.finance'),
                 'StatusTip': 'View 24-Hour Market Moves',
                 'Connect': lambda: self.switch_view('View24HourMoves'),
             },
-            'Login': {
+            {
+                'Name': 'Login',
                 'Icon': qta.icon('mdi.security-account'),
                 'StatusTip': 'Login',
                 'Connect': lambda: self.switch_view('Login'),
             },
-            'Debug': {
+            {
+                'Name': 'Debug',
                 'StatusTip': 'Debug',
                 'Connect': lambda: self.switch_view('Debug'),
             },
-            'Refresh Stylesheet': {
+            {
+                'Name': 'Refresh Stylesheet',
                 'StatusTip': 'Refresh Stylesheet',
                 'Connect': self.refresh_stylesheet,
             },
-            'Exit': {
+            {
+                'Name': 'Exit',
                 'Icon': qta.icon('mdi.door-open'),
                 'Shortcut': 'Ctrl+Q',
                 'StatusTip': 'Exit application',
                 'Connect': self.close,
             },
-        }
+        ]
 
         # Declare Menu/Tool/Status bars
         self._menu_bar = self.menuBar()
@@ -134,9 +147,9 @@ class CTMainWindow(QMainWindow):
         :return: file contents as a dictionary
         """
         try:
-            with open('settings', 'rb') as settings_file:
-                file_contents = settings_file.read()
-            return eval(file_contents)
+            with open('settings.json', 'rb') as settings_file:
+                file_contents = json.loads(settings_file.read())
+            return file_contents
         except FileNotFoundError:
             print('Settings file is missing')
             return {}
@@ -178,21 +191,21 @@ class CTMainWindow(QMainWindow):
         Sets up self._actions using self._actions_setup
         """
         for action in self._actions_setup:
-            if 'Icon' in self._actions_setup[action]:
-                self._actions[action] = QAction(self._actions_setup[action]['Icon'], action, self)
+            if 'Icon' in action:
+                self._actions[action['Name']] = QAction(action['Icon'], action['Name'], self)
             else:
-                self._actions[action] = QAction(action, self)
-            if 'Shortcut' in self._actions_setup[action]:
-                self._actions[action].setShortcut(self._actions_setup[action]['Shortcut'])
-                self._actions[action].setStatusTip(
+                self._actions[action['Name']] = QAction(action['Name'], self)
+            if 'Shortcut' in action:
+                self._actions[action['Name']].setShortcut(action['Shortcut'])
+                self._actions[action['Name']].setStatusTip(
                     "{0} ({1})".format(
-                        self._actions_setup[action]['StatusTip'],
-                        self._actions_setup[action]['Shortcut']
+                        action['StatusTip'],
+                        action['Shortcut']
                     )
                 )
             else:
-                self._actions[action].setStatusTip(self._actions_setup[action]['StatusTip'])
-            self._actions[action].triggered.connect(self._actions_setup[action]['Connect'])
+                self._actions[action['Name']].setStatusTip(action['StatusTip'])
+            self._actions[action['Name']].triggered.connect(action['Connect'])
 
     def init_menu_bar(self):
         file_menu = self._menu_bar.addMenu('&File')
@@ -208,7 +221,6 @@ class CTMainWindow(QMainWindow):
         order_book_menu = self._menu_bar.addMenu('&Market')
         order_book_menu.addAction(self._actions['24-Hour Market Moves'])
         order_book_menu.addAction(self._actions['Market'])
-        # order_book_menu.addAction(self.Actions['View Two Exchange Order Books'])
 
         settings_menu = self._menu_bar.addMenu('&Settings')
         settings_menu.addAction(self._actions['Currencies'])
