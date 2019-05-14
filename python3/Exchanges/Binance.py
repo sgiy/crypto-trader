@@ -742,7 +742,7 @@ class Binance(Exchange):
                                           )
 
     def ws_pong(self, message):
-        self._ws.send(message)
+        self._ws.pong()
 
     def ws_on_24hour_ticker_message(self, message):
         parsed_message = json.loads(message)
