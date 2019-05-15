@@ -46,23 +46,25 @@ class CTChartView(QChartView):
         self._chart_horizontal_line.setLine(0, event.pos().y(), self.width(), event.pos().y())
         self._chart_vertical_line.setLine(event.pos().x(), 0, event.pos().x(), self.height())
 
-        self._crosshair_coords = self.chart.mapToValue(event.pos(), self.chart.series()[0])
+        crosshair_coordinates = self.chart.mapToValue(event.pos(), self.chart.series()[0])
 
-        self._chart_crosshair.setPlainText(" time:\t{0}\n level:\t{1:.8f}".format(
-            datetime.fromtimestamp(int(self._crosshair_coords.x()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
-            self._crosshair_coords.y()
-        ))
+        self._chart_crosshair.setPlainText(
+            " time:\t{0}\n level:\t{1:.8f}".format(
+                datetime.fromtimestamp(int(crosshair_coordinates.x()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
+                crosshair_coordinates.y()
+            )
+        )
 
         return QChartView.mouseMoveEvent(self, event)
 
 
 class CTCandlestickSet(QCandlestickSet):
-    def __init__(self, timestamp, c_open, c_high, c_low, c_close, volume, base_volume, parent):
+    def __init__(self, timestamp, c_open, c_high, c_low, c_close, volume, base_volume, base_curr, curr_curr, parent):
         super().__init__(c_open, c_high, c_low, c_close, timestamp, parent)
         self._volume = volume
         self._base_volume = base_volume
-        self._base_curr = parent._base_curr
-        self._curr_curr = parent._curr_curr
+        self._base_curr = base_curr
+        self._curr_curr = curr_curr
         self.hovered[bool].connect(self.draw_tool_tip)
 
     def draw_tool_tip(self, status):
@@ -84,63 +86,35 @@ class CTCandlestickSet(QCandlestickSet):
 
 
 class CTViewPair(QWidget):
-    def __init__(self, CTMain=None, exchange='', base_code='', curr_code='', chart_lookback='', chart_interval='',
-                 order_book_depth=5):
+    def __init__(self, CTMain=None, exchange=None, base_curr=None, curr_curr=None, chart_lookback=None,
+                 chart_interval=None, order_book_depth=None):
         super().__init__()
+
         self._CTMain = CTMain
         self._exchange = exchange
-        self._base_curr = base_code
-        self._curr_curr = curr_code
+        self._base_curr = base_curr
+        self._curr_curr = curr_curr
         self._chart_lookback = chart_lookback
         self._chart_interval = chart_interval
         self._order_book_depth = order_book_depth
+        if self._exchange is None:
+            self._exchange = CTMain._settings['Initial Market View Exchange']
+        if self._base_curr is None:
+            self._base_curr = CTMain._settings['Initial Market View Base Currency']
+        if self._curr_curr is None:
+            self._curr_curr = CTMain._settings['Initial Market View Quote Currency']
+        if self._chart_lookback is None:
+            self._chart_lookback = CTMain._settings['Initial Market View Chart Lookback']
+        if self._chart_interval is None:
+            self._chart_interval = CTMain._settings['Initial Market View Chart Interval']
+        if self._order_book_depth is None:
+            self._order_book_depth = CTMain._settings['Default Order Book Depth']
 
         if 'Fusion' in QStyleFactory.keys():
             self.change_style('Fusion')
 
         self._layout = QGridLayout()
-        self.setLayout(self._layout)
 
-        self.draw_view()
-        self.show()
-
-    def refresh_dropdown_exchange_change(self, exchange, default_base=None, default_curr=None):
-        self._exchange = exchange
-        if default_base is None:
-            default_base = self._dropdown_base_curr.currentText
-        if default_curr is None:
-            default_curr = self._dropdown_curr_curr.currentText
-        base_codes = sorted(list(self._CTMain._Crypto_Trader.trader[exchange]._active_markets))
-        self._dropdown_base_curr.clear()
-        self._dropdown_base_curr.addItems(base_codes)
-        if default_base not in base_codes:
-            default_base = base_codes[0]
-        self._dropdown_base_curr.setCurrentText(default_base)
-        self.refresh_dropdown_base_change(default_base, default_curr)
-
-    def refresh_dropdown_base_change(self, base_curr, default_curr=None):
-        self._base_curr = base_curr
-        if default_curr is None:
-            default_curr = self._dropdown_curr_curr.currentText
-        curr_codes = sorted(list(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets[base_curr]))
-        self._dropdown_curr_curr.clear()
-        self._dropdown_curr_curr.addItems(curr_codes)
-        if default_curr not in curr_codes:
-            default_curr = curr_codes[0]
-        self._dropdown_curr_curr.setCurrentText(default_curr)
-        self.refresh_dropdown_curr_change(default_curr)
-
-    def refresh_dropdown_curr_change(self, curr_curr):
-        self._curr_curr = curr_curr
-        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(
-            self._exchange,
-            self._base_curr,
-            curr_curr
-        )
-
-        self.initiate_widgets()
-
-    def draw_view(self):
         self._order_book_widget = CTOrderBook(
             self._CTMain,
             None,
@@ -148,7 +122,7 @@ class CTViewPair(QWidget):
             None,
             None,
             self._order_book_depth
-            )
+        )
 
         self.CandlestickSeries = QCandlestickSeries()
         self.CandlestickSeries.setIncreasingColor(Qt.green)
@@ -260,14 +234,54 @@ class CTViewPair(QWidget):
         self._splitter_top.addWidget(self._splitter_left)
         self._splitter_top.addWidget(self._splitter_right)
         window_width = self._CTMain.frameGeometry().width()
-        self._splitter_top.setSizes([round(0.3*window_width), round(0.7 * window_width)])
+        self._splitter_top.setSizes([round(0.3 * window_width), round(0.7 * window_width)])
         self._layout.addWidget(self._splitter_top, 1, 0, 9, 10)
+
+        self.setLayout(self._layout)
+        self.show()
+
+    def refresh_dropdown_exchange_change(self, exchange, default_base=None, default_curr=None):
+        self._exchange = exchange
+        if default_base is None:
+            default_base = self._dropdown_base_curr.currentText
+        if default_curr is None:
+            default_curr = self._dropdown_curr_curr.currentText
+        base_codes = sorted(list(self._CTMain._Crypto_Trader.trader[exchange]._active_markets))
+        self._dropdown_base_curr.clear()
+        self._dropdown_base_curr.addItems(base_codes)
+        if default_base not in base_codes:
+            default_base = base_codes[0]
+        self._dropdown_base_curr.setCurrentText(default_base)
+        self.refresh_dropdown_base_change(default_base, default_curr)
+
+    def refresh_dropdown_base_change(self, base_curr, default_curr=None):
+        self._base_curr = base_curr
+        if default_curr is None:
+            default_curr = self._dropdown_curr_curr.currentText
+        curr_codes = sorted(list(self._CTMain._Crypto_Trader.trader[self._exchange]._active_markets[base_curr]))
+        self._dropdown_curr_curr.clear()
+        self._dropdown_curr_curr.addItems(curr_codes)
+        if default_curr not in curr_codes:
+            default_curr = curr_codes[0]
+        self._dropdown_curr_curr.setCurrentText(default_curr)
+        self.refresh_dropdown_curr_change(default_curr)
+
+    def refresh_dropdown_curr_change(self, curr_curr):
+        self._curr_curr = curr_curr
+        self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(
+            self._exchange,
+            self._base_curr,
+            curr_curr
+        )
+
+        self.initiate_widgets()
 
     @staticmethod
     def change_style(style_name):
         QApplication.setStyle(QStyleFactory.create(style_name))
 
-    def debug(self):
+    @staticmethod
+    def debug():
         import ipdb
         ipdb.set_trace()
 
@@ -324,7 +338,18 @@ class CTViewPair(QWidget):
         v_max = load_chart[0][6]
 
         for point in load_chart:
-            candle = CTCandlestickSet(point[0] * 1000, point[1], point[2], point[3], point[4], point[5], point[6], self)
+            candle = CTCandlestickSet(
+                timestamp=point[0] * 1000,
+                c_open=point[1],
+                c_high=point[2],
+                c_low=point[3],
+                c_close=point[4],
+                volume=point[5],
+                base_volume=point[6],
+                base_curr=self._base_curr,
+                curr_curr=self._curr_curr,
+                parent=self
+            )
             self.CandlestickSeries.append(candle)
             ch_min = min(ch_min, point[3])
             ch_max = max(ch_max, point[2])

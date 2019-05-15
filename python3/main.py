@@ -168,10 +168,11 @@ class CTMainWindow(QMainWindow):
     def init_gui(self):
         self.init_crypto_trader()
 
-        self.init_actions()
-        self.init_menu_bar()
-        self.init_tool_bar()
-        self.init_status_bar()
+        if not self._actions:
+            self.init_actions()
+            self.init_menu_bar()
+            self.init_tool_bar()
+            self.init_status_bar()
 
         print('Ready')
 
@@ -228,6 +229,7 @@ class CTMainWindow(QMainWindow):
         settings_menu.addAction(self._actions['Debug'])
         settings_menu.addAction(self._actions['Refresh Stylesheet'])
         settings_menu.addAction(self._actions['Settings'])
+        settings_menu.addAction(self._actions['Login'])
 
     def init_tool_bar(self):
         self._tool_bar.addAction(self._actions['Exit'])
@@ -240,33 +242,28 @@ class CTMainWindow(QMainWindow):
 
     def switch_view(self, view_name):
         if view_name == 'ViewPair':
-            self._views['ViewPair'] = CTViewPair(
-                CTMain=self,
-                exchange=self._settings['Initial Market View Exchange'],
-                base_code=self._settings['Initial Market View Base Currency'],
-                curr_code=self._settings['Initial Market View Quote Currency'],
-                chart_lookback=self._settings['Initial Market View Chart Lookback'],
-                chart_interval=self._settings['Initial Market View Chart Interval'],
-                order_book_depth=self._settings['Default Order Book Depth']
-            )
-        if view_name == 'Balances':
-            self._views['Balances'] = CTBalances(CTMain=self)
-        if view_name == 'ViewCrossExchangeArbitrage':
-            self._views['ViewCrossExchangeArbitrage'] = CTExchangeArb(CTMain=self)
-        if view_name == 'ViewCircleExchangeArbitrage':
-            self._views['ViewCircleExchangeArbitrage'] = CTExchangeArbCircle(CTMain=self)
-        if view_name == 'Debug':
-            self._views['Debug'] = CTDebug(CTMain=self)
-        if view_name == 'Login':
-            self._views['Login'] = CTLogin(CTMain=self)
-        if view_name == 'ViewSettings':
-            self._views['ViewSettings'] = CTEncryptedSettings(CTMain=self)
-        if view_name == 'ViewCurrencies':
-            self._views['ViewCurrencies'] = CTCurrencies(CTMain=self)
-        if view_name == 'ViewActiveMarkets':
-            self._views['ViewActiveMarkets'] = CTActiveMarkets(CTMain=self)
-        if view_name == 'View24HourMoves':
-            self._views['View24HourMoves'] = CTTwentyFourHours(CTMain=self)
+            self._views[view_name] = CTViewPair(CTMain=self)
+        elif view_name == 'Balances':
+            self._views[view_name] = CTBalances(CTMain=self)
+        elif view_name == 'ViewCrossExchangeArbitrage':
+            self._views[view_name] = CTExchangeArb(CTMain=self)
+        elif view_name == 'ViewCircleExchangeArbitrage':
+            self._views[view_name] = CTExchangeArbCircle(CTMain=self)
+        elif view_name == 'Debug':
+            self._views[view_name] = CTDebug(CTMain=self)
+        elif view_name == 'Login':
+            self._views[view_name] = CTLogin(CTMain=self)
+        elif view_name == 'ViewSettings':
+            self._views[view_name] = CTEncryptedSettings(CTMain=self)
+        elif view_name == 'ViewCurrencies':
+            self._views[view_name] = CTCurrencies(CTMain=self)
+        elif view_name == 'ViewActiveMarkets':
+            self._views[view_name] = CTActiveMarkets(CTMain=self)
+        elif view_name == 'View24HourMoves':
+            self._views[view_name] = CTTwentyFourHours(CTMain=self)
+        else:
+            return
+
         self.setCentralWidget(self._views[view_name])
         self._selected_view = view_name
         self._views[view_name].show()
