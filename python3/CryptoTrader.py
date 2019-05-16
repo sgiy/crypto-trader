@@ -40,7 +40,7 @@ class CryptoTrader:
             print('Loading currencies for ' + exchange)
             t = threading.Thread(target=self.trader[exchange].update_currency_definitions)
             t.start()
-            t.join(2)
+            t.join(5)
 
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             currencies = self.trader[exchange]._currencies

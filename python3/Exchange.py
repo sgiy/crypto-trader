@@ -168,34 +168,35 @@ class Exchange:
                 code_base = self.get_global_code(local_base)
                 code_curr = self.get_global_code(local_curr)
 
-        if code_base not in self._markets:
-            self._markets[code_base] = {}
-        if code_curr not in self._markets[code_base]:
-            self._markets[code_base][code_curr] = {}
-        if code_base not in self._active_markets:
-            self._active_markets[code_base] = {}
-        if code_curr not in self._active_markets[code_base]:
-            self._active_markets[code_base][code_curr] = {}
+        if code_base is not None and code_curr is not None:
+            if code_base not in self._markets:
+                self._markets[code_base] = {}
+            if code_curr not in self._markets[code_base]:
+                self._markets[code_base][code_curr] = {}
+            if code_base not in self._active_markets:
+                self._active_markets[code_base] = {}
+            if code_curr not in self._active_markets[code_base]:
+                self._active_markets[code_base][code_curr] = {}
 
-        update_dict = {
-            'MarketSymbol':     market_symbol,
-            'BaseMinAmount':    0,
-            'BaseIncrement':    0.00000001,
-            'CurrMinAmount':    0,
-            'CurrIncrement':    0.00000001,
-            'PriceMin':         0,
-            'PriceIncrement':   0.00000001,
-            'IsActive':         True,
-            'IsRestricted':     False,
-            'Notice':           '',
-        }
-        update_dict.update(input_dict)
-        self._markets[code_base][code_curr].update(update_dict)
+            update_dict = {
+                'MarketSymbol':     market_symbol,
+                'BaseMinAmount':    0,
+                'BaseIncrement':    0.00000001,
+                'CurrMinAmount':    0,
+                'CurrIncrement':    0.00000001,
+                'PriceMin':         0,
+                'PriceIncrement':   0.00000001,
+                'IsActive':         True,
+                'IsRestricted':     False,
+                'Notice':           '',
+            }
+            update_dict.update(input_dict)
+            self._markets[code_base][code_curr].update(update_dict)
 
-        if update_dict['IsActive'] and not update_dict['IsRestricted']:
-            self._active_markets[code_base][code_curr].update(update_dict)
-        else:
-            self._active_markets[code_base].pop(code_curr)
+            if update_dict['IsActive'] and not update_dict['IsRestricted']:
+                self._active_markets[code_base][code_curr].update(update_dict)
+            else:
+                self._active_markets[code_base].pop(code_curr)
 
     def get_market_symbol(self, code_base, code_curr):
         return self._markets[code_base][code_curr]['MarketSymbol']
