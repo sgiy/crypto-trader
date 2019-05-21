@@ -741,7 +741,7 @@ class Binance(Exchange):
                                           on_ping=self.ws_pong
                                           )
 
-    def ws_pong(self, message):
+    def ws_pong(self):
         self._ws.pong()
 
     def ws_on_24hour_ticker_message(self, message):

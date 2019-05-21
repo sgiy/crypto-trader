@@ -4,14 +4,19 @@ from pydoc import locate
 
 
 class CryptoTrader:
-    def __init__(self, API_KEYS={}, SETTINGS={}):
+    def __init__(self, api_keys, settings):
         self.trader = {}
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
         self._active_markets = {}
-        self._API_KEYS = API_KEYS
-        self._SETTINGS = SETTINGS
+        self._API_KEYS = api_keys
+        self._SETTINGS = settings
         self.init_exchanges()
+        self.update_api_keys()
+
+    def update_settings(self, api_keys, settings):
+        self._API_KEYS = api_keys
+        self._SETTINGS = settings
         self.update_api_keys()
 
     def init_exchanges(self):
@@ -23,7 +28,7 @@ class CryptoTrader:
         self.init_markets()
 
     def update_api_keys(self):
-        self._SETTINGS['Exchanges with API Keys'] = []
+        exchanges_with_keys = []
         for exchange in self._API_KEYS.keys():
             self.trader[exchange].update_api_keys(
                 self._API_KEYS[exchange].get('APIKey', ''),
@@ -31,11 +36,13 @@ class CryptoTrader:
                 self._API_KEYS[exchange].get('APIPassword', '')
             )
             if self._API_KEYS[exchange].get('APIKey', '') != '':
-                self._SETTINGS['Exchanges with API Keys'].append(exchange)
+                exchanges_with_keys.append(exchange)
+        self._SETTINGS['Exchanges with API Keys'] = exchanges_with_keys
 
     def init_currencies(self):
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
+        # Parallel loading of currency definitions on exchanges
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading currencies for ' + exchange)
             t = threading.Thread(target=self.trader[exchange].update_currency_definitions)
