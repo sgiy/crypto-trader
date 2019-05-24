@@ -12,14 +12,17 @@ class CryptoTrader:
         self._API_KEYS = api_keys
         self._SETTINGS = settings
         self.init_exchanges()
-        self.update_api_keys()
+        self.update_exchange_instance_api_keys()
 
     def update_settings(self, api_keys, settings):
         self._API_KEYS = api_keys
         self._SETTINGS = settings
-        self.update_api_keys()
+        self.update_exchange_instance_api_keys()
 
     def init_exchanges(self):
+        """
+            Loading exchange classes using provided exchange names
+        """
         for exchange in self._SETTINGS.get('Exchange Classes to Initialize', []):
             exchange_file = locate('Exchanges.' + exchange)
             exchange_class = getattr(exchange_file, exchange)
@@ -27,7 +30,10 @@ class CryptoTrader:
         self.init_currencies()
         self.init_markets()
 
-    def update_api_keys(self):
+    def update_exchange_instance_api_keys(self):
+        """
+            Uses current values in self._API_KEYS to update API Keys of exchange instances
+        """
         exchanges_with_keys = []
         for exchange in self._API_KEYS.keys():
             self.trader[exchange].update_api_keys(
@@ -40,8 +46,11 @@ class CryptoTrader:
         self._SETTINGS['Exchanges with API Keys'] = exchanges_with_keys
 
     def init_currencies(self):
-        self._map_currency_code_to_exchange_code = {}
-        self._map_exchange_code_to_currency_code = {}
+        """
+            Setup currency maps between exchange codes and generic currency codes
+        """
+        map_currency_code_to_exchange_code = {}
+        map_exchange_code_to_currency_code = {}
         # Parallel loading of currency definitions on exchanges
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading currencies for ' + exchange)
@@ -50,9 +59,14 @@ class CryptoTrader:
             t.join(5)
 
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
+
+            # Create empty exchange maps
+            exchange_map_exchange_code_to_currency_code = {}
+            exchange_map_currency_code_to_exchange_code = {}
+            map_exchange_code_to_currency_code[exchange] = {}
+
+            # Retrieve loaded currency codes and names from exchange
             currencies = self.trader[exchange]._currencies
-            self.trader[exchange]._map_currency_code_to_exchange_code = {}
-            self._map_exchange_code_to_currency_code[exchange] = {}
             for currency in currencies:
                 try:
                     code = currency
@@ -63,25 +77,33 @@ class CryptoTrader:
                     currency_name = currencies[currency]['Name']
                     exchange_name_column = exchange + 'Name'
 
-                    if code not in self._map_currency_code_to_exchange_code:
-                        self._map_currency_code_to_exchange_code[code] = {
+                    if code not in map_currency_code_to_exchange_code:
+                        map_currency_code_to_exchange_code[code] = {
                             'Name': code
                         }
 
-                    # Populate maps on the exchange object
-                    self.trader[exchange]._map_exchange_code_to_currency_code[currency] = code
-                    self.trader[exchange]._map_currency_code_to_exchange_code[code] = currency
+                    # Populate maps for the exchange object
+                    exchange_map_exchange_code_to_currency_code[currency] = code
+                    exchange_map_currency_code_to_exchange_code[code] = currency
 
-                    # Populate maps on the CryptoTrader object
-                    self._map_exchange_code_to_currency_code[exchange][currency] = code
-                    self._map_currency_code_to_exchange_code[code][exchange] = currency
-                    self._map_currency_code_to_exchange_code[code][exchange_name_column] = currency_name
+                    # Populate maps for the CryptoTrader object
+                    map_exchange_code_to_currency_code[exchange][currency] = code
+                    map_currency_code_to_exchange_code[code][exchange] = currency
+                    map_currency_code_to_exchange_code[code][exchange_name_column] = currency_name
 
-                    if code == self._map_currency_code_to_exchange_code[code]['Name']:
-                        self._map_currency_code_to_exchange_code[code]['Name'] = currency_name
+                    if code == map_currency_code_to_exchange_code[code]['Name']:
+                        map_currency_code_to_exchange_code[code]['Name'] = currency_name
 
                 except Exception as e:
                     print(str(e))
+
+            # Update exchange specific maps on exchange object
+            self.trader[exchange]._map_exchange_code_to_currency_code = exchange_map_exchange_code_to_currency_code
+            self.trader[exchange]._map_currency_code_to_exchange_code = exchange_map_currency_code_to_exchange_code
+
+        # Update overall currency maps on the CryptoTrader object
+        self._map_currency_code_to_exchange_code = map_currency_code_to_exchange_code
+        self._map_exchange_code_to_currency_code = map_exchange_code_to_currency_code
 
     def init_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):

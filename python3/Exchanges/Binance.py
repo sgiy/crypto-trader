@@ -39,7 +39,10 @@ class Binance(Exchange):
             '1w':   7*24*60,
             '1M':   30*24*60
         }
-        self._timestamp_correction = int(self.public_get_server_time()) - int(time.time()*1000)
+        try:
+            self._timestamp_correction = int(self.public_get_server_time()) - int(time.time()*1000)
+        except Exception as e:
+            self._timestamp_correction = 0
         self.public_update_exchange_info()
         self._thread_pool = QThreadPool()
         self._thread_pool.start(CTWorker(self.ws_init))

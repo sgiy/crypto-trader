@@ -697,17 +697,20 @@ class Poloniex(Exchange):
             <currency pair>	Public	Price Aggregated Book
             Debug: ct['Poloniex'].ws_subscribe(1000)
         """
-        if channel == 1000:
-            nonce = int(time.time()*1000000)
-            self._ws.send(json.dumps({
-                "command": "subscribe",
-                "channel": 1000,
-                "key": self._API_KEY,
-                "payload": "nonce={}".format(nonce),
-                "sign": self.private_sign_request("nonce={}".format(nonce))
-            }))
-        else:
-            self._ws.send(json.dumps({"command": "subscribe", "channel": channel}))
+        try:
+            if channel == 1000:
+                nonce = int(time.time()*1000000)
+                self._ws.send(json.dumps({
+                    "command": "subscribe",
+                    "channel": 1000,
+                    "key": self._API_KEY,
+                    "payload": "nonce={}".format(nonce),
+                    "sign": self.private_sign_request("nonce={}".format(nonce))
+                }))
+            else:
+                self._ws.send(json.dumps({"command": "subscribe", "channel": channel}))
+        except Exception as e:
+            print("Failed to subscribe to Poloniex channel ", channel)
 
     def ws_unsubscribe(self, channel):
         """
