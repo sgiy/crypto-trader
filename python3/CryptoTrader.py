@@ -104,6 +104,7 @@ class CryptoTrader:
         # Update overall currency maps on the CryptoTrader object
         self._map_currency_code_to_exchange_code = map_currency_code_to_exchange_code
         self._map_exchange_code_to_currency_code = map_exchange_code_to_currency_code
+        print('Done loading currencies')
 
     def init_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
@@ -111,12 +112,14 @@ class CryptoTrader:
             t = threading.Thread(target=self.trader[exchange].update_market_definitions)
             t.start()
             t.join(5)
+        print('Done loading market definitions')
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             print('Loading market quotes for ' + exchange)
             t = threading.Thread(target=self.trader[exchange].update_market_quotes)
             t.start()
             t.join(5)
         self.refresh_agg_active_markets()
+        print('Done loading market quotes')
 
     def refresh_agg_active_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):

@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem)
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QPushButton)
 
 
 class CTCurrencies(QWidget):
@@ -7,11 +8,21 @@ class CTCurrencies(QWidget):
 
         self._CTMain = CTMain
 
-        self._tableWidget = QTableWidget()
         self._layout = QVBoxLayout()
+
+        self._reload_currencies_button = QPushButton()
+        self._reload_currencies_button.setText("Reload currency definitions from exchanges")
+        self._reload_currencies_button.clicked.connect(self._CTMain._Crypto_Trader.init_currencies)
+        self._layout.addWidget(self._reload_currencies_button)
+
+        self._tableWidget = QTableWidget()
         self._layout.addWidget(self._tableWidget)
-        self.show_currencies()
         self.setLayout(self._layout)
+
+        self.show_currencies()
+        self._timer_painter = QTimer(self)
+        self._timer_painter.start(2000)
+        self._timer_painter.timeout.connect(self.show_currencies)
 
     def show_currencies(self):
         exchanges = sorted(self._CTMain._Crypto_Trader._map_exchange_code_to_currency_code.keys())
