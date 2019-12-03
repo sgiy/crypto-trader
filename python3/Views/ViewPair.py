@@ -133,9 +133,9 @@ class CTViewPair(QWidget):
         self.VolumeBarSeries.setIncreasingColor(Qt.green)
         self.VolumeBarSeries.setDecreasingColor(Qt.red)
 
-        self._chart_view = CTChartView(self)
-        self._chart_view_volume = QChartView(self)
-        self._chart_view_volume.chart().legend().setVisible(False)
+        # self._chart_view = CTChartView(self)
+        # self._chart_view_volume = QChartView(self)
+        # self._chart_view_volume.chart().legend().setVisible(False)
 
         exchanges = self._CTMain._Crypto_Trader.trader.keys()
         self._dropdown_exchange = Dropdown(exchanges, self._exchange)
@@ -149,18 +149,18 @@ class CTViewPair(QWidget):
         self._dropdown_curr_curr = Dropdown(curr_codes, self._curr_curr)
         self._dropdown_curr_curr.activated[str].connect(self.refresh_dropdown_curr_change)
 
-        label_lookback = QLabel("Lookback:")
-        self._chart_dropdown_lookback = Dropdown(
-            list(self._CTMain._settings['Chart Lookback Window']),
-            self._chart_lookback
-        )
-        self._chart_dropdown_lookback.currentTextChanged.connect(self.draw_chart)
-        label_interval = QLabel("Interval:")
-        self._chart_dropdown_interval = Dropdown(
-            list(self._CTMain._settings['Chart Interval']),
-            self._chart_interval
-        )
-        self._chart_dropdown_interval.currentTextChanged.connect(self.draw_chart)
+        # label_lookback = QLabel("Lookback:")
+        # self._chart_dropdown_lookback = Dropdown(
+        #     list(self._CTMain._settings['Chart Lookback Window']),
+        #     self._chart_lookback
+        # )
+        # self._chart_dropdown_lookback.currentTextChanged.connect(self.draw_chart)
+        # label_interval = QLabel("Interval:")
+        # self._chart_dropdown_interval = Dropdown(
+        #     list(self._CTMain._settings['Chart Interval']),
+        #     self._chart_interval
+        # )
+        # self._chart_dropdown_interval.currentTextChanged.connect(self.draw_chart)
 
         self._market_symbol = self._CTMain._Crypto_Trader.get_market_symbol(
             self._exchange,
@@ -210,10 +210,10 @@ class CTViewPair(QWidget):
         top_layout.addWidget(self._dropdown_base_curr)
         top_layout.addWidget(label_curr_curr)
         top_layout.addWidget(self._dropdown_curr_curr)
-        top_layout.addWidget(label_lookback)
-        top_layout.addWidget(self._chart_dropdown_lookback)
-        top_layout.addWidget(label_interval)
-        top_layout.addWidget(self._chart_dropdown_interval)
+        # top_layout.addWidget(label_lookback)
+        # top_layout.addWidget(self._chart_dropdown_lookback)
+        # top_layout.addWidget(label_interval)
+        # top_layout.addWidget(self._chart_dropdown_interval)
         top_layout.addWidget(self._debug_button)
         top_layout.addStretch(1)
 
@@ -226,8 +226,8 @@ class CTViewPair(QWidget):
         self._splitter_left.setSizes([500, 100, 100])
 
         self._splitter_right = QSplitter(Qt.Vertical)
-        self._splitter_right.addWidget(self._chart_view)
-        self._splitter_right.addWidget(self._chart_view_volume)
+        # self._splitter_right.addWidget(self._chart_view)
+        # self._splitter_right.addWidget(self._chart_view_volume)
         self._splitter_right.addWidget(self._open_orders_widget)
         self._splitter_right.setSizes([500, 100, 100])
 
@@ -313,7 +313,7 @@ class CTViewPair(QWidget):
             self._curr_curr,
             self._market_symbol
         )
-        self.draw_chart()
+        # self.draw_chart()
 
     def draw_chart(self):
         exchange = self._exchange
