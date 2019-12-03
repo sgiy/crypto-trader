@@ -45,20 +45,26 @@ class CryptoTrader:
                 exchanges_with_keys.append(exchange)
         self._SETTINGS['Exchanges with API Keys'] = exchanges_with_keys
 
-    def init_currencies(self):
+    def init_currencies(self, list_of_exchanges=None):
         """
             Setup currency maps between exchange codes and generic currency codes
         """
+        if not isinstance(list_of_exchanges, list):
+            list_of_exchanges = self._SETTINGS.get('Exchanges to Load', [])
+
         map_currency_code_to_exchange_code = {}
         map_exchange_code_to_currency_code = {}
+
         # Parallel loading of currency definitions on exchanges
-        for exchange in self._SETTINGS.get('Exchanges to Load', []):
+        for exchange in list_of_exchanges:
             print('Loading currencies for ' + exchange)
             t = threading.Thread(target=self.trader[exchange].update_currency_definitions)
             t.start()
             t.join(5)
 
-        for exchange in self._SETTINGS.get('Exchanges to Load', []):
+        for exchange in list_of_exchanges:
+            # Gather code overrides from program settings
+            code_rename_map = self._SETTINGS.get('Exchange Currency Rename Map', {}).get(exchange, {})
 
             # Create empty exchange maps
             exchange_map_exchange_code_to_currency_code = {}
@@ -69,10 +75,7 @@ class CryptoTrader:
             currencies = self.trader[exchange]._currencies
             for currency in currencies:
                 try:
-                    code = currency
-                    if exchange in self._SETTINGS.get('Exchange Currency Rename Map', {}):
-                        if currency in self._SETTINGS['Exchange Currency Rename Map'][exchange]:
-                            code = self._SETTINGS['Exchange Currency Rename Map'][exchange][currency]
+                    code = code_rename_map.get(currency, currency)
 
                     currency_name = currencies[currency]['Name']
                     exchange_name_column = exchange + 'Name'
