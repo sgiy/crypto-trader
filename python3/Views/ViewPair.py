@@ -50,7 +50,7 @@ class CTChartView(QChartView):
 
         self._chart_crosshair.setPlainText(
             " time:\t{0}\n level:\t{1:.8f}".format(
-                datetime.fromtimestamp(int(crosshair_coordinates.x()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
+                datetime.fromtimestamp(int(crosshair_coordinates.x() / 1000)).strftime('%Y-%m-%d %H:%M:%S'),
                 crosshair_coordinates.y()
             )
         )
@@ -71,7 +71,7 @@ class CTCandlestickSet(QCandlestickSet):
         if status:
             self.parent()._chart_view._chart_tooltip.setPlainText(
                 " time:\t{0}\n open:\t{1:.8f}, close: {2:.8f}\n high:\t{3:.8f}, low:   {4:.8f}\n".format(
-                    datetime.fromtimestamp(int(self.timestamp()/1000)).strftime('%Y-%m-%d %H:%M:%S'),
+                    datetime.fromtimestamp(int(self.timestamp() / 1000)).strftime('%Y-%m-%d %H:%M:%S'),
                     self.open(),
                     self.close(),
                     self.high(),
@@ -81,7 +81,7 @@ class CTCandlestickSet(QCandlestickSet):
                     self._volume,
                     self._base_curr,
                     self._base_volume
-                    )
+                )
             )
 
 
@@ -296,13 +296,13 @@ class CTViewPair(QWidget):
             self._market_symbol,
             self._base_curr,
             self._curr_curr
-            )
+        )
         self._trade_widget.update_currencies(
             self._exchange,
             self._base_curr,
             self._curr_curr,
             self._market_symbol
-            )
+        )
         self._open_orders_widget.update_market(
             self._exchange,
             self._market_symbol

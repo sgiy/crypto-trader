@@ -24,27 +24,14 @@ class CTMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # Load public settings
-        self._settings = self.read_public_settings()
+        # Load settings.json
+        self._settings = self.ct_read_settings_file()
 
         # Declare API KEYS container
         self._API_KEYS = {}
 
-        # Set window title and icon
-        self.setWindowTitle('Crypto Trader')
-        self.setWindowIcon(qta.icon('mdi.chart-line'))
-
-        # Set initial window position
-        window_position = self._settings.get('Initial Main Window Position and Size', {})
-        self.setGeometry(
-            window_position['left'],
-            window_position['top'],
-            window_position['width'],
-            window_position['height']
-        )
-
-        # Load application level style sheet
-        self.refresh_stylesheet()
+        # Set initial window style
+        self.ct_init_window_style()
 
         # Declare views
         self._views = {}
@@ -117,9 +104,9 @@ class CTMainWindow(QMainWindow):
                 'Connect': lambda: self.switch_view('Debug'),
             },
             {
-                'Name': 'Refresh Stylesheet',
-                'StatusTip': 'Refresh Stylesheet',
-                'Connect': self.refresh_stylesheet,
+                'Name': 'Reload Stylesheet',
+                'StatusTip': 'Reload Stylesheet',
+                'Connect': self.ct_reload_stylesheet,
             },
             {
                 'Name': 'Exit',
@@ -141,7 +128,7 @@ class CTMainWindow(QMainWindow):
         self.show()
 
     @staticmethod
-    def read_public_settings():
+    def ct_read_settings_file():
         """
         Loading public (non-encrypted) settings file
         :return: file contents as a dictionary
@@ -157,7 +144,29 @@ class CTMainWindow(QMainWindow):
             print('Settings file is corrupted: {}\n{}'.format(e, e.text))
             return {}
 
-    def refresh_stylesheet(self):
+    def ct_init_window_style(self):
+        # Set window title and icon
+        self.setWindowTitle('Crypto Trader')
+        self.setWindowIcon(qta.icon('mdi.chart-line'))
+
+        # Set initial window position
+        window_position = self._settings.get('Initial Main Window Position and Size', {
+            "left":     50,
+            "top":      50,
+            "width":    1500,
+            "height":   800
+        })
+        self.setGeometry(
+            window_position['left'],
+            window_position['top'],
+            window_position['width'],
+            window_position['height']
+        )
+
+        # Load application level style sheet
+        self.ct_reload_stylesheet()
+
+    def ct_reload_stylesheet(self):
         """
         Sets application level style sheet.
         Can update style sheet while application is running.
@@ -234,7 +243,7 @@ class CTMainWindow(QMainWindow):
         settings_menu.addAction(self._actions['Currencies'])
         settings_menu.addAction(self._actions['Tradeable Markets'])
         settings_menu.addAction(self._actions['Debug'])
-        settings_menu.addAction(self._actions['Refresh Stylesheet'])
+        settings_menu.addAction(self._actions['Reload Stylesheet'])
         settings_menu.addAction(self._actions['Settings'])
         settings_menu.addAction(self._actions['Login'])
 
