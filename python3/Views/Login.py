@@ -35,8 +35,8 @@ class CTLogin(QWidget):
             border: none;
         """)
         if os.path.isfile(self._full_file_path):
-            self._label_top_text = 'Please enter your password to load your API keys or press button below ' + \
-                                   'to continue with public data'
+            self._label_top_text = 'Please enter the password to load your API keys or press a button below ' + \
+                                   'to continue without encrypted data'
         else:
             self._label_top_text = 'Please create a password to encrypt your API Keys'
             self._label_bottom.setText('It is recommended to use longer passwords that include lower and ' +
@@ -60,7 +60,7 @@ class CTLogin(QWidget):
         self._password_form_box.setLayout(group_box_layout)
 
         self._enter_button = QPushButton()
-        self._enter_button.setText("OK")
+        self._enter_button.setText("Unlock encrypted settings")
         self._enter_button.clicked.connect(self.enter_password)
 
         self._skip_button = QPushButton()
@@ -78,15 +78,17 @@ class CTLogin(QWidget):
         self.show()
 
     def enter_password(self):
+        self._label_bottom.setText('')
         password = self._textbox_password.text()
         protector = Protector(password)
         if os.path.isfile(self._full_file_path):
             try:
                 # Decrypt encrypted settings
+                self._CTMain.log('Unlocking settings...')
                 decrypted_settings = protector.decrypt_file(self._full_file_path)
-                self._label_bottom.setText('')
+                self._CTMain.log('Settings are unlocked')
             except:
-                self._label_bottom.setText('Wrong password!')
+                self._CTMain.log('Wrong password!')
                 return
 
             # Split out API Keys and store them separately if they are present
@@ -108,10 +110,15 @@ class CTLogin(QWidget):
             if len(password) < 8:
                 self._label_bottom.setText('Password is too short! Please enter at least 8 characters!')
                 return
+
             # A new file with default settings is created and the system is
-            # initiated. Then go to settings view to enter api keys
+            # initiated. Then go to the settings view to enter api keys
             self._CTMain._API_KEYS = {}
+
+            self._CTMain.log('Encrypting settings...')
             protector.save_encrypted_file(self._CTMain._settings, self._full_file_path)
+            self._CTMain.log('Settings are saved')
+
             self._CTMain.init_gui()
             self._CTMain.switch_view('ViewSettings')
 

@@ -42,6 +42,106 @@ class CTMainWindow(QMainWindow):
 
         # Declare GUI actions through a setup dictionary using self.init_actions()
         self._actions = {}
+        self._actions_setup = []
+
+        # Declare Menu/Tool/Status bars
+        self._menu_bar = None
+        self._tool_bar = None
+        self._status_bar = self.statusBar()
+
+        # Declare a variable to contain a full log of execution
+        self._full_log = ''
+
+        # Display Login view
+        self.switch_view('Login')
+        self.show()
+
+    @staticmethod
+    def ct_read_settings_file():
+        """
+        Loading public (non-encrypted) settings file
+        :return: file contents as a dictionary
+        """
+        try:
+            with open('settings.json', 'rb') as settings_file:
+                file_contents = json.loads(settings_file.read())
+            return file_contents
+        except FileNotFoundError:
+            print('Settings file is missing')
+            return {}
+        except SyntaxError as e:
+            print('Settings file is corrupted: {}\n{}'.format(e, e.text))
+            return {}
+
+    def ct_init_window_style(self):
+        # Set window title and icon
+        self.setWindowTitle('Crypto Trader')
+        self.setWindowIcon(qta.icon('mdi.chart-line'))
+
+        # Set initial window position
+        window_position = self._settings.get('Initial Main Window Position and Size', {
+            "left":     50,
+            "top":      50,
+            "width":    1500,
+            "height":   800
+        })
+        self.setGeometry(
+            window_position['left'],
+            window_position['top'],
+            window_position['width'],
+            window_position['height']
+        )
+
+        # Load application level style sheet
+        self.ct_reload_stylesheet()
+
+    def ct_reload_stylesheet(self):
+        """
+        Sets application level style sheet.
+        Can update style sheet while application is running.
+        """
+        with open('StyleSheet.css', 'r') as style_sheet_file:
+            self.setStyleSheet(style_sheet_file.read())
+
+    def init_gui(self):
+        self.init_crypto_trader()
+
+        self._menu_bar = self.menuBar()
+        self._tool_bar = self.addToolBar('ToolBar')
+        self._tool_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+
+        if not self._actions:
+            self.init_actions()
+            self.init_menu_bar()
+            self.init_tool_bar()
+            self.init_status_bar()
+
+        print('Ready')
+
+    def init_crypto_trader(self):
+        if self._Crypto_Trader is None:
+            self._Crypto_Trader = CryptoTrader(
+                api_keys=self._API_KEYS,
+                settings=self._settings
+            )
+            print('Initialized Crypto Trader')
+        else:
+            self._Crypto_Trader.update_settings(
+                api_keys=self._API_KEYS,
+                settings=self._settings
+            )
+            print('Updated Crypto Trader Settings')
+
+    def log(self, message='', message_type='INFO'):
+        message = '{0} ({1}): {2}'.format(message_type, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message)
+        self._status_bar.showMessage(message)
+        self._status_bar.repaint()
+        self._full_log += '\n' + message
+
+    def init_actions(self):
+        """
+        Sets up self._actions using self._actions_setup
+        """
         self._actions_setup = [
             {
                 'Name': 'Balances',
@@ -117,96 +217,6 @@ class CTMainWindow(QMainWindow):
             },
         ]
 
-        # Declare Menu/Tool/Status bars
-        self._menu_bar = self.menuBar()
-        self._tool_bar = self.addToolBar('ToolBar')
-        self._tool_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        self._status_bar = self.statusBar()
-
-        # Display Login view
-        self.switch_view('Login')
-        self.show()
-
-    @staticmethod
-    def ct_read_settings_file():
-        """
-        Loading public (non-encrypted) settings file
-        :return: file contents as a dictionary
-        """
-        try:
-            with open('settings.json', 'rb') as settings_file:
-                file_contents = json.loads(settings_file.read())
-            return file_contents
-        except FileNotFoundError:
-            print('Settings file is missing')
-            return {}
-        except SyntaxError as e:
-            print('Settings file is corrupted: {}\n{}'.format(e, e.text))
-            return {}
-
-    def ct_init_window_style(self):
-        # Set window title and icon
-        self.setWindowTitle('Crypto Trader')
-        self.setWindowIcon(qta.icon('mdi.chart-line'))
-
-        # Set initial window position
-        window_position = self._settings.get('Initial Main Window Position and Size', {
-            "left":     50,
-            "top":      50,
-            "width":    1500,
-            "height":   800
-        })
-        self.setGeometry(
-            window_position['left'],
-            window_position['top'],
-            window_position['width'],
-            window_position['height']
-        )
-
-        # Load application level style sheet
-        self.ct_reload_stylesheet()
-
-    def ct_reload_stylesheet(self):
-        """
-        Sets application level style sheet.
-        Can update style sheet while application is running.
-        """
-        with open('StyleSheet.css', 'r') as style_sheet_file:
-            self.setStyleSheet(style_sheet_file.read())
-
-    def init_gui(self):
-        self.init_crypto_trader()
-
-        if not self._actions:
-            self.init_actions()
-            self.init_menu_bar()
-            self.init_tool_bar()
-            self.init_status_bar()
-
-        print('Ready')
-
-    def init_crypto_trader(self):
-        if self._Crypto_Trader is None:
-            self._Crypto_Trader = CryptoTrader(
-                api_keys=self._API_KEYS,
-                settings=self._settings
-            )
-            print('Initialized Crypto Trader')
-        else:
-            self._Crypto_Trader.update_settings(
-                api_keys=self._API_KEYS,
-                settings=self._settings
-            )
-            print('Updated Crypto Trader Settings')
-
-    def log(self, message='', message_type='INFO'):
-        message = '{0} ({1}): {2}'.format(message_type, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message)
-        self._status_bar.showMessage(message)
-
-    def init_actions(self):
-        """
-        Sets up self._actions using self._actions_setup
-        """
         for action in self._actions_setup:
             if 'Icon' in action:
                 self._actions[action['Name']] = QAction(action['Icon'], action['Name'], self)
