@@ -194,7 +194,7 @@ class CTMainWindow(QMainWindow):
             },
             {
                 'Name': 'Login',
-                'Icon': qta.icon('mdi.security-account'),
+                'Icon': qta.icon('mdi.security'),
                 'StatusTip': 'Login',
                 'Connect': lambda: self.switch_view('Login'),
             },
