@@ -4,13 +4,14 @@ from pydoc import locate
 
 
 class CryptoTrader:
-    def __init__(self, api_keys, settings):
+    def __init__(self, api_keys, settings, log):
         self.trader = {}
         self._map_currency_code_to_exchange_code = {}
         self._map_exchange_code_to_currency_code = {}
         self._active_markets = {}
         self._API_KEYS = api_keys
         self._SETTINGS = settings
+        self.log = log
         self.init_exchanges()
         self.update_exchange_instance_api_keys()
 
@@ -57,7 +58,7 @@ class CryptoTrader:
 
         # Parallel loading of currency definitions on exchanges
         for exchange in list_of_exchanges:
-            print('Loading currencies for ' + exchange)
+            self.log('Loading currencies for ' + exchange)
             t = threading.Thread(target=self.trader[exchange].update_currency_definitions)
             t.start()
             t.join(5)
@@ -98,7 +99,7 @@ class CryptoTrader:
                         map_currency_code_to_exchange_code[code]['Name'] = currency_name
 
                 except Exception as e:
-                    print(str(e))
+                    self.log(str(e))
 
             # Update exchange specific maps on exchange object
             self.trader[exchange]._map_exchange_code_to_currency_code = exchange_map_exchange_code_to_currency_code
@@ -107,22 +108,22 @@ class CryptoTrader:
         # Update overall currency maps on the CryptoTrader object
         self._map_currency_code_to_exchange_code = map_currency_code_to_exchange_code
         self._map_exchange_code_to_currency_code = map_exchange_code_to_currency_code
-        print('Done loading currencies')
+        self.log('Done loading currencies')
 
     def init_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
-            print('Loading market definitions for ' + exchange)
+            self.log('Loading market definitions for ' + exchange)
             t = threading.Thread(target=self.trader[exchange].update_market_definitions)
             t.start()
             t.join(5)
-        print('Done loading market definitions')
+        self.log('Done loading market definitions')
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
-            print('Loading market quotes for ' + exchange)
+            self.log('Loading market quotes for ' + exchange)
             t = threading.Thread(target=self.trader[exchange].update_market_quotes)
             t.start()
             t.join(5)
         self.refresh_agg_active_markets()
-        print('Done loading market quotes')
+        self.log('Done loading market quotes')
 
     def refresh_agg_active_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
@@ -138,7 +139,7 @@ class CryptoTrader:
     def load_active_markets(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             if not self.trader[exchange].has_implementation('ws_all_markets_best_bid_ask'):
-                print('Loading active markets for ' + exchange)
+                self.log('Loading active markets for ' + exchange)
                 t = threading.Thread(target=self.trader[exchange].update_market_quotes)
                 t.start()
                 t.join(5)
@@ -150,7 +151,7 @@ class CryptoTrader:
     def load_24hour_moves(self):
         for exchange in self._SETTINGS.get('Exchanges to Load', []):
             if not self.trader[exchange].has_implementation('ws_24hour_market_moves'):
-                print('Loading active markets for ' + exchange)
+                self.log('Loading active markets for ' + exchange)
                 t = threading.Thread(target=self.trader[exchange].update_market_24hrs)
                 t.start()
                 t.join(5)
@@ -163,7 +164,7 @@ class CryptoTrader:
         if exchange in self._map_exchange_code_to_currency_code:
             return self._map_exchange_code_to_currency_code[exchange].get(exchange_code, exchange_code)
         else:
-            print('ERROR CryptoTrader get_currency_code on {} code: '.format(exchange, exchange_code))
+            self.log('ERROR CryptoTrader get_currency_code on {} code: '.format(exchange, exchange_code))
             return None
 
     def get_market_symbol(self, exchange, code_base, code_curr):
@@ -267,7 +268,7 @@ class CryptoTrader:
                         self._balances_btc[code][exchange] = self.trader[exchange]._complete_balances_btc[currency]
                         self._balances_btc[code]['TotalBtcValue'] += self._balances_btc[code][exchange]['BtcValue']
                 except Exception as e:
-                    print("Error in load_balances_btc for currency " + currency + ": " + str(e))
+                    self.log("Error in load_balances_btc for currency " + currency + ": " + str(e))
         return self._balances_btc
 
     def calculate_balances_btc_totals(self, btc_usd_price=None):

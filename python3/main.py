@@ -116,21 +116,22 @@ class CTMainWindow(QMainWindow):
             self.init_tool_bar()
             self.init_status_bar()
 
-        print('Ready')
+        self.log('GUI initialized')
 
     def init_crypto_trader(self):
         if self._Crypto_Trader is None:
             self._Crypto_Trader = CryptoTrader(
                 api_keys=self._API_KEYS,
-                settings=self._settings
+                settings=self._settings,
+                log=self.log
             )
-            print('Initialized Crypto Trader')
+            self.log('Initialized Crypto Trader')
         else:
             self._Crypto_Trader.update_settings(
                 api_keys=self._API_KEYS,
                 settings=self._settings
             )
-            print('Updated Crypto Trader Settings')
+            self.log('Updated Crypto Trader Settings')
 
     def log(self, message='', message_type='INFO'):
         message = '{0} ({1}): {2}'.format(message_type, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), message)
