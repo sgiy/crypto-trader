@@ -19,8 +19,8 @@ class Exchange:
         self._balances = {}
         self._timestamps = {}
 
-        self._map_currency_code_to_exchange_code = {}
-        self._map_exchange_code_to_currency_code = {}
+        self._map_global_code_to_local_code = {}
+        self._map_local_code_to_global_code = {}
         self._map_market_to_global_codes = {}
 
         self._open_orders = {}
@@ -125,10 +125,10 @@ class Exchange:
         self.raise_not_implemented_error()
 
     def get_global_code(self, local_code):
-        return self._map_exchange_code_to_currency_code.get(local_code, None)
+        return self._map_local_code_to_global_code.get(local_code, None)
 
     def get_local_code(self, global_code):
-        return self._map_currency_code_to_exchange_code.get(global_code, None)
+        return self._map_global_code_to_local_code.get(global_code, None)
 
     def update_market(self, market_symbol, input_dict):
         """
